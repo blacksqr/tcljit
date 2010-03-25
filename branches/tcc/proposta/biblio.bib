@@ -1,0 +1,187 @@
+% Nao utilizado no momento
+% Unpublished class project report, Universidade de Wiconsin
+@MISC{dkoski,
+  author = {David Koski},
+  title = {A Tcl Compiler},
+  year = {1995},
+  month = {October},
+  howpublished = {Projeto de classe não publicado, Universidade de Wisconsin}
+}
+
+% Nao utilizado no momento
+@MISC{sah_blow,
+  author = {Adam Sah and Jon Blow},
+  title = {A Compiler for the Tcl Language},
+  year = {1993}
+}
+
+@techreport{sah_tc,
+  Author = {Adam Sah},
+  Title = {TC: An Efficient Implementation of the Tcl Language},
+  Institution = {EECS Department, University of California, Berkeley},
+  Year = {1994},
+  Month = {Apr},
+  URL = {http://www.eecs.berkeley.edu/Pubs/TechRpts/1994/5189.html},
+  Number = {UCB/CSD-94-812},
+  Abstract = {Tcl is a highly dynamic language that is especially challenging to execute efficiently. In this paper, I discuss many issues involved in implementing Tcl, and describe a design for a faster system that maintains Tcl semantics, including its C callout mechanism. This design focuses on a method for caching the parsed representation for data values, and lazily converting to strings on demand. This allows most computations to be performed using native types (e.g. integers) rather than strings. The current implementation is presented along with results showing a speedup of about 5-10 times over the existing Tcl interpreter.}
+}
+
+@InProceedings{tcl_bytecode,
+  author = {Lewis, Brian T.},
+  title = {An on-the-fly bytecode compiler for Tcl},
+  booktitle = {TCLTK'96: Proceedings of the 4th conference on USENIX Tcl/Tk Workshop, 1996},
+  year = {1996},
+  location = {Monterey, California},
+  publisher = {USENIX Association},
+  address = {Berkeley, CA, USA}
+}
+
+@techreport{ousterhout_89,
+  Author = {John K. Ousterhout},
+  Title = {Tcl: An Embeddable Command Language},
+  Institution = {EECS Department, University of California, Berkeley},
+  Year = {1989},
+  Month = {Nov},
+  URL = {http://www.eecs.berkeley.edu/Pubs/TechRpts/1989/5742.html},
+  Number = {UCB/CSD-89-541},
+  Abstract = {Tcl is an interpreter for a tool command language. It consists of a library package that is embedded in tools (such as editors, debuggers, etc.) as the basic command interpreter. Tcl provides (a) a parser for a simple textual command language, (b) a collection of built-in utility commands, and (c) a C interface that tools use to augment the built-in commands with tool-specific commands. Tcl is particularly attractive when integrated with the widget library of a window system: it increases the programmability of the widgets by providing mechanisms for variables, procedures, expressions, etc.; it allows users to program both the appearance and the actions of widgets; and it offers a simple but powerful communication mechanism between interactive programs.}
+}
+
+% Li só algumas partes
+% http://www.usenix.org/publications/library/proceedings/tcl95/full_papers/welch.txt
+@inproceedings{exmh,
+ author = {Brent Welch},
+ title = {Customization and flexibility in the exmh mail user interface},
+ booktitle = {TCLTK '98: Proceedings of the 3rd Annual USENIX Workshop on Tcl/Tk},
+ year = {1995},
+ location = {Toronto, Canada},
+ publisher = {USENIX Association},
+ address = {Berkeley, CA, USA}
+}
+
+@article{judo,
+ author = {Michal Cierniak and Guei-Yuan Lueh and James M. Stichnoth},
+ title = {Practicing JUDO: Java under dynamic optimizations},
+ journal = {SIGPLAN Not.},
+ volume = {35},
+ number = {5},
+ year = {2000},
+ issn = {0362-1340},
+ pages = {13--26},
+ doi = {http://doi.acm.org/10.1145/358438.349306},
+ publisher = {ACM},
+ address = {New York, NY, USA}
+}
+
+@inproceedings{suganuma1,
+ author = {Toshio Suganuma and Toshiaki Yasue and Motohiro Kawahito and Hideaki Komatsu and Toshio Nakatani},
+ title = {A dynamic optimization framework for a Java just-in-time compiler},
+ booktitle = {OOPSLA '01: Proceedings of the 16th ACM SIGPLAN conference on Object-oriented programming, systems, languages, and applications},
+ year = {2001},
+ isbn = {1-58113-335-9},
+ pages = {180--195},
+ location = {Tampa Bay, FL, USA},
+ doi = {http://doi.acm.org/10.1145/504282.504296},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+}
+
+@INPROCEEDINGS{yapc,
+  vscpubtype = {conference},
+  author = {Anderson Faustino da Silva and V\'itor Santos Costa},
+  title = {Design, Implementation, and Evaluation of an Dynamic Compilation Framework for the YAP System},
+  year = {2007},
+  pages = {},
+  editor = {Veronica Dahl and Ilkka Niemel\"a},
+  publisher = {Springer},
+  series = {Lecture Notes in Computer Science},
+  volume = {4670},
+  booktitle = {Proceedings of the 23rd International Conference on Logic Programming}
+}
+
+% acm diz 1995? http://portal.acm.org/citation.cfm?id=221640
+@phdthesis{holzle,
+ author = {Urs H\"olzle},
+ title = {Adaptive Optimization for SELF: Reconciling High Performance with Exploratory Programming},
+ year = {1994},
+ publisher = {Stanford University},
+ address = {Stanford, CA, USA},
+}
+
+% Relacionados
+@inproceedings{pypy,
+ author = {Armin Rigo and Samuele Pedroni},
+ title = {PyPy's approach to virtual machine construction},
+ booktitle = {OOPSLA '06: Companion to the 21st ACM SIGPLAN symposium on Object-oriented programming systems, languages, and applications},
+ year = {2006},
+ isbn = {1-59593-491-X},
+ pages = {944--953},
+ location = {Portland, Oregon, USA},
+ doi = {http://doi.acm.org/10.1145/1176617.1176753},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+}
+
+@article{jalapeno_1,
+ author = {B. Alpern and C. R. Attanasio and J. J. Barton and M. G. Burke and P. Cheng and J.-D. Choi and A. Cocchi and S. J. Fink and D. Grove and M. Hind and S. F. Hummel and D. Lieber and V. Litvinov and M. F. Mergen and T. Ngo and J. R. Russell and V. Sarkar and M. J. Serrano and J. C. Shepherd and S. E. Smith and V. C. Sreedhar and H. Srinivasan and J. Whaley},
+ title = {The Jalape\~no virtual machine},
+ journal = {IBM Syst. J.},
+ volume = {39},
+ number = {1},
+ year = {2000},
+ issn = {0018-8670},
+ pages = {211--238},
+ publisher = {IBM Corp.},
+ address = {Riverton, NJ, USA},
+}
+
+% Não li ainda
+@inproceedings{psyco,
+ author = {Armin Rigo},
+ title = {Representation-based just-in-time specialization and the psyco prototype for python},
+ booktitle = {PEPM '04: Proceedings of the 2004 ACM SIGPLAN symposium on Partial evaluation and semantics-based program manipulation},
+ year = {2004},
+ isbn = {1-58113-835-0},
+ pages = {15--26},
+ location = {Verona, Italy},
+ doi = {http://doi.acm.org/10.1145/1014007.1014010},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+ }
+
+@inproceedings{tcl_to_c,
+ author = {Forest R. Rouse and Wayne Christopher},
+ title = {A Tcl to C compiler},
+ booktitle = {TCLTK '98: Proceedings of the 3rd Annual USENIX Workshop on Tcl/Tk},
+ year = {1995},
+ location = {Toronto, Canada},
+ publisher = {USENIX Association},
+ address = {Berkeley, CA, USA},
+}
+
+@INPROCEEDINGS{vitale_catenation,
+    author = {Benjamin Vitale and Tarek S. Abdelrahman},
+    title = {Catenation and Specialization for Tcl Virtual Machine Performance},
+    booktitle = {In IVME ’04 Proceedings},
+    year = {2004},
+    pages = {42--50},
+    publisher = {ACM Press}
+}
+
+@book{bluebook,
+ author = {Adele Goldberg and David Robson},
+ title = {Smalltalk-80: the language and its implementation},
+ year = {1983},
+ isbn = {0-201-11371-6},
+ publisher = {Addison-Wesley Longman Publishing Co., Inc.},
+ address = {Boston, MA, USA},
+}
+
+@inproceedings{deutsch84efficient,
+    author = "L. Peter Deutsch and Allan M. Schiffman",
+    title = "Efficient Implementation of the {Smalltalk-80} System",
+    booktitle = "Conference Record of the Eleventh Annual {ACM} Symposium on Principles of Programming Languages",
+    address = "Salt Lake City, Utah",
+    pages = "297--302",
+    year = "1984",
+    }

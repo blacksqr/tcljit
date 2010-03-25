@@ -1,0 +1,157 @@
+\documentclass[12pt]{article}
+\usepackage[brazil]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{times}
+\usepackage{txfonts}
+\usepackage[a4paper,top=3cm,left=3cm,right=3cm,bottom=3cm]{geometry}
+\usepackage{setspace}
+\usepackage[parfill]{parskip}
+\usepackage{titlesec}
+\usepackage{sectsty}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+\onehalfspacing
+\titlespacing{\section}{0pt}{6pt}{6pt}
+\makeatletter
+\sectionfont{\fontfamily{phv}\fontseries{b}\fontsize{14}{\f@baselineskip}\selectfont}
+\subsectionfont{\fontfamily{phv}\fontseries{b}\fontsize{13}{\f@baselineskip}\selectfont}
+
+\newcommand{\instituicao}{Universidade Estadual de Maringá \\
+Centro de Tecnologia \\
+Departamento de Informática \\
+Bacharelado em Ciência da Computação \\
+\hfill}
+\newcommand{\titulo}{
+Trabalho de Conclusão de Curso - TCC 2010\\ [5cm]
+Tcl JIT}
+\newcommand{\areaconcentracao}{Compiladores}
+\newcommand{\autor}{Guilherme Henrique Polo Gonçalves}
+\newcommand{\orientador}{Prof. Dr. Anderson Faustino da Silva}
+\newcommand{\local}{Maringá}
+
+\newcommand*{\textbfsf}[1]{\textbf{\textsf{#1}}}
+
+
+\begin{document}
+
+\begin{titlepage}
+  \vfill
+  \begin{center}
+  {\Large \textbfsf \instituicao} \\
+  {\large \textbfsf \titulo}\\[5cm]
+  Área de Concentração: \areaconcentracao \\
+  Aluno: \autor\\ % XXX
+  Orientador: \orientador\\ % XXX
+  \vfill
+  \end{center}
+\end{titlepage}
+
+
+\section{Introdução}
+
+A linguagem de programação Tcl (\emph{Tool Command Language}) foi
+criada com o propósito de facilitar sua incorporação
+(\emph{embedding}) a programas que desejassem ter uma linguagem de
+comandos \cite{ousterhout_89}. Uma
+interface simples e extensível para aplicações em linguagem C era o
+fator motivante de seu uso. Programas inteiramente em Tcl eram
+vistos como pequenos scripts, muitos talvez de uma linha no
+máximo \cite{ousterhout_89}. Entretanto, a linguagem tem evoluído ao
+longo de mais de 20 anos e, com isso, seu uso se expandiu e programas
+muito maiores que uma linha como, por exemplo, exmh \cite{exmh},
+Tkabber ou Coccinella tem sido criados.
+
+Como em várias linguagens interpretadas, o desempenho da Tcl
+pode ser um obstáculo na construção de
+programas que exigem bastante do processador (\emph{CPU bound}).
+No caso específico de Tcl, esse
+tipo de problema tem sido circundado com a reescrita de
+trechos críticos na linguagem C e fazendo uso da API
+(\emph{Application Programming Interface}) fornecida pela linguagem
+para que tais partes possam ser utilizadas pelas outras partes de programas
+escritos puramente em Tcl.
+Por outro lado, a linguagem Java, um dos exemplos mais conhecidos, optou pela
+utilização da compilação dinâmica e usualmente todo código de um
+programa Java é escrito puramente em Java.
+
+A compilação dinâmica, ou JIT (\emph{Just-In-Time}), é assim chamada
+pois ocorre durante a execução de um programa. Tal programa pode ser
+um interpretador para uma linguagem de programação qualquer. Sendo
+assim, ao tempo de execução do programa é somado o tempo de todo o
+processo de compilação JIT. Com isso fica claro que esse compilador
+deve conseguir, eficientemente, identificar o que e quando compilar de
+forma que o código de máquina gerado execute em um tempo
+significantemente menor. Trabalhos relacionados, como JUDO
+\cite{judo}, Psyco \cite{psyco} e YAPc \cite{yapc} relatam
+ganhos significantes em tempo de execução para as linguagens Java,
+Python e Prolog respectivamente. Espera-se, então, que o trabalho
+aqui discutido possa ajudar a melhorar a performance da Tcl cuja
+existência da aplicação de compilação JIT para a mesma é desconhecida.
+
+%A compilação dinâmica, ou JIT (\emph{Just-In-Time}), com geração de
+%código de máquina em linguagens de programação iniciou-se com a
+%modificação do Smalltalk-80 %\cite{bluebook}
+%de forma a obter um sistema com
+%performance aceitável\cite{deutsch84efficient}.
+% Muitos outros
+%projetos de propósito similar tem sido construídos desde então.
+% Nessa implementação do Smalltalk, um
+%procedimento é traduzido de .. v-code .. para código nativo, denominado de
+%\emph{n-code}, antes de sua primeira execução \cite{deutsch84efficient}.
+
+
+\section{Objetivos e Justificativas}
+
+O trabalho proposto tem como objetivo final melhorar o desempenho
+de programas escritos em Tcl, sem que o código
+precise ser reescrito em uma linguagem como C que, consequentemente,
+resulta em perca das
+vantagens fornecidas pela linguagem de mais alto nível.
+
+Para alcançar
+essa meta, antes um estudo da linguagem Tcl deve ser realizado para que
+seja identificado os pontos onde há uma maior penalização causada pela
+interpretação. Tendo feito isso será possível focar apenas num
+subconjunto da Tcl. A compilação dinâmica irá, então, tratar desses
+pontos fazendo com que funções que sejam executadas muito
+frequentemente e que também satisfaçam critérios relacionados a
+efeitos colaterais causados por comandos da própria linguagem sejam
+compiladas para código nativo. Sendo assim, a infra-estrutura desse
+compilador JIT deve ser capaz de selecionar adequadamente
+procedimentos candidatos a compilação.
+
+Durante a execução do programa deve ser feito a coleta de informações
+sobre os parâmetros passados a um procedimento, também será necessário
+incluir contadores nos objetos internos que representam procedimentos
+para possibilitar a identificação da frequência de execução dos mesmos, e
+também é necessário analisar dinâmicamente o código de forma que seja possível
+decidir entre compilar um certo procedimento ou não.
+A contribuição mais significativa desse trabalho será essa análise
+dinâmica de código Tcl, que possibilita a geração eficiente de código
+nativo.
+
+
+\bibliographystyle{sbc}
+\bibliography{biblio}
+
+\begin{center}
+\vspace{5cm}
+\vbox{
+\clearpage
+\thispagestyle{empty}
+\null
+\begin{flushleft}
+\rule{0.55\textwidth}{0.5pt} \par
+\autor
+\vskip 0.35in
+\rule{0.55\textwidth}{0.5pt} \par
+\orientador
+\vskip 3cm
+\end{flushleft}
+}
+
+\local, 31 de Março de 2010
+\end{center}
+
+\end{document}
