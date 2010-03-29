@@ -56,58 +56,63 @@ compilador JIT (\textit{Just-In-Time}) na mesma.
 
 \section{Justificativas}
 Diversos trabalhos já demonstraram a possibilidade de aumentar o
-desempenho de linguagens com a aplicação de compilação
+desempenho de linguagens de programação com a aplicação de compilação
 dinâmica. Alguns desses projetos serão mencionados, e acredita-se que a
-\texttt{Tcl} possa também gerar resultados relevantes.
+linguagem de programação \texttt{Tcl} possa também obter 
+resultados relevantes.
 
-Uma implementação da linguagem \texttt{Smalltalk-80} descrita em
+A implementação da linguagem \texttt{Smalltalk-80} descrita em
 \cite{deutsch84efficient} traduz dinamicamente bytecodes da máquina
 virtual da \texttt{Smalltalk-80} para código nativo, obtendo,
-dependendo da estratégia utilizada, entre 1.45x e quase 2.0x
-melhor tempo de execução quando comparado a utilização de apenas
-interpretação.
+dependendo da estratégia utilizada, entre 1,45 e quase 2,0 vezes
+melhor tempo de execução quando comparado a utilização de
+interpretação pura.
 
 Um outro projeto, o Psyco \cite{psyco}, demonstra resultados
 excelentes em casos específicos de aritmética de inteiros, reduzindo
-em 109x o tempo de execução, e também em aritmética de
-ponto flutuante, obtendo melhoria de 10.9x no tempo gasto, para a linguagem
- \texttt{Python}.
+em 109 vezes o tempo de execução, e também em aritmética de
+ponto flutuante, obtendo melhoria de 10,9 vezes 
+no tempo gasto, para a linguagem de programação \texttt{Python}.
 
 Já a linguagem \texttt{Java} tem recebido considerável atenção
-em relação ao tópico discutido e várias máquinas virtuais foram
-criadas com a intenção de melhorar seu desempenho. Um exemplo é a Jalapeño JVM
+em relação ao tópico discutido e vários projetos utilizam
+um compilador dinâmico juntamente com a máquina virtual 
+com o objetivo de melhorar seu desempenho. Um exemplo é a Jalapeño JVM
 (\textit{Java Virtual Machine}), onde o trabalho descrito em
 \cite{jalapeno_1} apresenta uma comparação entre seu tempo de execução
 utilizando um compilador otimizador dinâmico contra
 interpretação da JVM IBM Developer Kit. Nessa comparação, a Jalapeño
-demonstra vantagens de 7 a 29x no tempo de execução.
+demonstra vantagens de 7 a 29 vezes no tempo de execução.
 
 
 \section{Breve fundamentação}
-Compilação JIT se refere a tradução de código conforme
-necessário. No caso desse trabalho, estamos interessados na tradução de
-\textit{bytecodes} da máquina virtual \texttt{Tcl} para código de máquina
+Compilação JIT se refere a tradução de código sob-demanda.
+No caso desse trabalho, estamos interessados na tradução de
+\textit{bytecodes} da máquina virtual \texttt{Tcl} \cite{} 
+para código de máquina
 durante o tempo de execução.
 
-Algumas linguagens, como \texttt{SELF} ou \texttt{Tcl}, são difíceis de serem
+Algumas linguagens, como \texttt{SELF} \cite{} 
+ou \texttt{Tcl}, são difíceis de serem
 analisadas e compiladas estaticamente de forma eficiente. Uma das
 causas pode ser a utilização de tipagem dinâmica. O resultado é
-que tais linguagens não conseguem alcançar boa performance devido, em partes, ao
+que tais linguagens não conseguem alcançar bom 
+desempenho devido, em partes, ao
 \textit{overhead} causado pela interpretação. São nessas linguagens de
 programação onde um compilador JIT se mostra mais necessário, pois a
 utilização de informações coletadas durante a execução do programa
 torna possível a geração de código mais eficiente.
 
 Um sistema que aplica compilação dinâmica funciona, basicamente,
-de uma das formas seguintes. No caso do \texttt{SELF-93} \cite{holzle}, os
-\textit{bytecodes} são convertidos para código de máquina antes de se
-executar qualquer método e a interpretação nunca é utilizada. Essa
+de uma das formas seguintes. No caso do \texttt{SELF-93} \cite{holzle}, 
+um método é convertido em código nativo antes de se
+sua invocação. Neste caso, a interpretação nunca é utilizada. Essa
 tradução é feita de forma rápida, fazendo com que o tempo de execução
 total não seja muito prejudicado, porém o código não é tão
-eficiente. Entretanto, métodos que executarem muito frequentemente serão
-notificados para o sistema de recompilação que, então, determina
+eficiente. Entretanto, métodos que executarem muito frequentemente
+notificarão o sistema de recompilação que, então, determina
 se o compilador otimizador deve ser utilizado ou não. Uma outra forma
-é a utilização de MMI (\textit{Mixed Mode Interpretation}), onde
+é a utilização de um modo misto de execução, onde
 interpretação e execução de código nativo se alternam. O \texttt{YAPc}
 \cite{yapc} funciona dessa forma, o que, no caso do \texttt{Prolog},
 significa que apenas as cláusulas utilizadas mais frequentemente serão
