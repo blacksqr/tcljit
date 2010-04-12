@@ -1010,7 +1010,7 @@ MODULE_SCOPE int	TclWordKnownAtCompileTime(Tcl_Token *tokenPtr,
 
 /*
  * Macro used to update the stack requirements. It is called by the macros
- * TclEmitOpCode, TclEmitInst1 and TclEmitInst4.
+ * TclEmitOpcode, TclEmitInst1 and TclEmitInst4.
  * Remark that the very last instruction of a bytecode always reduces the
  * stack level: INST_DONE or INST_POP, so that the maxStackdepth is always
  * updated.
