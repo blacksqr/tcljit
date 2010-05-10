@@ -110,7 +110,7 @@ seja compatível com um sistema que consome tempo de execução do programa.
 
 Finalmente temos a geração de código. O foco desse trabalho é a
 arquitetura IA-32, que possui uma ampla quantidade de instruções, extensões e
-diversas formas de endereçamento. % \cite{intel_basicarch}.
+diversas formas de endereçamento.
 Porém, não pretendemos fazer uso de todos os recursos disponíveis de
 forma a tornar factível a criação do gerador.
 Idéias e trechos de trabalhos anteriores, como Harpy \cite{harpy}
@@ -243,8 +243,9 @@ serão aqueles definidos na etapa de especificação do compilador JIT.
 
 Definir como detectar e lidar com exceções no código de máquina gerado,
 possibilitando a retomada da execução por meio de interpretação pura.
-
-XXX
+Essa, e outras situações, não estão planejadas para serem
+implementadas devido ao tempo disponível. Discussões de possíveis
+soluções serão levantadas no mesmo momento da etapa de avaliação.
 
 \textbfsf{Avaliação}
 
@@ -270,10 +271,9 @@ ao trabalho.
 \section{Cronograma de Execução}
 
 \begin{tabular}{m{55mm}|m{58mm}}
-%\begin{tabular}{l|l}
 \textbfsf{Etapa} & Mai\quad Jun\quad Jul\quad Ago\quad Set\quad Out\\
 \hline
-Levantamento bibliográfico & \rule{51 mm}{3mm}\\
+Levantamento bibliográfico & \rule{52 mm}{3mm}\\
 \hline
 Especificação do compilador JIT & \rule{4mm}{3mm}\hspace{11mm}\rule{3mm}{3mm}\hspace{11mm}\rule{3mm}{3mm} \\
 \hline
@@ -281,13 +281,11 @@ Especificação da arquitetura Tcl & \rule{4mm}{3mm}\hspace{14mm}\rule{4mm}{3mm}
 \hline
 Implementação do Compilador & \hspace{4mm}\rule{40mm}{3mm}\\
 \hline
-Acoplamento do compilador ao ambiente de execução & \hspace{44mm}\rule{10mm}{3mm}\\
+Acoplamento do compilador ao ambiente de execução & \hspace{44mm}\rule{8mm}{3mm}\\
 \hline
-Avaliação & \hspace{44mm}\rule{7mm}{3mm}\\
+Avaliação & \hspace{44mm}\rule{8mm}{3mm}\\
 \hline
 Escrita da Monografia & \rule{57mm}{3mm}
-%\hline
-%Otimizações* & XXX\\
 \end{tabular}
 
 
@@ -295,42 +293,5 @@ Escrita da Monografia & \rule{57mm}{3mm}
 % Hack: altera \section* para \section temporariamente
 \let\stdsection\section
 \def\section*#1{\stdsection{#1}}
-%\bibliographystyle{sbc}
 \bibliography{biblio}
 \let\section\stdsection
-
-
-%\section{Bibliografia Sugerida}
-% Para possivelmente ser investigada no decorrer do trabalho
-%\begin{enumerate}
-%\item \textbfsf{Artigos}
-%  \begin{itemize}
-%    \item One-Pass, Optimal Tree Parsing - With or Without Trees
-%    \item Division by Invariant Integers using Multiplication
-%    \item Linear Scan Register Allocation
-%    \item Tailoring Graph-coloring Register Allocation For Runtime
-%      Compilation
-%    \item Dynamic Native Optimization of Interpreters
-%    \item Optimally Profiling and Tracing Programs
-%    \item NOLTIS
-%    \item Near-optimal instruction selection on dag
-%    \item Fast and Flexible Instruction Selection with On-Demand Tree-Parsing Automata
-%  \end{itemize}
-%\item \textbfsf{Livros}
-%  \begin{itemize}
-%    \item The Compiler Design Handbook - 2nd (capítulos 16, 17, 19,
-%      21)
-%    \item Compilers: Principles, Techniques and Tools - 2nd (capítulos
-%      8, 9)
-%    \item Enigeering a Compiler (capítulos 9, 10, 11)
-%    \item Modern Compiler Implementation in C (capítulos 8, 9, 10, 11)
-%    \item Advanced compiler design and implementation (capítulos 4, 6)
-%  \end{itemize}
-%\item \textbfsf{Manuais}
-%  \begin{itemize}
-%    \item Intel 64 and IA-32 Architectures Software Developer's Manual
-%      - Volume 2A: Instruction Set Reference (A-M)
-%    \item Intel 64 and IA-32 Architectures Software Developer's Manual
-%      - Volume 2B: Instruction Set Reference (N-Z)
-%  \end{itemize}
-%\end{enumerate}
