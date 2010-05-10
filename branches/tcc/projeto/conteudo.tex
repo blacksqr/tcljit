@@ -1,0 +1,297 @@
+\section{Introdução}
+
+Linguagens de programação interpretadas tem sacrificado performance
+em favor de um alto nível de abstração do funcionamento da máquina
+envolvida, possibilitando maior expressividade, facilidade de
+desenvolvimento, portabilidade, flexibilidade, dinamicidade, entre outros.
+Especificamente a linguagem de programação \texttt{Tcl}
+(\textit{Tool Command Language}), teve como um de seus maiores
+objetivos a facilidade de incorporação (\textit{embedding}) a
+programas que desejassem ter uma linguagem de comandos
+\cite{ousterhout_89}. Uma interface simples e extensível para
+aplicações em linguagem \texttt{C} era o fator motivante de seu uso.
+Programas inteiramente em \texttt{Tcl} eram vistos como pequenos
+scripts, muitos talvez de uma linha no máximo \cite{ousterhout_89}.
+Entretanto, aplicações em \texttt{Tcl} com milhares de linhas,
+como por exemplo exmh \cite{exmh}, OpenACS \cite{openacs} ou mesmo a
+suíte de testes do GDB (\textit{GNU Debugger}) \cite{gdb_testsuite},
+tem surgido e a reescrita de trechos críticos em \texttt{C} vem sendo
+aplicada para reduzir o impacto da máquina virtual no tempo de execução.
+
+Outra forma de melhorar o desempenho de linguagens e, portanto,
+reduzir a necessidade de reescrita de código em linguagens compiladas,
+é através da utilização da compilação JIT (\textit{Just-In-Time}) que
+realiza tradução de código sob demanda. No caso desse trabalho, estamos
+interessados na tradução de \textit{bytecodes} da máquina virtual
+\texttt{Tcl} para código de máquina durante o tempo de execução.
+Informações acerca do programa em execução são coletadas
+conforme necessário para dirigir a compilação dinâmica. Portanto,
+linguagens tipicamente difíceis de serem analisadas e compiladas
+estaticamente, devido a uso de, por exemplo, tipagem dinâmica ou
+escopo dinâmico, ganham a oportunidade de melhoria de desempenho
+com uso de tal sistema de compilação.
+
+O trabalho presente pretende melhorar o desempenho da linguagem
+\texttt{Tcl}, reduzindo o tempo de decodificação e interpretação
+de \textit{bytecodes} através da implementação e implantação de um
+compilador JIT na mesma. Diversos trabalhos, como
+\cite{deutsch84efficient} para a linguagem \texttt{Smalltalk},
+Jalapeño \cite{jalapeno_1} para \texttt{Java}, Psyco \cite{psyco}
+para \texttt{Python} ou a implementação do SELF-93 \cite{holzle}, já
+demonstraram resultados bastante significativos ao implantar tal
+método de compilação. Pretende-se ainda manter um nível de
+manutenibilidade e flexibilidade adequado, permitindo extensões e
+futuro desenvolvimento sobre esse trabalho inicial.
+
+As seções seguintes dessa proposta estabelecem o que, e como, será
+feito no decorrer do trabalho.
+
+\section{Objetivos}
+
+Construir um compilador JIT que gere código de máquina para a
+arquitetura IA-32 durante a interpretação de programas \texttt{Tcl}
+é o grande objetivo desse trabalho.
+
+Certas construções de linguagem existentes na \texttt{Tcl} dificultam
+o processo de compilação (estática ou dinâmica) e já foram alvo de
+discussão em trabalhos passados \cite{sah_blow} \cite{sah_tc}, levando
+até mesmo a decisão de se criar uma outra linguagem similar \cite{rush_lang}
+eliminando as construções mais problemáticas. Por essa razão, o
+trabalho discutido aqui pretende focar em apenas um subconjunto
+significativo da linguagem.
+
+O projeto também pretende explorar como sistemas compactos, simples e com
+menos recursos se comparados a frameworks como LLVM (
+\textit{Low Level Virtual Machine}) \cite{llvm_2002}, influenciam no desempenho
+geral. Porém, apesar da simplicidade em vista, espera-se que o
+trabalho desenvolvido possa servir de base para expansão e criação de
+novos recursos.
+
+
+\section{Proposta}
+
+Para chegar ao código de máquina final, esse projeto pretende em
+primeiro momento estudar e definir qual subconjunto da linguagem pode
+se beneficiar mais com tal técnica. O subsistema de Entrada/Saída, por
+exemplo, dificilmente ganharia em desempenho com compilação dinâmica
+uma vez que o tempo gasto para transferência e aguardo por dispositivos
+costuma ser muito maior que o tempo das outras operações envolvidas.
+Por outro lado, operações aritméticas podem ser bastante favorecidas.
+O trabalho feito no Psyco, mostra melhoria
+de 109 vezes no tempo de execução para aritmética de inteiros e 10,9
+vezes em aritmética de ponto flutuante \cite{psyco}.
+
+Em paralelo ao requisito acima, será iniciado o projeto e
+implementação de uma representação intermediária de baixo
+nível. Queremos utilizar um conjunto reduzido de instruções, assim
+como é feito na GNU lightning \cite{gnu_lightning}, para construir uma
+árvore de instruções mais próximas da máquina alvo. O uso de
+árvore aqui é devido a existência de diversos métodos para seleção de
+instruções que trabalham sobre essa forma de representação
+\cite{ir_tree_parsing}. O sistema de compilação dinâmica precisa ser
+capaz de determinar quando iniciar e parar a construção de tal árvore.
+Nesse projeto a intenção é fazer uso dos
+limites de um procedimento como pontos de inicio e parada. Ainda aqui,
+é importante que o sistema colete informações, como de tipos
+utilizados, necessárias de forma a simplificar o código gerado, para
+que não repliquemos os resultados do trabalho feito em
+\cite{vitale_catenation}.
+
+Após as etapas acima, chegamos na fase de seleção de instruções
+seguida de alocação de registradores. Há diversos algoritmos, como
+\textit{Maximal Munch}, seleção com uso de programação dinâmica ou
+NOLTIS \cite{noltis}  para seleção de instruções além de vários
+outros, por coloração de grafos ou mesmo através de uma varredura
+linear \cite{linear_scan_regalloc}, para alocação de registradores.
+Ainda não está decidido quais dos algoritmos serão aplicados nesse
+projeto, porém as metas são duas: que a implementação permita utilizar
+diferentes algoritmos e que o tempo gasto para execução deles
+seja compatível com um sistema que consome tempo de execução do programa.
+
+Finalmente temos a geração de código. O foco desse trabalho é a
+arquitetura IA-32, que possui uma ampla quantidade de instruções, extensões e
+diversas formas de endereçamento.
+Porém, não pretendemos fazer uso de todos os recursos disponíveis de
+forma a tornar factível a criação do gerador.
+Idéias e trechos de trabalhos anteriores, como Harpy \cite{harpy}
+ou o \textit{Tiny Code Generator} (incluído nas versões mais recentes do
+QEMU \cite{qemu}), podem ser reutilizadas aqui.
+Ainda, de forma semelhante com a etapa anterior, a infraestrutura
+permitirá a implantação de geração de código para outras arquiteturas.
+
+
+\section{Revisão Bibliográfica}
+
+A linguagem \texttt{Tcl} já obteve ganhos de performance em diferentes
+estudos feitos. Um deles, que atualmente faz parte da implementação da
+linguagem, descrito em \cite{tcl_bytecode}, é a geração e a
+interpretação de \textit{bytecodes}. Anterior a esse trabalho, foi
+demonstrado em \cite{sah_tc} que o \textit{parsing} do código
+realizado a todo momento para sua reinterpretação e também a conversão
+excessiva entre tipos de dados, já que a \texttt{Tcl} trata tudo como string,
+eram os grandes consumidores do tempo de execução. Com esse trabalho
+feito, a linguagem passou a utilizar representações duplas para os
+valores presentes na execução do programa. Uma representação é
+interna, possivelmente mais eficiente para se trabalhar. A outra é a
+típica representação em string que a linguagem sempre usou. Caso uma
+delas não esteja disponível, a outra é utilizada para recriar essa
+representação se necessário.
+
+Um trabalho mais recente, descrito em \cite{vitale_catenation}, lida
+com a eliminação do \textit{overhead} de decodificação dos
+\textit{bytecodes}, introduzido pelo trabalho descrito anteriormente,
+fazendo uso de \textit{templates} que contém as instruções em
+código nativo utilizadas para interpretar cada \textit{bytecode}.
+Esse código é obtido através da compilação do próprio interpretador
+\texttt{Tcl} e cada \textit{template} é copiado múltiplas vezes,
+numa área de memória alocada em tempo de execução, conforme a quantidade de
+cada \textit{bytecode} gerado. Nesse trabalho o interpretador foi
+modificado de forma a sempre executar somente tal código formado por
+uma concatenação de \textit{templates}, eliminando o \textit{overhead} de
+decodificação. Demonstrou-se que em certos testes o desempenho da
+linguagem pode melhorar em até 60\% com a aplicação dessa técnica.
+Esse trabalho é provavelmente o mais próximo, quando considerando
+somente a \texttt{Tcl}, do que se pretende produzir aqui.
+Ele não gera código, mas cópia código já gerado por um compilador
+estático e replica conforme necessário, fazendo os devidos
+ajustes, em tempo de execução. Por um lado o tempo de ``compilação'' é
+bastante baixo, porém, não dá espaço para técnicas de otimização e assim
+limita o potencial de melhoria de desempenho.
+
+Outros trabalhos, para diferentes linguagens, se assemelham mais com a
+proposta aqui discutida. A busca por máquinas virtuais de alta
+performance tem, atualmente, se dirigido principalmente a linguagem
+\texttt{Java}. É comum a presença de compiladores JIT nessas máquinas
+virtuais, cada um com diferentes características. A JUDO \cite{judo}, faz uso
+de compilação dinâmica com dois tipos de compiladores e coleta
+informações em tempo de execução. O primeiro desses compiladores é um
+mais simples, que gera código rapidamente, destinado a compilação
+de métodos invocados pela primeira vez. O segundo compilador é
+utilizado quando informações coletadas indicam que certos métodos
+são executados muito frequentemente e, portanto, estes podem se
+beneficiar com a aplicação de otimizações. Essa recompilação dinâmica
+é feita com o intuito de balancear o tempo gasto na compilação com o tempo
+efetivamente gasto na execução do programa. Esse sistema trabalha com
+a compilação de métodos por inteiro, assim como o trabalho proposto
+aqui. Já o trabalho discutido em \cite{suganuma_pldi_2003} avalia a
+aplicação de compilação dinâmica a regiões de código, evitando
+a compilação de trechos raramente executados. Além disso, esse sistema
+utiliza um modo misto de execução, onde interpretação e execução de
+código nativo se alternam. Nesse ponto, nosso trabalho e aquele em
+\cite{suganuma_pldi_2003} se assemelham.
+
+% LLVM talvez
+
+
+\section{Metodologia}
+
+A metodologia será experimental, onde será implementado uma
+``ferramenta'' e então avaliada para provar a tese. A seguir são
+resumidas as etapas previstas para a construção desse trabalho.
+\quad\\
+
+\textbfsf{Levantamento bibliográfico}
+
+Selecionar artigos, livros e manuais a serem utilizados ao longo da
+escrita textual e também na escrita de código. Essa etapa ocorre em
+paralelo a todas as outras descritas adiante, pois novos
+documentos serão selecionados conforme o trabalho avança em direção
+aos objetivos estabelecidos.
+
+\textbfsf{Especificação do compilador JIT}
+
+Estabelecer um formato para a representação intermediária, avaliar e
+definir algoritmos para seleção de instruções e alocação de
+registradores serão realizados aqui. Essa etapa ocorrerá logo no inicio
+do projeto e também durante o progresso da implementação do compilador
+de forma a validar as escolhas feitas.
+
+Também será estabelecido como a implementação do compilador deverá
+acontecer, mantendo o objetivo de permitir que algoritmos
+alternativos venham a ser utilizados no lugar daqueles aqui
+selecionados e possibilitando que diferentes arquiteturas explorem os
+recursos disponíveis de maneira adequada.
+
+\textbfsf{Especificação da arquitetura da \texttt{Tcl}}
+
+Inicialmente será feito uma análise para verificar qual subconjunto da
+linguagem cabe ao trabalho proposto. A máquina virtual deve então ser
+ajustada para conseguir determinar quando um procedimento se enquadra no
+subconjunto definido ou não, decidindo entre inserir o
+procedimento como candidato a compilação JIT ou não. Outro ajuste está
+relacionado com a notificação ao compilador JIT sobre comandos que são
+redefinidos, possivelmente alterando o código anterior associado a ele, e
+portanto precisam ser recompilados. A máquina virtual da \texttt{Tcl}
+já conta com um contador para cada comando implementado, do usuário ou
+não, que é incrementado a cada redefinição e, assim, esse
+compilador fará uso desse recurso.
+
+Essa etapa será feita em diversos momentos, conforme a implementação
+do compilador progride, validando o que foi já definido.
+
+\textbfsf{Implementação do Compilador}
+
+Essa etapa refere-se a implementação da representação intermediária de
+baixo nível, seleção de instruções, alocação de registradores e
+geração de código de máquina para a arquitetura IA-32. Os algoritmos
+utilizados para seleção de instruções e alocação de registradores
+serão aqueles definidos na etapa de especificação do compilador JIT.
+
+\textbfsf{Acoplamento do compilador ao ambiente de execução}
+
+% XXX
+
+Definir como detectar e lidar com exceções no código de máquina gerado,
+possibilitando a retomada da execução por meio de interpretação pura.
+Essa, e outras situações, não estão planejadas para serem
+implementadas devido ao tempo disponível. Discussões de possíveis
+soluções serão levantadas no mesmo momento da etapa de avaliação.
+
+\textbfsf{Avaliação}
+
+Pretende-se fazer uso da suíte de \textit{benchmarks}
+tclbench \cite{tcllib_bench} já que essa tem sido utilizada para verificar
+e comparar a performance da \texttt{Tcl} ao longo de vários
+anos. Outras formas de avaliação, como tamanho de código gerado e
+tempo gasto para compilação por \textit{bytecode} também
+poderão ser aplicadas conforme o tempo permitir. Planeja-se iniciar
+essa etapa após a implementação, pois há dependência de um sistema JIT
+em funcionamento para se executar a avaliação.
+
+\textbfsf{Elaboração da Monografia}
+
+Partes textuais da monografia, que não dependam de resultados obtidos
+através da realização das etapas de implementação, serão escritas quão
+antes possível. Experimentos realizados ao longo do desenvolvimento
+influenciarão diversas seções do trabalho escrito e, portanto, o
+desenvolvimento dessa parte se dará ao longo de todo o tempo disposto
+ao trabalho.
+
+
+\section{Cronograma de Execução}
+
+\begin{tabular}{m{55mm}|m{58mm}}
+\textbfsf{Etapa} & Mai\quad Jun\quad Jul\quad Ago\quad Set\quad Out\\
+\hline
+Levantamento bibliográfico & \rule{52 mm}{3mm}\\
+\hline
+Especificação do compilador JIT & \rule{4mm}{3mm}\hspace{11mm}\rule{3mm}{3mm}\hspace{11mm}\rule{3mm}{3mm} \\
+\hline
+Especificação da arquitetura Tcl & \rule{4mm}{3mm}\hspace{14mm}\rule{4mm}{3mm}\hspace{10mm}\rule{4mm}{3mm}\\
+\hline
+Implementação do Compilador & \hspace{4mm}\rule{40mm}{3mm}\\
+\hline
+Acoplamento do compilador ao ambiente de execução & \hspace{44mm}\rule{8mm}{3mm}\\
+\hline
+Avaliação & \hspace{44mm}\rule{8mm}{3mm}\\
+\hline
+Escrita da Monografia & \rule{57mm}{3mm}
+\end{tabular}
+
+
+% Referências
+% Hack: altera \section* para \section temporariamente
+\let\stdsection\section
+\def\section*#1{\stdsection{#1}}
+\bibliography{biblio}
+\let\section\stdsection

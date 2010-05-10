@@ -1,0 +1,96 @@
+\documentclass[12pt]{article}
+\usepackage[brazil]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{ae}
+\usepackage{times}
+\usepackage{txfonts}
+\usepackage[a4paper,top=3cm,left=3cm,right=3cm,bottom=3cm]{geometry}
+\usepackage{setspace}
+\usepackage[parfill]{parskip}
+\usepackage{titlesec}
+\usepackage{sectsty}
+\usepackage{url}
+\usepackage[alf]{abntcite}
+\usepackage{array}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+\onehalfspacing
+\titlespacing{\section}{0pt}{6pt}{6pt}
+\makeatletter
+\sectionfont{\fontfamily{phv}\fontseries{b}\fontsize{14}{\f@baselineskip}\selectfont}
+\subsectionfont{\fontfamily{phv}\fontseries{b}\fontsize{13}{\f@baselineskip}\selectfont}
+
+\newcommand{\instituicao}{Universidade Estadual de Maringá \\
+Centro de Tecnologia \\
+Departamento de Informática \\
+Bacharelado em Ciência da Computação \\
+\hfill}
+\newcommand{\tcc}{Trabalho de Conclusão de Curso - TCC 2010}
+\newcommand{\titulo}{Tcl JIT}
+\newcommand{\autor}{Guilherme Henrique Polo Gonçalves}
+\newcommand{\orientador}{Prof. Dr. Anderson Faustino da Silva}
+\newcommand{\local}{Maringá}
+
+\newcommand*{\textbfsf}[1]{\textbf{\textsf{#1}}}
+
+\pdfinfo{
+  /Author (\autor)
+  /Title (\titulo)
+  /Keywords (Tcl;JIT;código de máquina)
+}
+
+\begin{document}
+
+% Capa
+\begin{titlepage}
+  \begin{center}
+    {\Large \textbfsf \instituicao}\\
+    {\large \textbfsf \tcc}
+    \vfill
+    {\large \textbfsf \titulo}
+    \vfill
+    \autor\\
+    Orientador: \orientador\\ % XXX
+  \end{center}
+
+  \vfill
+
+  % Assinaturas
+  \begin{flushright}
+    \begin{minipage}{0.55\textwidth}
+      \vbox{
+        \rule{\textwidth}{0.5pt} \par
+        \begin{center}\autor\end{center}
+        \vskip 0.35in
+        \rule{\textwidth}{0.5pt} \par
+        \begin{center}\orientador\end{center}}
+    \end{minipage}
+  \end{flushright}
+  % Local e data
+  \vfill
+  \begin{center}
+    \local, \@date
+  \end{center}
+
+\end{titlepage}
+
+% Segunda página com resumo.
+\clearpage
+\thispagestyle{empty}
+\begin{center}
+  {\large \textbfsf \titulo}\\
+  \quad\\
+  \autor\\
+  Orientador: \orientador\\ % XXX
+  \quad\\
+\end{center}
+\input{resumo}
+\newpage
+
+% Conteúdo da proposta de projeto.
+\setcounter{page}{1}
+\include{conteudo}
+
+\end{document}

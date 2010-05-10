@@ -1,0 +1,152 @@
+\documentclass[12pt]{article}
+\usepackage[brazil]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage{times}
+\usepackage{txfonts}
+\usepackage[a4paper,top=3cm,left=3cm,right=3cm,bottom=3cm]{geometry}
+\usepackage{setspace}
+\usepackage[parfill]{parskip}
+\usepackage{titlesec}
+\usepackage{sectsty}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+\onehalfspacing
+\titlespacing{\section}{0pt}{6pt}{6pt}
+\makeatletter
+\sectionfont{\fontfamily{phv}\fontseries{b}\fontsize{14}{\f@baselineskip}\selectfont}
+\subsectionfont{\fontfamily{phv}\fontseries{b}\fontsize{13}{\f@baselineskip}\selectfont}
+
+\newcommand{\instituicao}{Universidade Estadual de Maringá \\
+Centro de Tecnologia \\
+Departamento de Informática \\
+Bacharelado em Ciência da Computação \\
+\hfill}
+\newcommand{\titulo}{
+Trabalho de Conclusão de Curso - TCC 2010\\ [5cm]
+Tcl JIT}
+\newcommand{\areaconcentracao}{Compiladores}
+\newcommand{\autor}{Guilherme Henrique Polo Gonçalves}
+\newcommand{\orientador}{Prof. Dr. Anderson Faustino da Silva}
+\newcommand{\local}{Maringá}
+
+\newcommand*{\textbfsf}[1]{\textbf{\textsf{#1}}}
+
+\begin{document}
+
+\begin{titlepage}
+  \vfill
+  \begin{center}
+  {\Large \textbfsf \instituicao} \\
+  {\large \textbfsf \titulo}\\[5cm]
+  Área de Concentração: \areaconcentracao \\
+  Aluno: \autor\\ % XXX
+  Orientador: \orientador\\ % XXX
+  \vfill
+  \end{center}
+\end{titlepage}
+
+
+\section{Objetivos gerais}
+Melhorar o desempenho de programas escritos na linguagem de
+programação \texttt{Tcl}
+(\emph{Tool Command Language}) através da criação e implantação de um
+compilador JIT (\textit{Just-In-Time}) na mesma.
+
+
+\section{Justificativas}
+Diversos trabalhos já demonstraram a possibilidade de aumentar o
+desempenho de linguagens de programação com a aplicação de compilação
+dinâmica. Alguns desses projetos serão mencionados, e acredita-se que a
+linguagem de programação \texttt{Tcl} possa também obter 
+resultados relevantes.
+
+A implementação da linguagem \texttt{Smalltalk-80} descrita em
+\cite{deutsch84efficient} traduz dinamicamente bytecodes da máquina
+virtual da \texttt{Smalltalk-80} para código nativo, obtendo,
+dependendo da estratégia utilizada, entre 1,45 e quase 2,0 vezes
+melhor tempo de execução quando comparado a utilização de
+interpretação pura.
+
+Um outro projeto, o Psyco \cite{psyco}, demonstra resultados
+excelentes em casos específicos de aritmética de inteiros, reduzindo
+em 109 vezes o tempo de execução, e também em aritmética de
+ponto flutuante, obtendo melhoria de 10,9 vezes 
+no tempo gasto, para a linguagem de programação \texttt{Python}.
+
+Já a linguagem \texttt{Java} tem recebido considerável atenção
+em relação ao tópico discutido e vários projetos utilizam
+um compilador dinâmico juntamente com a máquina virtual 
+com o objetivo de melhorar seu desempenho. Um exemplo é a Jalapeño JVM
+(\textit{Java Virtual Machine}), onde o trabalho descrito em
+\cite{jalapeno_1} apresenta uma comparação entre seu tempo de execução
+utilizando um compilador otimizador dinâmico contra
+interpretação da JVM IBM Developer Kit. Nessa comparação, a Jalapeño
+demonstra vantagens de 7 a 29 vezes no tempo de execução.
+
+
+\section{Breve fundamentação}
+Compilação JIT se refere a tradução de código sob-demanda.
+No caso desse trabalho, estamos interessados na tradução de
+\textit{bytecodes} da máquina virtual \texttt{Tcl} \cite{ousterhout_89} 
+para código de máquina
+durante o tempo de execução.
+
+Algumas linguagens, como \texttt{SELF} \cite{self_origin} 
+ou \texttt{Tcl}, são difíceis de serem
+analisadas e compiladas estaticamente de forma eficiente. Uma das
+causas pode ser a utilização de tipagem dinâmica. O resultado é
+que tais linguagens não conseguem alcançar bom 
+desempenho devido, em partes, ao
+\textit{overhead} causado pela interpretação. São nessas linguagens de
+programação onde um compilador JIT se mostra mais necessário, pois a
+utilização de informações coletadas durante a execução do programa
+torna possível a geração de código mais eficiente.
+
+Um sistema que aplica compilação dinâmica funciona, basicamente,
+de uma das formas seguintes. No caso do \texttt{SELF-93} \cite{holzle}, 
+um método é convertido em código nativo antes de se
+sua invocação. Neste caso, a interpretação nunca é utilizada. Essa
+tradução é feita de forma rápida, fazendo com que o tempo de execução
+total não seja muito prejudicado, porém o código não é tão
+eficiente. Entretanto, métodos que executarem muito frequentemente
+notificarão o sistema de recompilação que, então, determina
+se o compilador otimizador deve ser utilizado ou não. Uma outra forma
+é a utilização de um modo misto de execução, onde
+interpretação e execução de código nativo se alternam. O \texttt{YAPc}
+\cite{yapc} funciona dessa forma, o que, no caso do \texttt{Prolog},
+significa que apenas as cláusulas utilizadas mais frequentemente serão
+compiladas.
+
+Independente da forma de funcionamento implementada, um sistema JIT
+elimina parte do \textit{overhead} da interpretação para que o
+programa obtenha melhor desempenho. Tempo de decodificação e interpretação de
+\textit{bytecodes} podem ser significantemente reduzidos, enquanto que
+tarefas relacionadas a, por exemplo, sincronização ou alocação de
+memória não são diretamente afetados pelo JIT.
+
+\bibliographystyle{sbc}
+\bibliography{biblio}
+
+%\clearpage
+\vspace{5cm}
+
+\begin{center}
+\vbox{
+\clearpage
+\thispagestyle{empty}
+\null
+\begin{flushleft}
+\rule{0.55\textwidth}{0.5pt} \par
+\autor
+\vskip 0.35in
+\rule{0.55\textwidth}{0.5pt} \par
+\orientador
+\vskip 2.5cm
+\end{flushleft}
+}
+
+\local, \@date
+\end{center}
+
+\end{document}
