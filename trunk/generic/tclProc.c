@@ -17,6 +17,9 @@
 
 #include "tclInt.h"
 #include "tclCompile.h"
+/* XXX ifdef TCL_JIT */
+#include "jit/tclJitCompile.h"
+/* XXX endif */
 
 /*
  * Prototypes for static functions in this file
@@ -1759,6 +1762,9 @@ TclObjInterpProcCore(
 	if (TCL_DTRACE_PROC_RETURN_ENABLED()) {
 	    TCL_DTRACE_PROC_RETURN(TclGetString(procNameObj), result);
 	}
+	/* XXX ifdef TCL_JIT */
+	int xxresult = JIT_Compile(procNameObj, interp, codePtr);
+	/* XXX endif */
 	codePtr->refCount--;
 	if (codePtr->refCount <= 0) {
 	    TclCleanupByteCode(codePtr);
