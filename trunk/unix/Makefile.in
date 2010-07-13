@@ -224,6 +224,7 @@ SRC_DIR			= @srcdir@
 TOP_DIR			= $(SRC_DIR)/..
 BUILD_DIR		= @builddir@
 GENERIC_DIR		= $(TOP_DIR)/generic
+GENERICJIT_DIR		= $(TOP_DIR)/generic/jit
 TOMMATH_DIR		= $(TOP_DIR)/libtommath
 COMPAT_DIR		= $(TOP_DIR)/compat
 TOOL_DIR		= $(TOP_DIR)/tools
@@ -260,8 +261,9 @@ DDD			= ddd
 #--------------------------------------------------------------------------
 
 STUB_CC_SWITCHES = ${CFLAGS} ${CFLAGS_WARNING} ${SHLIB_CFLAGS} \
--I"${BUILD_DIR}" -I${UNIX_DIR} -I${GENERIC_DIR} -I${TOMMATH_DIR} \
-${AC_FLAGS} ${PROTO_FLAGS} ${ENV_FLAGS} ${EXTRA_CFLAGS} @EXTRA_CC_SWITCHES@
+-I"${BUILD_DIR}" -I${UNIX_DIR} -I${GENERIC_DIR} -I${GENERICJIT_DIR} \
+-I${TOMMATH_DIR} ${AC_FLAGS} ${PROTO_FLAGS} ${ENV_FLAGS} ${EXTRA_CFLAGS} \
+@EXTRA_CC_SWITCHES@
 
 CC_SWITCHES = $(STUB_CC_SWITCHES) ${NO_DEPRECATED_FLAGS}
 
@@ -270,7 +272,8 @@ APP_CC_SWITCHES = $(CC_SWITCHES) @EXTRA_APP_CC_SWITCHES@
 LIBS		= @TCL_LIBS@
 
 DEPEND_SWITCHES	= ${CFLAGS} -I${UNIX_DIR} -I${GENERIC_DIR} \
-${AC_FLAGS} ${PROTO_FLAGS} ${EXTRA_CFLAGS} @EXTRA_CC_SWITCHES@
+-I${GENERICJIT_DIR} ${AC_FLAGS} ${PROTO_FLAGS} ${EXTRA_CFLAGS} \
+@EXTRA_CC_SWITCHES@
 
 TCLSH_OBJS = tclAppInit.o
 
@@ -296,6 +299,8 @@ GENERIC_OBJS = regcomp.o regexec.o regfree.o regerror.o tclAlloc.o \
 	tclThreadAlloc.o tclThreadJoin.o tclThreadStorage.o tclStubInit.o \
 	tclStubLib.o tclTimer.o tclTrace.o tclUtf.o tclUtil.o tclVar.o \
 	tclTomMathInterface.o
+
+GENERICJIT_OBJS = tclJitCompile.o tclJitOutput.o
 
 TOMMATH_OBJS = bncore.o bn_reverse.o bn_fast_s_mp_mul_digs.o \
 	bn_fast_s_mp_sqr.o bn_mp_add.o bn_mp_and.o \
@@ -330,8 +335,8 @@ MAC_OSX_OBJS = tclMacOSXBundle.o tclMacOSXFCmd.o tclMacOSXNotify.o
 
 DTRACE_OBJ = tclDTrace.o
 
-TCL_OBJS = ${GENERIC_OBJS} ${UNIX_OBJS} ${NOTIFY_OBJS} ${COMPAT_OBJS} \
-	@DL_OBJS@ @PLAT_OBJS@
+TCL_OBJS = ${GENERIC_OBJS} ${GENERICJIT_OBJS} ${UNIX_OBJS} \
+	${NOTIFY_OBJS} ${COMPAT_OBJS} @DL_OBJS@ @PLAT_OBJS@
 
 OBJS = ${TCL_OBJS} ${TOMMATH_OBJS} @DTRACE_OBJ@
 
@@ -425,6 +430,14 @@ GENERIC_SRCS = \
 	$(GENERIC_DIR)/tclTrace.c \
 	$(GENERIC_DIR)/tclUtil.c \
 	$(GENERIC_DIR)/tclVar.c
+
+GENERICJIT_HDRS = \
+	$(GENERICJIT_DIR)/tclJitCompile.h \
+	$(GENERICJIT_DIR)/tclJitOutput.h
+
+GENERICJIT_SRCS = \
+	$(GENERICJIT_DIR)/tclJitCompile.c \
+	$(GENERICJIT_DIR)/tclJitOutput.c
 
 STUB_SRCS = \
 	$(GENERIC_DIR)/tclStubLib.c
@@ -536,8 +549,8 @@ DTRACE_SRC = $(GENERIC_DIR)/tclDTrace.d
 # won't compile on the current machine, and they will cause problems for
 # things like "make depend".
 
-SRCS = $(GENERIC_SRCS) $(TOMMATH_SRCS) $(UNIX_SRCS) $(NOTIFY_SRCS) \
-	$(STUB_SRCS) @PLAT_SRCS@
+SRCS = $(GENERIC_SRCS) $(GENERICJIT_SRCS) $(TOMMATH_SRCS) $(UNIX_SRCS) \
+	$(NOTIFY_SRCS) $(STUB_SRCS) @PLAT_SRCS@
 
 all: binaries libraries doc
 
@@ -1120,6 +1133,12 @@ tclPipe.o: $(GENERIC_DIR)/tclPipe.c
 
 tclPkg.o: $(GENERIC_DIR)/tclPkg.c
 	$(CC) -c $(CC_SWITCHES) $(GENERIC_DIR)/tclPkg.c
+
+tclJitCompile.o: $(GENERICJIT_DIR)/tclJitCompile.c
+	$(CC) -c $(CC_SWITCHES) $(GENERICJIT_DIR)/tclJitCompile.c
+
+tclJitOutput.o: $(GENERICJIT_DIR)/tclJitOutput.c
+	$(CC) -c $(CC_SWITCHES) $(GENERICJIT_DIR)/tclJitOutput.c
 
 # TIP #59, embedding of configuration information into the binary library.
 #
