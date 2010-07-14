@@ -9,6 +9,7 @@
 
 #include "tclJitCompile.h"
 
+char *get_value(Value);
 void JIT_bb_output(char *, struct BasicBlock *, int);
 
 #endif /* TCLJIT_OUTPUT_H */
