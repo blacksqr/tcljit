@@ -315,13 +315,8 @@ O campo \verb!next! existe para
 lidar de forma eficiente com casos de otimização que requerem a
 movimentação de código. Também temos os campos de tipo \verb!Value!,
 permitindo, por enquanto, assumir valores inteiros, ponteiros para
-\verb!Tcl_Obj! ou uma forma de registrador. % ou bytes com sinal.
-% Ao trabalharmos com quádruplas
-% A máquina virtual da \texttt{Tcl}
-%  XXX ... construir quadruplas: stack -> registers
-%... XXX.
-Também temos uma estrutura simples para agrupar as quádruplas e formar
-os blocos básicos:
+\verb!Tcl_Obj! ou uma forma de registrador. Também temos uma estrutura
+simples para agrupar as quádruplas e formar os blocos básicos:
 
 \begin{figure}[h]
   \centering
@@ -472,12 +467,23 @@ que contém mais de 200 mil linhas de código \texttt{C}. Boa parte
 desse número de linhas não afeta diretamente a construção desse
 compilador, porém uma grande quantidade será ativada
 ao longo da execução do código gerado pelo compilador.
-XXX Contagem de referência e valores compartilhados ... XXX.
-% XXX ... XXX
 
-Entretanto, a maior dificuldade tem realmente sido conseguir dedicar
-tempo adequado ao trabalho. Sabe-se que a implementação de um
-compilador JIT não é algo simples, ... XXX.
+A linguagem faz uso de contagem de referências para realizar coleta de
+lixo e também compartilha muitos dos valores utilizados. Com isso,
+reutilizar objetos \verb!Tcl_Obj! (atualmente no caso da função
+\verb!JIT_Compile!) que foram construídos em partes distintas não é tão
+simples pois é necessário se ter certeza de que o objeto não será
+desalocado enquanto se está trabalhando com ele e, ao mesmo tempo, não
+se quer deixar objetos com contagem de referência superior a
+necessária. Compartilhar objetos economiza memória mas não simplifica
+o uso de objetos alheios, sendo necessário verificar se um objeto
+específico é compartilhado ou não antes de, dependendo do uso,
+duplicar o mesmo. Não são tarefas tão complexas mas tendem a ser
+pontos de erros obscuros em programas não tão curtos e não tão simples.
+
+%Entretanto, a maior dificuldade tem realmente sido conseguir dedicar
+%tempo adequado ao trabalho. Sabe-se que a implementação de um
+%compilador JIT não é algo simples, ... XXX.
 
 
 \section{Próximos Passos}
@@ -490,7 +496,7 @@ diferenciados pois todos são inicialmente do tipo \verb!Tcl_Obj! e,
 portanto, podem assumir qualquer valores de qualquer forma. Sem essa
 coleta fica inviável a
 aplicação de até mesmo da otimização de propagação de constante
-seguido de empacotamente de constante pois, caso contrário, não
+seguido de empacotamento de constante pois, caso contrário, não
 sabemos quais os tipos dos valores em uso.
 
 Seguindo a proposta atual é necessário realizar a construção da forma
@@ -509,15 +515,33 @@ refinando-as conforme o projeto avança.
 
 \section{Conclusões}
 
+Compiladores JIT tem sido implementados em máquinas virtuais que demandam
+alta performance. Entre as linguagens de programação, \texttt{Java} se
+destaca ao ter recebido suficiente atenção ao ponto de empresas e
+pesquisadores desenvolverem diversas JVMs com compiladores
+dinâmicos que fazem uso de uma variedade de técnicas distintas.
+
+Escolhas adequadas para todas as partes de um compilador JIT tornam
+possível o uso de um compilador otimizador em tempo de execução. Esse
+texto teve maior foco nas representações intermediárias utilizadas (ou
+que serão utilizadas) nesse projeto. Quádruplas para formar blocos
+básicos e permitir a construção do grafo de fluxo de controle (CFG)
+foi mais discutida aqui, mas também foi mencionado a representação SSA
+que inicia-se com a entrada de um CFG. A SSA tem sido aplicada em
+diversos compiladores otimizadores, pois permitir aplicar (ao menos)
+as otimizações de movimentação de código, propagação de constantes e
+eliminação de redundância parcial de forma eficiente.
+
 A conversão de \textit{bytecodes} de uma máquina de pilha para uma
 representação na forma de máquina de registradores exige atenção aos
-detalhes da semântica existente na primeira, ... XXX.
+detalhes da semântica implementada na máquina virtual atual da
+linguagem. Uma vantagem visível é a capacidade de sintetização que
+uma representação baseada em registradores tem sobre uma que faz uso
+de pilha. Entretanto, um número reduzido de quádruplas não indica
+necessariamente menor consumo de memória do que uma quantidade
+superior de \textit{bytecodes}.
 
-Máquinas virtuais baseadas em registradores são capazes de sintetizar
-aquelas baseadas em pilha, mas não necessariamente utilizam menos
-memória.
-
-XXX Até o momento. XXX
+% XXX mais ?
 
 
 % Referências
