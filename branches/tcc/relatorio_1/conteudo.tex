@@ -440,7 +440,118 @@ conteúdo deles assumindo que não teriam mais quádruplas do que
 
 \subsection{Mapeamento de alguns \textit{bytecodes} para quádruplas}
 
-XXX.
+Nessa subseção é realizado uma análise de como alguns
+\textit{bytecodes} são convertidos para quádruplas e, em um caso
+específico, verifica-se um indicio de possível erro durante execução
+de código que poderia ter sido gerado pelo compilador JIT.
+
+Na figura \ref{fig:gray} não foi feito uso de variáveis globais, então
+começaremos analisando a saída gerada para um trecho que faz uso de
+tal recurso. O exemplo da figura \ref{fig:global1} é bastante simples,
+porém incorreto na linguagem \texttt{Tcl}. É necessário preceder
+explicitamente a variável de seu escopo, no caso o escopo global é
+simbolizado por ``\verb!::!''. Também é possível utilizar o comando
+\verb!global! para indicar uma lista de variáveis como globais.
+
+\begin{figure}[h]
+  \centering
+%  \begin{lstlisting}[language=Tcl, numbers=left]
+  \begin{lstlisting}[language=Tcl]
+    set x 4
+    proc y {} { puts $x }
+    y
+  \end{lstlisting}
+  \caption{Uso incorreto de variável global em
+    \texttt{Tcl} \label{fig:global1}}
+\label{xx$xx}
+\end{figure}
+
+Ao executar tal código o interpretador gera uma exceção, mas, antes de
+exibir a descrição do problema, a função \verb!JIT_Compile! é
+chamada. O resultado, ajustado para melhor visualização, é este:
+
+\begin{table}[h]
+  \centering
+  \caption{Saída produzida para procedimento da figura 5}
+  \begin{tabular}{| p{4cm} | p{4cm} |}
+    \hline
+    \bf{Bytecode} & \bf{Registradores} \\
+\begin{verbatim}
+PUSH 'puts'
+LOAD_SCALAR x
+INVOKESTK 2
+DONE
+\end{verbatim} &
+\begin{verbatim}
+R2 := 'puts'
+R3 := 0x0
+CALL R2 (1) R3
+\end{verbatim} \\
+    \hline
+  \end{tabular}
+\end{table}
+
+Os registradores 2 e 3 estão sendo atribuídos a endereços de memória
+estruturados como \verb!Tcl_Obj!. Por esse motivo, fica claro que não
+há um endereço previsto para a variável \verb!x! e, portanto, esse
+código certamente geraria um erro (assim como o interpretador gera em
+seguida) se fosse compilado para código de máquina.%  Corrigindo,
+% alterando para imprimir \verb!$::x!, a seguinte sequência de bytecodes
+% e de registradores é produzida:
+
+% \begin{table}[h]
+%   \centering
+%   \caption{Saída produzida para procedimento corrigido da figura 5}
+%   \begin{tabular}{| p{4cm} | p{4cm} |}
+%     \hline
+%     \bf{Bytecode} & \bf{Registradores} \\
+% \begin{verbatim}
+% PUSH 'puts'
+% PUTS '::x'
+% LOAD_SCALAR_STK
+% INVOKESTK 2
+% DONE
+% \end{verbatim} &
+% \begin{verbatim}
+% R1 := 'puts'
+% R2 := '::x'
+% ...
+% CALL R1 (1) R2
+% \end{verbatim} \\
+%     \hline
+%   \end{tabular}
+% \end{table}
+
+%%% NEXT_INST_V(1, 1, 1)
+
+Continuando ainda no exemplo da figura \ref{fig:global1}, detalhamos
+como o mapeamento de uma coluna para outra foi realizado no restante
+dessa seção. Começando
+pela instrução \verb!DONE! vemos que
+nada equivalente aparece na coluna a direita. Isso é resultado da
+atual simplificação feita na outra representação, que, diferentemente
+da máquina virtual em execução, não verifica por exceções e tão pouco
+por de código de retorno anormal -- tais tarefas são realizadas em
+diversos trechos da função \verb!TclExecuteByteCode! mas também são
+específicamente feitas na execução da instrução \verb!DONE!.
+
+A instrução \verb!PUSH! é mapeada fazendo uso de uma pilha temporária e
+também de um array de objetos literais. Um operando que segue a
+instrução \verb!PUSH! é tomado como o índice nesse array, sendo
+possível obter o objeto esperado. O registrado criado nesse momento,
+\verb!R2! no exemplo, é
+inserido no topo da pilha temporária. A instrução \verb!LOAD_SCALAR!
+é mapeada de forma similar, mas ela se baseia em obter o
+endereço da variável escalar de uma lista de variáveis locais
+criada pelo compilador da \texttt{Tcl} para o procedimento
+corrente. Nesse momento temos os registradores 2 e 3 nessa pilha e
+então a instrução \verb!INVOKESTK! deve ser convertida. Seguida de um
+operando, chamado de \verb!objc! aqui, indicando a quantidade total de
+argumentos -- incluindo o nome da função -- temos que os elementos
+$0 \dots objc - 2$ da pilha a partir do topo são os parâmetros para
+a função na posição $objc - 1$ a partir do topo. Na representação
+utilizada não contamos o nome da função como um parâmetro, por isso
+entre parênteses vê-se o número 1 ao invés do 2.
 
 % XXX Após execução de um procedimento é chamado uma função JIT\_compile
 % que agora vive em generic/jit/tclJitCompile.c -- seguindo a nomenclatura
@@ -449,13 +560,6 @@ XXX.
 % XXX Fazer ferramenta para encontrar blocos construídos para linguagem
 % dot e incluir desenhos aqui. XXX
 % ... XXX.
-
-% XXX Mencionar em algum lugar o livro ``Compiladores - Princípios,
-% Técnicas e Ferramentas (capítulo 9 ou 8 talvez) XXX
-
-% XXX Descreva nesta seção as partes da proposta já realizadas/implementadas/
-% modeladas e já apresente tabelas, gráficos, análise e resultados parciais
-% já alcançados, caso existam. XXX
 
 
 \section{Dificuldades Encontradas}
