@@ -82,7 +82,7 @@ considerada bastante eficiente.
 Procura-se visar a simplicidade, de forma que o trabalho desenvolvido
 possa servir de base para expansão a novas arquiteturas e também para
 aplicação de técnicas de compilação diversas sob a
-\texttt{Tcl}. Na representação intermediária quádruplas são
+\texttt{Tcl}. Na representação intermediária, quádruplas são
 escolhidas para formar blocos básicos e
 esses, por sua vez, são utilizados para definir grafos de fluxo de
 controle que servem de entrada a outra representação escolhida -- SSA
@@ -223,7 +223,7 @@ A escolha inicial por árvores foi devido
 a existência de diversos métodos para seleção de
 instruções que trabalham sobre essa forma de representação
 \cite{ir_tree_parsing}, mas trabalhar com quádruplas se mostrou
-bastante simples. O sistema de compilação dinâmica precisa ser
+simples. O sistema de compilação dinâmica precisa ser
 capaz de determinar quando iniciar e parar a construção dessas
 representações.
 Nesse projeto a intenção é fazer uso dos
@@ -235,7 +235,7 @@ que não repliquemos os resultados do trabalho feito em
 
 Após essas etapas pretende-se aplicar pelo menos algumas das
 otimizações clássicas tais como remoção de código morto, propagação de
-constante e movimentação de código.
+constantes e movimentação de código.
 
 Chegamos, assim, na fase de seleção de instruções
 seguida de alocação de registradores. Há diversos algoritmos, como
@@ -243,7 +243,7 @@ seguida de alocação de registradores. Há diversos algoritmos, como
 NOLTIS \cite{noltis}  para seleção de instruções além de vários
 outros, por coloração de grafos ou mesmo através de uma varredura
 linear \cite{linear_scan_regalloc} (com ou sem \cite{wimmer_franz}
-desconstruir a representação SSA), para alocação de registradores.
+desconstrução da representação SSA), para alocação de registradores.
 Ainda não está decidido quais dos algoritmos serão aplicados nesse
 projeto, porém as metas são duas: que a implementação permita utilizar
 diferentes algoritmos e que o tempo gasto para execução deles
@@ -413,15 +413,15 @@ está indicando que haverá 1 parâmetro na chamada e, no caso, este será o
 conteúdo de \verb!R9!. A única instrução no bloco de saída B3 indica o
 valor de retorno de função -- uma string vazia.
 
-Haviam 55 \textit{bytecodes} sendo utilizados para
+Haviam 55 \textit{bytecodes} (não exibidos aqui) sendo utilizados para
 representar o código da figura \ref{fig:gray}, e agora 18 quádruplas
 são empregadas com o mesmo resultado. Nessa quantidade numérica
 superior destaca-se o uso de 9 bytes para representar a instrução
 \verb!INST_START_CMD! da \texttt{Tcl}, destinando 4 bytes para contar
 a quantidade de instruções à frente que fazem parte desse comando e
 possibilitando ao interpretador respeitar limites impostos para certos
-recursosatravés de
-APIs específicas. Porém, apesar de ser um número menor,
+recursos através de
+APIs específicas. Porém, apesar das quádruplas estarem em número inferior,
 se levarmos em conta o total de bytes contidos em cada quádrupla (de
 acordo com as estruturas acima) tem-se que
 o consumo de memória é bastante superior. Ao mesmo tempo é possível
@@ -430,12 +430,12 @@ de otimizações em etapas futuras.
 
 Um último esclarecimento a respeito da figura \ref{bbs} precisa ser feito.
 Os \textit{bytecodes} de desvio emitidos pela \texttt{Tcl} utilizam
-operandos que descrevem posições relativas, negativas ou positivas, à
+operandos que descrevem posições relativas (negativas ou positivas) à
 posição atual mas pode-se notar que na
 representação utilizada há somente desvios absolutos para blocos
 básicos. Para essa tarefa foi feito um mapeamento de cada
 \textit{bytecode} para cada bloco básico antes de se construir o
-conteúdo deles assumindo que não teriam mais quádruplas do que
+conteúdo deles assumindo que não haveriam mais quádruplas do que
 \textit{bytecodes}.
 
 \subsection{Mapeamento de alguns \textit{bytecodes} para quádruplas}
@@ -531,7 +531,7 @@ pela instrução \verb!DONE! vemos que
 nada equivalente aparece na coluna a direita. Isso é resultado da
 atual simplificação feita na outra representação, que, diferentemente
 da máquina virtual em execução, não verifica por exceções e tão pouco
-por de código de retorno anormal -- tais tarefas são realizadas em
+por código de retorno anormal -- tais tarefas são realizadas em
 diversos trechos da função \verb!TclExecuteByteCode! mas também são
 específicamente feitas na execução da instrução \verb!DONE!.
 
@@ -597,7 +597,7 @@ fazer é a coleta de tipos. Somente durante a interpretação os
 tipos numéricos são descobertos, a representação em \textit{bytecodes}
 não possui instruções dedicadas para operandos na pilha com tipos
 diferenciados pois todos são inicialmente do tipo \verb!Tcl_Obj! e,
-portanto, podem assumir qualquer valores de qualquer forma. Sem essa
+portanto, podem assumir valores de qualquer tipo. Sem essa
 coleta fica inviável a
 aplicação de até mesmo da otimização de propagação de constante
 seguido de empacotamento de constante pois, caso contrário, não
@@ -623,7 +623,7 @@ Compiladores JIT tem sido implementados em máquinas virtuais que demandam
 alta performance. Entre as linguagens de programação, \texttt{Java} se
 destaca ao ter recebido suficiente atenção ao ponto de empresas e
 pesquisadores desenvolverem diversas JVMs com compiladores
-dinâmicos que fazem uso de uma variedade de técnicas distintas.
+dinâmicos que fazem uso de uma variedade de técnicas.
 
 Escolhas adequadas para todas as partes de um compilador JIT tornam
 possível o uso de um compilador otimizador em tempo de execução. Esse
