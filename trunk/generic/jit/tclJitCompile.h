@@ -12,7 +12,7 @@
 typedef struct Value *Value;
 
 struct Quadruple {
-    void *dest;
+    Value dest;
     unsigned char instruction;
     Value src_a, src_b;
     struct Quadruple *next;
@@ -25,17 +25,15 @@ struct BasicBlock {
 };
 
 struct Value {
-    enum { jitvalue_tcl, jitvalue_int } type;
+    enum { jitvalue_tcl, jitvalue_int, jitreg } type;
     union {
         Tcl_Obj *obj;
         int integer;
+        int regnum;
     } content;
 };
 
 
 int JIT_Compile(Tcl_Obj *, Tcl_Interp *, ByteCode *);
-
-Value new_tclvalue(Tcl_Obj *);
-Value new_intvalue(int);
 
 #endif /* TCLJIT_COMPILE_H */
