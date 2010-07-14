@@ -264,7 +264,7 @@ permitirá a implantação de geração de código para outras arquiteturas.
 \section{Desenvolvimento}
 \label{desenvolvimento}
 
-Inicialmente, a proposta descrevia o uso de uma forma de representação
+Inicialmente a proposta descrevia o uso de uma forma de representação
 intermediária em árvore. A intenção era, em uma etapa mais adiante,
 fazer uso de um algoritmo, entre os diversos existentes, para seleção
 de instruções que se baseiam em árvores. Junto com esse fato,
@@ -306,12 +306,16 @@ seguinte estrutura (em \texttt{C}) que representa uma quádrupla:
 \end{figure}
 
 O campo \verb!instruction! tem tipo \verb!unsigned char! pois atualmente
-representa um dos \textit{bytecodes} da \texttt{Tcl}, que são
-representados por esse mesmo tipo. O campo \verb!next! existe para
+representa um dos \textit{bytecodes} da \texttt{Tcl} ou uma entre as
+instruções \verb!JIT_INST_MOVE!, \verb!JIT_INST_CALL!,\\
+\verb!JIT_INST_GOTO!, \verb!JIT_INST_JTRUE!, \verb!JIT_INST_JFALSE!,
+\verb!JIT_INST_ADD!, que podem ser representadas com um
+byte (todas elas tem um número associado menor que 256).
+O campo \verb!next! existe para
 lidar de forma eficiente com casos de otimização que requerem a
 movimentação de código. Também temos os campos de tipo \verb!Value!,
-permitindo, por enquanto, assumir valores inteiros ou ponteiros para
-\verb!Tcl_Obj!. % ou bytes com sinal.
+permitindo, por enquanto, assumir valores inteiros, ponteiros para
+\verb!Tcl_Obj! ou uma forma de registrador. % ou bytes com sinal.
 % Ao trabalharmos com quádruplas
 % A máquina virtual da \texttt{Tcl}
 %  XXX ... construir quadruplas: stack -> registers
@@ -334,13 +338,13 @@ os blocos básicos:
 Como não há um campo ``\verb!next!'' nessa abstração, guardamos o
 número de arcos, em \verb!exitcount!, que saem de um bloco de modo a
 permitir o controle de sua travessia. O ponteiro \verb!lastquad! é
-utilizado na construção do CFG, eliminando a necessitando de travessia das
+utilizado na construção do CFG, eliminando a necessidade de travessia das
 quádruplas presentes em um bloco para identificar se a última
 instrução é de desvio ou não. Atualmente, para visualizar os blocos básicos,
 há apenas a escrita de texto puro no terminal, sendo
 necessário utilizar algum programa para desenha-los. Em breve
 espera-se gerar código na linguagem \texttt{dot} ou fazer uso do
-aplicativo xfig para facilitar essa tarefa. Mesmo assim, é possivel
+aplicativo xfig para facilitar essa tarefa. Ainda assim é possivel
 analisar o que é gerado e, para isso, tomamos o código exemplo seguinte:
  %Para visualizar os blocos básicos, e tornar
 %mais fácil a verificação, foi criada uma função que escreve na
@@ -370,50 +374,93 @@ Essa última é invocada pela própria
 interpretação de \textit{bytecodes}, a
 \verb!TclExecuteByteCode!. Pretende-se realizar a coleta de tipos
 durate a execução dessa última função mencionada, alterando-a de
-acordo com as necessidades do compilador JIT. Mas, enfim, o que temos
-no momento é que ao término da função
-\verb!JIT_Compile! temos como resultado o grafo de fluxo de controle,
-exibido a seguir, do trecho que acabou de ser interpretado.
-
-% Oi
-
-% Oi
-
-% Oi
-
-% Oi
-
-% Oi
+acordo com as necessidades do compilador JIT. Enfim, ao término
+da função \verb!JIT_Compile! o grafo de fluxo de controle exibido a
+seguir é obtido.
+% temos como resultado o grafo de fluxo de controle,
+%exibido a seguir, do trecho que acabou de ser interpretado.
 
 % Ao término dessa função, atualmente, os
 %blocos criados e as transições entre eles são gravadas em ``grayb.dot''.
 
-% XXX
 \begin{figure}[h]
   \centering
-  \includegraphics[scale=0.8]{a1test1}
-  \caption{Blocos básico e grafo de fluxo de controle formados}
+  \includegraphics[scale=0.68]{bbs}
+  \caption{Blocos básicos e grafo de fluxo de controle construídos \label{bbs}}
 \end{figure}
 
-Haviam 55 \textit{bytecodes} (não exibidos aqui) sendo utilizados para
-representar o código da figura \ref{fig:gray}, e agora 24 quádruplas
-são empregadas com o mesmo resultado.
+Para se chegar nessa representação foi feita uma espécie de conversão de
+máquina virtual baseada em pilha para algo que deveria se assemelhar
+com uma máquina de infinitos registradores. Uma pilha temporária é
+utilizada para simplificar essa transição, sendo acessada e atualizada
+durante a construção de diversas instruções. Também são pré-alocados
+registradores virtuais para as variáveis locais. A implementação da
+\texttt{Tcl} disponibiliza uma lista dinâmica com todas essas
+variáveis locais, incluindo também os parâmetros formais da função,
+sendo necessário apenas atribuir índices a elas. O registrador
+\verb!R1! está associado ao parâmetro \verb!n!, mas nunca é acessado
+diretamente porque o programa exemplo não altera seu valor. Por outro
+lado, o \verb!R2! que associa-se a variável local \verb!i! é utilizado
+mas foi renomeado (de \verb!R2! para \verb!i!) no desenho acima para
+deixar mais claro seu uso.
 
+Verifica-se que há diversas instruções de atribuição que recebem um
+valor que se parecem com números, como \verb!'0'! ou \verb!'1'!, mas
+que estão sendo representados como strings. Na realidade esses valores
+são todos ponteiros para uma estrutura \verb!Tcl_Obj!, podendo assumir
+qualquer tipo interno presente na linguagem. Nesse exemplo podemos
+assumir, e de fato assim ocorrerá, que todos são inteiros. No caso da
+string \verb!'puts'! armazenada no registrador 4 tem-se que ela
+servirá como chave em uma tabela hash que possui como valor a
+respectiva função (ou não, gerando um erro). O número entre parênteses
+na instrução \verb!CALL!
+está indicando que haverá 1 parâmetro na chamada e, no caso, este será o
+conteúdo de \verb!R9!. A única instrução no bloco de saída B3 indica o
+valor de retorno de função -- uma string vazia.
 
-XXX Após execução de um procedimento é chamado uma função JIT\_compile
-que agora vive em generic/jit/tclJitCompile.c -- seguindo a nomenclatura
-e estrutura presente na hierarquia do código fonte da Tcl ... XXX
+Haviam 55 \textit{bytecodes} sendo utilizados para
+representar o código da figura \ref{fig:gray}, e agora 18 quádruplas
+são empregadas com o mesmo resultado. Nessa quantidade numérica
+superior destaca-se o uso de 9 bytes para representar a instrução
+\verb!INST_START_CMD! da \texttt{Tcl}, destinando 4 bytes para contar
+a quantidade de instruções à frente que fazem parte desse comando e
+possibilitando ao interpretador respeitar limites impostos para certos
+recursosatravés de
+APIs específicas. Porém, apesar de ser um número menor,
+se levarmos em conta o total de bytes contidos em cada quádrupla (de
+acordo com as estruturas acima) tem-se que
+o consumo de memória é bastante superior. Ao mesmo tempo é possível
+observar que muitas delas são passíveis a eliminação, ficando a cargo
+de otimizações em etapas futuras.
 
-XXX Fazer ferramenta para encontrar blocos construídos para linguagem
-dot e incluir desenhos aqui. XXX
-... XXX.
+Um último esclarecimento a respeito da figura \ref{bbs} precisa ser feito.
+Os \textit{bytecodes} de desvio emitidos pela \texttt{Tcl} utilizam
+operandos que descrevem posições relativas, negativas ou positivas, à
+posição atual mas pode-se notar que na
+representação utilizada há somente desvios absolutos para blocos
+básicos. Para essa tarefa foi feito um mapeamento de cada
+\textit{bytecode} para cada bloco básico antes de se construir o
+conteúdo deles assumindo que não teriam mais quádruplas do que
+\textit{bytecodes}.
 
-XXX Mencionar em algum lugar o livro ``Compiladores - Princípios,
-Técnicas e Ferramentas (capítulo 9 ou 8 talvez) XXX
+\subsection{Mapeamento de alguns \textit{bytecodes} para quádruplas}
 
-XXX Descreva nesta seção as partes da proposta já realizadas/implementadas/
-modeladas e já apresente tabelas, gráficos, análise e resultados parciais
-já alcançados, caso existam. XXX
+XXX.
+
+% XXX Após execução de um procedimento é chamado uma função JIT\_compile
+% que agora vive em generic/jit/tclJitCompile.c -- seguindo a nomenclatura
+% e estrutura presente na hierarquia do código fonte da Tcl ... XXX
+
+% XXX Fazer ferramenta para encontrar blocos construídos para linguagem
+% dot e incluir desenhos aqui. XXX
+% ... XXX.
+
+% XXX Mencionar em algum lugar o livro ``Compiladores - Princípios,
+% Técnicas e Ferramentas (capítulo 9 ou 8 talvez) XXX
+
+% XXX Descreva nesta seção as partes da proposta já realizadas/implementadas/
+% modeladas e já apresente tabelas, gráficos, análise e resultados parciais
+% já alcançados, caso existam. XXX
 
 
 \section{Dificuldades Encontradas}
@@ -424,12 +471,13 @@ especificamente a versão 8.5.8 --
 que contém mais de 200 mil linhas de código \texttt{C}. Boa parte
 desse número de linhas não afeta diretamente a construção desse
 compilador, porém uma grande quantidade será ativada
-ao longo da execução do código gerado pelo compilador. XXX ... XXX
+ao longo da execução do código gerado pelo compilador.
+XXX Contagem de referência e valores compartilhados ... XXX.
+% XXX ... XXX
 
-Entretanto, a maior dificuldade tem realmente sido conseguir se
-concentrar e dedicar tempo adequado ao trabalho. XXX ... XXX
-
-%XXX
+Entretanto, a maior dificuldade tem realmente sido conseguir dedicar
+tempo adequado ao trabalho. Sabe-se que a implementação de um
+compilador JIT não é algo simples, ... XXX.
 
 
 \section{Próximos Passos}
@@ -461,8 +509,13 @@ refinando-as conforme o projeto avança.
 
 \section{Conclusões}
 
+A conversão de \textit{bytecodes} de uma máquina de pilha para uma
+representação na forma de máquina de registradores exige atenção aos
+detalhes da semântica existente na primeira, ... XXX.
+
 Máquinas virtuais baseadas em registradores são capazes de sintetizar
-aquelas baseadas em pilha.
+aquelas baseadas em pilha, mas não necessariamente utilizam menos
+memória.
 
 XXX Até o momento. XXX
 
