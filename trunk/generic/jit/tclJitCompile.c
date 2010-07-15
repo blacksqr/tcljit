@@ -179,8 +179,8 @@ JIT_Compile(Tcl_Obj *procName, Tcl_Interp *interp, ByteCode *code)
     //printf("numCodeBytes = %d, numSrcBytes = %d, codeStartlen = %d\n",
     //    code->numCodeBytes, code->numSrcBytes, strlen(code->codeStart));
     printf("proc = %s\n", TclGetString(procName));
-    DEBUG("numCodeBytes = %d, numLitObjects = %d\n", code->numCodeBytes,
-            code->numLitObjects);
+    DEBUG("numCodeBytes = %d, numLitObjects = %d, numCompiledLocals = %d\n",
+            code->numCodeBytes, code->numLitObjects, i);
     for (i = 0; i < code->numLitObjects; i++) {
         DEBUG(">>%s\n", Tcl_GetString(code->objArrayPtr[i]));
     }
@@ -339,6 +339,7 @@ build_quad(ByteCode *code, unsigned char *pc, int *adv, int pos, int bc_to_bb[],
             DEBUG(", offset (jf %d %d), ", (char)*(pc + 1),
                     bc_to_bb[pos + (char)*(pc + 1)]);
             quad->instruction = JIT_INST_JFALSE;
+            quad->src_a = stack_pop(Stack);
             quad->dest = new_intvalue(bc_to_bb[pos + (char)*(pc + 1)]);
             *adv = 2;
             break;
@@ -429,6 +430,10 @@ build_quad(ByteCode *code, unsigned char *pc, int *adv, int pos, int bc_to_bb[],
 
         case INST_ADD: // 53
             DEBUG(", add *os dois no topo*, ");
+            quad->src_b = stack_pop(Stack);
+            quad->src_a = stack_pop(Stack);
+            quad->dest = new_register(0);
+            stack_push(Stack, quad->dest);
             *adv = 1;
             break;
 
