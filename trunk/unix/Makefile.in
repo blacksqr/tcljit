@@ -300,7 +300,7 @@ GENERIC_OBJS = regcomp.o regexec.o regfree.o regerror.o tclAlloc.o \
 	tclStubLib.o tclTimer.o tclTrace.o tclUtf.o tclUtil.o tclVar.o \
 	tclTomMathInterface.o
 
-GENERICJIT_OBJS = tclJitCompile.o tclJitOutput.o
+GENERICJIT_OBJS = tclJitCompile.o tclJitOutput.o tclJitTypeCollect.o
 
 TOMMATH_OBJS = bncore.o bn_reverse.o bn_fast_s_mp_mul_digs.o \
 	bn_fast_s_mp_sqr.o bn_mp_add.o bn_mp_and.o \
@@ -433,13 +433,15 @@ GENERIC_SRCS = \
 
 GENERICJIT_HDRS = \
 	$(GENERICJIT_DIR)/tclJitCompile.h \
-	$(GENERICJIT_DIR)/tclJitOutput.h \
+	$(GENERICJIT_DIR)/tclJitConf.h \
 	$(GENERICJIT_DIR)/tclJitInsts.h \
-	$(GENERICJIT_DIR)/tclJitConf.h
+	$(GENERICJIT_DIR)/tclJitOutput.h \
+	$(GENERICJIT_DIR)/tclJitTypeCollect.h
 
 GENERICJIT_SRCS = \
 	$(GENERICJIT_DIR)/tclJitCompile.c \
-	$(GENERICJIT_DIR)/tclJitOutput.c
+	$(GENERICJIT_DIR)/tclJitOutput.c \
+	$(GENERICJIT_DIR)/tclJitTypeCollect.c
 
 STUB_SRCS = \
 	$(GENERIC_DIR)/tclStubLib.c
@@ -1141,6 +1143,9 @@ tclJitCompile.o: $(GENERICJIT_DIR)/tclJitCompile.c
 
 tclJitOutput.o: $(GENERICJIT_DIR)/tclJitOutput.c
 	$(CC) -c $(CC_SWITCHES) $(GENERICJIT_DIR)/tclJitOutput.c
+
+tclJitTypeCollect.o: $(GENERICJIT_DIR)/tclJitTypeCollect.c
+	$(CC) -c $(CC_SWITCHES) $(GENERICJIT_DIR)/tclJitTypeCollect.c
 
 # TIP #59, embedding of configuration information into the binary library.
 #
