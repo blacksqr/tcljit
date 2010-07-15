@@ -4,6 +4,7 @@
 #include "tclJitCompile.h"
 #include "tclJitOutput.h"
 #include "tclJitInsts.h"
+#include "tclJitTypeCollect.h"
 
 #define DEBUGGING 1 /* XXX */
 
@@ -21,10 +22,12 @@
  * gerenciador (provavelmente vou usar algo do Tcl do que implementar outro).
  */
 
+/* Using a temporary stack to convert the stack machine nature of the TVM
+ * to a form of register machine. */
 struct stack {
     void *v;
     struct stack *next;
-}; /* Used to convert stack machine to register machine. */
+};
 
 struct stack *Stack;
 
@@ -121,8 +124,21 @@ new_register(int reset)
 
     regnum++;
     reg->type = jitreg;
-    reg->content.regnum = regnum;
+    //reg->content.regnum = regnum;
+    reg->content.vreg.regnum = regnum;
+    reg->content.vreg.type = -1;
     return reg;
+}
+
+void
+tclobj_to_long(Value v)
+{
+    if (v->type != jitreg) {
+        perror("tclobj_to_long");
+        return;
+    }
+    v->content.vreg.type = TCL_NUMBER_LONG;
+    //v->content.lval = v->content.obj->internalRep.longValue; /* XXX */
 }
 
 /* XXX */
@@ -158,10 +174,6 @@ JIT_Compile(Tcl_Obj *procName, Tcl_Interp *interp, ByteCode *code)
     struct BasicBlock *blocks;
     struct ObjReg locals[((Interp *)interp)->varFramePtr->numCompiledLocals];
 
-    /* code->source contém o código fonte que gerou esses bytecodes. */
-    /* code->codeStart é o que parece que mais me interessa no momento. */
-    /*printf("oi! %p (%s)\n", code, code->source);*/
-
     Stack = stack_new();
     pc = code->codeStart;
     memset(leaders, 0, code->numCodeBytes * sizeof(int));
@@ -195,7 +207,7 @@ JIT_Compile(Tcl_Obj *procName, Tcl_Interp *interp, ByteCode *code)
     for (i = 1; i < code->numCodeBytes; i++) {
         op = *pc;
         if (IS_JUMP_INST(op)) {
-            leaders[i + *(pc + 1)] = 1; /* XXX Pode ocupar 4 bytes também. */
+            leaders[i + *(pc + 1)] = 1; /* XXX May take 4 bytes. */
             leaders[i + 2] = 1;
             pc++; i++;
         }
@@ -363,12 +375,29 @@ build_quad(ByteCode *code, unsigned char *pc, int *adv, int pos, int bc_to_bb[],
 
         case INST_POP: // 3
             DEBUG(", pop, ");
-            stack_pop(Stack); /* XXX Should get the next bytecode and
-                                 discard this quad. */
+            stack_pop(Stack);
+            free(quad);   /* Discard this quad. */
+            quad = NULL;  /* And get the next opcode. */
+            *adv = 1;
+            break;
+
+        case INST_TRY_CVT_TO_NUMERIC: { // 64
+            DEBUG(" (type %d), ", JIT_TYPE_GET(code->procPtr, pos));
+            if (JIT_TYPE_RESOLVED(code->procPtr, pos)) {
+                Value reg = stack_top(Stack);
+                if (reg->type != jitreg) {
+                    perror("INST_TRY_CVT_TO_NUMERIC");
+                } else {
+                    reg->content.vreg.type = JIT_TYPE_GET(code->procPtr, pos);
+                }
+            } else {
+                /* XXX */
+            }
             free(quad);
             quad = NULL;
             *adv = 1;
             break;
+        }
 
         case INST_LOAD_SCALAR1: // 10
             DEBUG(", scalar (%d), ", *(pc + 1));
@@ -376,9 +405,6 @@ build_quad(ByteCode *code, unsigned char *pc, int *adv, int pos, int bc_to_bb[],
             quad->dest = new_register(0);
             quad->src_a = new_tclvalue(locals[*(pc + 1)].obj);
             stack_push(Stack, quad->dest);
-            /* valor escalar é obtido em compiledLocals[*(pc + 1)].
-             * compiledLocals vem de
-             * 		((* Interp)interp)->varFramePtr->compiledLocals */
             *adv = 2;
             break;
 
@@ -493,7 +519,7 @@ void freeblocks(struct BasicBlock *blocks, int count)
         while (blocks[i].quads) {
             temp = blocks[i].quads;
             blocks[i].quads = blocks[i].quads->next;
-            printf("  %p %p %p\n", temp->dest, temp->src_a, temp->src_b);
+            //printf("  %p %p %p\n", temp->dest, temp->src_a, temp->src_b);
             /*if (temp->dest) free(temp->dest);
             if (temp->src_a) free(temp->src_a);
             if (temp->src_b) free(temp->src_b);*/ /* XXX */

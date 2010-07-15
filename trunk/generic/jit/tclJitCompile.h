@@ -25,11 +25,17 @@ struct BasicBlock {
 };
 
 struct Value {
-    enum { jitvalue_tcl, jitvalue_int, jitreg } type;
+    enum { jitvalue_tcl, jitvalue_int, jitreg, jitvalue_long,
+        jitvalue_double } type;
     union {
         Tcl_Obj *obj;
         int integer;
-        int regnum;
+        struct {
+            int regnum;
+            int type; /* XXX This is likely to change. */
+        } vreg;
+        long lval;
+        double dval;
     } content;
 };
 
