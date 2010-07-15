@@ -20,6 +20,10 @@
 #include "tclCompile.h"
 #include "tommath.h"
 
+#ifdef TCL_JIT
+#include "jit/tclJitTypeCollect.h"
+#endif
+
 #include <math.h>
 #include <float.h>
 
@@ -4140,6 +4144,13 @@ TclExecuteByteCode(
 	     */
 
 	    iResult = s1len = s2len = 0;
+#ifdef TCL_JIT
+            int pos = (pc - codePtr->codeStart);
+            if (codePtr->procPtr &&
+                    !(JIT_TYPE_RESOLVED(codePtr->procPtr, pos))) {
+                JIT_ResolveType(codePtr->procPtr, pos, JIT_BCTYPE_TRUE);
+            }
+#endif
 	} else if ((valuePtr->typePtr == &tclByteArrayType)
 		&& (value2Ptr->typePtr == &tclByteArrayType)) {
 	    s1 = (char *) Tcl_GetByteArrayFromObj(valuePtr, &s1len);
@@ -4435,6 +4446,16 @@ TclExecuteByteCode(
 	    iResult = (*pc == INST_NEQ);
 	    goto foundResult;
 	}
+
+#ifdef TCL_JIT
+        /*printf("Collecting.. %d %d\n", *pc, (pc - codePtr->codeStart));*/
+        int pos = (pc - codePtr->codeStart);
+        if (codePtr->procPtr && !(JIT_TYPE_RESOLVED(codePtr->procPtr, pos))) {
+            JIT_TYPE_COLLECT(codePtr->procPtr, pos, type1);
+            JIT_ResolveType(codePtr->procPtr, pos, type2);
+        }
+#endif
+
 	switch (type1) {
 	case TCL_NUMBER_LONG:
 	    l1 = *((const long *)ptr1);
@@ -4731,6 +4752,15 @@ TclExecuteByteCode(
 	    IllegalExprOperandType(interp, pc, value2Ptr);
 	    goto checkForCatch;
 	}
+
+#ifdef TCL_JIT
+        /*printf("Collecting.. %d %d\n", *pc, (pc - codePtr->codeStart));*/
+        int pos = (pc - codePtr->codeStart);
+        if (codePtr->procPtr && !(JIT_TYPE_RESOLVED(codePtr->procPtr, pos))) {
+            JIT_TYPE_COLLECT(codePtr->procPtr, pos, type1);
+            JIT_ResolveType(codePtr->procPtr, pos, type2);
+        }
+#endif
 
 	if (*pc == INST_MOD) {
 	    /* TODO: Attempts to re-use unshared operands on stack */
@@ -5462,6 +5492,16 @@ TclExecuteByteCode(
 	    NEXT_INST_F(1, 2, 1);
 	}
 #endif
+
+#ifdef TCL_JIT
+        /*printf("Collecting.. %d %d\n", *pc, (pc - codePtr->codeStart));*/
+        int pos = (pc - codePtr->codeStart);
+        if (codePtr->procPtr && !(JIT_TYPE_RESOLVED(codePtr->procPtr, pos))) {
+            JIT_TYPE_COLLECT(codePtr->procPtr, pos, type1);
+            JIT_ResolveType(codePtr->procPtr, pos, type2);
+        }
+#endif
+
 
 	if ((type1 == TCL_NUMBER_DOUBLE) || (type2 == TCL_NUMBER_DOUBLE)) {
 	    /*
@@ -6355,6 +6395,14 @@ TclExecuteByteCode(
 		NEXT_INST_F(1, 0, 0);
 	    }
 	}
+
+#ifdef TCL_JIT
+        int pos = (pc - codePtr->codeStart);
+        if (codePtr->procPtr && !(JIT_TYPE_RESOLVED(codePtr->procPtr, pos))) {
+            JIT_ResolveType(codePtr->procPtr, pos, type);
+        }
+#endif
+
 #ifndef ACCEPT_NAN
 	if (type == TCL_NUMBER_NAN) {
 	    result = TCL_ERROR;

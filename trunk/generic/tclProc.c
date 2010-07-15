@@ -1766,6 +1766,16 @@ TclObjInterpProcCore(
 		    (Tcl_Obj **)(iPtr->varFramePtr->objv + l));
 	}
 #ifdef TCL_JIT
+        if (!procPtr->jitproc.collectingTypes) {
+            procPtr->jitproc.bytecodeTypes = calloc(codePtr->numCodeBytes,
+                    sizeof(struct JIT_BCType));
+            if (procPtr->jitproc.bytecodeTypes == NULL) {
+                Tcl_Panic("unable to allocate space for JIT ...");
+            }
+            /* XXX bytecodeTypes is never being freed. */
+            procPtr->jitproc.collectingTypes = 1;
+        }
+
         if (procPtr->jitproc.eligible) {
             if (JIT_READYTOCOMPILE(procPtr)) {
                 /* XXX */
