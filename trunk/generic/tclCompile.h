@@ -351,7 +351,7 @@ typedef struct ByteCode {
 				 * code when, e.g., commands with compile
 				 * procs are redefined. */
     Namespace *nsPtr;		/* Namespace context in which this code was
-				 * compiled. If the code is executed if a
+				 * compiled. If the code is executed in a
 				 * different namespace, it must be
 				 * recompiled. */
     int nsEpoch;		/* Value of nsPtr->resolverEpoch when this
