@@ -433,7 +433,9 @@ GENERIC_SRCS = \
 
 GENERICJIT_HDRS = \
 	$(GENERICJIT_DIR)/tclJitCompile.h \
-	$(GENERICJIT_DIR)/tclJitOutput.h
+	$(GENERICJIT_DIR)/tclJitOutput.h \
+	$(GENERICJIT_DIR)/tclJitInsts.h \
+	$(GENERICJIT_DIR)/tclJitConf.h
 
 GENERICJIT_SRCS = \
 	$(GENERICJIT_DIR)/tclJitCompile.c \
