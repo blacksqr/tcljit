@@ -4,11 +4,41 @@
 #include "tclJitOutput.h"
 #include "tclJitInsts.h"
 
+char *get_value(Value);
+
+char *
+get_value_destcheck(Value src, Value reg)
+{
+    if (reg->type == jitreg && src->type == jitvalue_tcl) {
+        char *buffer = malloc(32);
+
+        switch (reg->content.vreg.type) {
+            case TCL_NUMBER_LONG: { 
+                /* XXX */
+                long result;
+                if (Tcl_GetLongFromObj(NULL, src->content.obj, &result)
+                        != TCL_OK) {
+                    perror("get_value_destcheck");
+                }
+                snprintf(buffer, 32, "%ld", result);
+                break;
+            }
+            case -1:
+                free(buffer);
+                return get_value(src);
+                break;
+        }
+        return buffer;
+
+    } else {
+        return get_value(src);
+    }
+}
+
+
 char *
 get_value(Value v)
 {
-    /*int size;
-    char *str;*/
     char *buffer = malloc(32);
 
     snprintf(buffer, 32, "NULL");
@@ -33,7 +63,7 @@ get_value(Value v)
             snprintf(buffer, 32, "%d", v->content.integer);
             break;
         case jitreg:
-            snprintf(buffer, 32, "R%d", v->content.regnum);
+            snprintf(buffer, 32, "R%d", v->content.vreg.regnum);
             break;
         default:
             perror("get_value");
@@ -86,10 +116,10 @@ JIT_bb_output(char *procname, struct BasicBlock *blocks, int numblocks)
         ptr = blocks[i].quads->next;
         while (ptr) {
             switch (ptr->instruction) {
+                /* XXX Missing free. */
                 case JIT_INST_MOVE:
-                    /* XXX Missing free. */
                     printf("  %s := %s\n", get_value(ptr->dest),
-                            get_value(ptr->src_a));
+                            get_value_destcheck(ptr->src_a, ptr->dest));
                     break;
 
                 case JIT_INST_GOTO:
