@@ -106,6 +106,11 @@ JIT_bb_output(char *procname, struct BasicBlock *blocks, int numblocks)
                             get_value(ptr->dest));
                     break;
 
+                case JIT_INST_JFALSE:
+                    printf("  IF NOT %s GOTO B%s\n", get_value(ptr->src_a),
+                            get_value(ptr->dest));
+                    break;
+
                 case JIT_INST_CALL:
                     printf("  CALL %s (%s) ...\n", get_value(ptr->src_a),
                             "vazio");
