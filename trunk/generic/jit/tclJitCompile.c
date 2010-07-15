@@ -128,8 +128,6 @@ new_register(int reset)
 /* XXX */
 #define GET_INT(value) value->content.integer
 
-//struct VarReg {
-    //Var var;
 struct ObjReg {
     Tcl_Obj *obj;
     Value reg;
@@ -171,14 +169,19 @@ JIT_Compile(Tcl_Obj *procName, Tcl_Interp *interp, ByteCode *code)
     new_register(1);
     compiledLocals = ((Interp *)interp)->varFramePtr->compiledLocals;
     for (i = 0; i < ((Interp *)interp)->varFramePtr->numCompiledLocals; i++) {
-        ///locals[i].var = compiledLocals[i];
-        locals[i].obj = compiledLocals[i].value.objPtr;/*XXX*/
+        /*printf("%p\n", compiledLocals[i].value.objPtr);*/
+        if (compiledLocals[i].value.objPtr != NULL) {
+            /* XXX */
+            locals[i].obj = Tcl_DuplicateObj(compiledLocals[i].value.objPtr);
+        } else {
+            locals[i].obj = NULL;
+        }
         locals[i].reg = new_register(0);
     }
 
     //printf("numCodeBytes = %d, numSrcBytes = %d, codeStartlen = %d\n",
     //    code->numCodeBytes, code->numSrcBytes, strlen(code->codeStart));
-    printf("proc = %s\n", TclGetString(procName));
+    DEBUG("proc = %s\n", TclGetString(procName));
     DEBUG("numCodeBytes = %d, numLitObjects = %d, numCompiledLocals = %d\n",
             code->numCodeBytes, code->numLitObjects, i);
     for (i = 0; i < code->numLitObjects; i++) {
@@ -220,11 +223,8 @@ JIT_Compile(Tcl_Obj *procName, Tcl_Interp *interp, ByteCode *code)
             bc_to_bb[xx] = i;
         }
     }
-    /*for (i = 0; i < code->numCodeBytes; i++) {
-        printf("%d | ", bc_to_bb[i]);
-    }*/
     j = k;
-    printf("\n");
+    //printf("\n");
 
     blocks = malloc(numblocks * sizeof(struct BasicBlock));
     pc = code->codeStart;
@@ -429,7 +429,7 @@ build_quad(ByteCode *code, unsigned char *pc, int *adv, int pos, int bc_to_bb[],
             break;
 
         case INST_ADD: // 53
-            DEBUG(", add *os dois no topo*, ");
+            DEBUG(", add, ");
             quad->src_b = stack_pop(Stack);
             quad->src_a = stack_pop(Stack);
             quad->dest = new_register(0);
@@ -489,11 +489,11 @@ void freeblocks(struct BasicBlock *blocks, int count)
         if (blocks[i].exitcount) {
             free(blocks[i].exit);
         }
-        //printf("Bloco %d\n", i);
+        //printf("Block %d\n", i);
         while (blocks[i].quads) {
             temp = blocks[i].quads;
             blocks[i].quads = blocks[i].quads->next;
-            //printf("  %p %p %p\n", temp->dest, temp->src_a, temp->src_b);
+            printf("  %p %p %p\n", temp->dest, temp->src_a, temp->src_b);
             /*if (temp->dest) free(temp->dest);
             if (temp->src_a) free(temp->src_a);
             if (temp->src_b) free(temp->src_b);*/ /* XXX */
