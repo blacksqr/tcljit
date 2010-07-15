@@ -17,9 +17,11 @@
 
 #include "tclInt.h"
 #include "tclCompile.h"
-/* XXX ifdef TCL_JIT */
+
+#ifdef TCL_JIT
 #include "jit/tclJitCompile.h"
-/* XXX endif */
+#include "jit/tclJitConf.h"
+#endif
 
 /*
  * Prototypes for static functions in this file
@@ -464,6 +466,11 @@ TclCreateProc(
 	procPtr->firstLocalPtr = NULL;
 	procPtr->lastLocalPtr = NULL;
     }
+
+#ifdef TCL_JIT
+    /*printf("## Invoking PROCSETUP (%s)", procName);*/
+    JIT_PROCSETUP(procPtr);
+#endif
 
     /*
      * Break up the argument list into argument specifiers, then process each
@@ -1758,13 +1765,20 @@ TclObjInterpProcCore(
 		    iPtr->varFramePtr->objc - l,
 		    (Tcl_Obj **)(iPtr->varFramePtr->objv + l));
 	}
+#ifdef TCL_JIT
+        if (procPtr->jitproc.eligible) {
+            if (JIT_READYTOCOMPILE(procPtr)) {
+                /* XXX */
+                /*printf("## Compile (%s)\n", TclGetString(procNameObj));*/
+	        int xxx = JIT_Compile(procNameObj, interp, codePtr);
+            }
+            JIT_UPDATEPROCCOUNT(procPtr);
+        }
+#endif
 	result = TclExecuteByteCode(interp, codePtr);
 	if (TCL_DTRACE_PROC_RETURN_ENABLED()) {
 	    TCL_DTRACE_PROC_RETURN(TclGetString(procNameObj), result);
 	}
-	/* XXX ifdef TCL_JIT */
-	int xxresult = JIT_Compile(procNameObj, interp, codePtr);
-	/* XXX endif */
 	codePtr->refCount--;
 	if (codePtr->refCount <= 0) {
 	    TclCleanupByteCode(codePtr);
@@ -1942,6 +1956,10 @@ ProcCompileProc(
 	    } else {
 		bodyPtr->typePtr->freeIntRepProc(bodyPtr);
 		bodyPtr->typePtr = NULL;
+#ifdef TCL_JIT
+                /* Reset procPtr to the initial state. */
+                JIT_PROCSETUP(procPtr);
+#endif
 	    }
  	}
     }
