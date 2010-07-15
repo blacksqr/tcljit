@@ -138,7 +138,7 @@ typedef int ptrdiff_t;
 #   endif
 #endif
 
-/* Tcl JIT headers. */
+/* Tcl JIT headers. Just one (for now at least). */
 #include "jit/tclJitConf.h"
 
 /*
@@ -899,7 +899,7 @@ typedef struct Proc {
     CompiledLocal *lastLocalPtr;/* Pointer to the last allocated local
 				 * variable or NULL if none. This has frame
 				 * index (numCompiledLocals-1). */
-    JIT_Proc jitproc;           /* Data related to the JIT compiler. */
+    struct JIT_Proc jitproc;    /* Data related to the JIT compiler. */
 } Proc;
 
 /*
