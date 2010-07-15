@@ -1775,7 +1775,14 @@ TclObjInterpProcCore(
             JIT_UPDATEPROCCOUNT(procPtr);
         }
 #endif
+
 	result = TclExecuteByteCode(interp, codePtr);
+
+#ifdef TCL_JIT
+    if (result == TCL_ERROR || result == TCL_CONTINUE || result == TCL_BREAK) {
+        procPtr->jitproc.eligible = 0;
+    }
+#endif
 	if (TCL_DTRACE_PROC_RETURN_ENABLED()) {
 	    TCL_DTRACE_PROC_RETURN(TclGetString(procNameObj), result);
 	}
@@ -1852,6 +1859,7 @@ TclObjInterpProcCore(
 	TCL_DTRACE_PROC_RESULT(TclGetString(procNameObj), result,
 		TclGetString(r), r);
     }
+
 
   procDone:
     /*
