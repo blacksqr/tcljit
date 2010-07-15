@@ -138,6 +138,9 @@ typedef int ptrdiff_t;
 #   endif
 #endif
 
+/* Tcl JIT headers. */
+#include "jit/tclJitConf.h"
+
 /*
  * The following procedures allow namespaces to be customized to support
  * special name resolution rules for commands/variables.
@@ -896,6 +899,7 @@ typedef struct Proc {
     CompiledLocal *lastLocalPtr;/* Pointer to the last allocated local
 				 * variable or NULL if none. This has frame
 				 * index (numCompiledLocals-1). */
+    JIT_Proc jitproc;           /* Data related to the JIT compiler. */
 } Proc;
 
 /*
