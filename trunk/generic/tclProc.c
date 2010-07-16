@@ -1975,8 +1975,7 @@ ProcCompileProc(
 		bodyPtr->typePtr->freeIntRepProc(bodyPtr);
 		bodyPtr->typePtr = NULL;
 #ifdef TCL_JIT
-                /* Reset procPtr to the initial state. */
-                JIT_PROCSETUP(procPtr);
+                JIT_PROCRESET(procPtr);
 #endif
 	    }
  	}
