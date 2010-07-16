@@ -18,6 +18,12 @@
     ptr->jitproc.bytecodeTypes = NULL; \
 } while (0)
 
+#define JIT_PROCRESET(ptr) do { \
+    if (ptr->jitproc.ncode != NULL) { free(ptr->jitproc.ncode); } \
+    if (ptr->jitproc.collectingTypes) { free(ptr->jitproc.bytecodeTypes); } \
+    JIT_PROCSETUP(ptr); \
+} while (0)
+
 #define JIT_UPDATEPROCCOUNT(ptr) ptr->jitproc.callCount--
 #define JIT_READYTOCOMPILE(ptr) (ptr->jitproc.callCount == 0)
 
