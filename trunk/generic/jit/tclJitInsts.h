@@ -15,3 +15,12 @@
 #define JIT_INST_ADD 53
 
 #endif /* TCLJIT_INSTS_H */
+
+/* Emacs configuration.
+ *
+ * Local Variables:
+ *   mode: c
+ *   c-basic-offset: 4
+ *   fill-column: 78
+ * End:
+ */

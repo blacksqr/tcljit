@@ -10,19 +10,20 @@
 /* Number of required procedure invocations before JIT compilation triggers. */
 #define JIT_REQINVOKE 1
 
-#define JIT_PROCSETUP(ptr) do { \
-    ptr->jitproc.eligible = 1; \
-    ptr->jitproc.callCount = (JIT_REQINVOKE > 0) ? JIT_REQINVOKE : 1; \
-    ptr->jitproc.ncode = NULL; \
-    ptr->jitproc.collectingTypes = 0; \
-    ptr->jitproc.bytecodeTypes = NULL; \
-} while (0)
+#define JIT_PROCSETUP(ptr) do {						\
+	ptr->jitproc.eligible = 1;					\
+	ptr->jitproc.callCount = (JIT_REQINVOKE > 0) ? JIT_REQINVOKE : 1; \
+	ptr->jitproc.ncode = NULL;					\
+	ptr->jitproc.collectingTypes = 0;				\
+	ptr->jitproc.bytecodeTypes = NULL;				\
+    } while (0)
 
-#define JIT_PROCRESET(ptr) do { \
-    if (ptr->jitproc.ncode != NULL) { free(ptr->jitproc.ncode); } \
-    if (ptr->jitproc.collectingTypes) { free(ptr->jitproc.bytecodeTypes); } \
-    JIT_PROCSETUP(ptr); \
-} while (0)
+#define JIT_PROCRESET(ptr) do {						\
+	if (ptr->jitproc.ncode != NULL) { free(ptr->jitproc.ncode); }	\
+	if (ptr->jitproc.collectingTypes) {				\
+	    free(ptr->jitproc.bytecodeTypes); }				\
+	JIT_PROCSETUP(ptr);						\
+    } while (0)
 
 #define JIT_UPDATEPROCCOUNT(ptr) ptr->jitproc.callCount--
 #define JIT_READYTOCOMPILE(ptr) (ptr->jitproc.callCount == 0)
@@ -43,3 +44,12 @@ struct JIT_Proc {
 
 
 #endif /* TCLJIT_CONF_H */
+
+/* Emacs configuration.
+ *
+ * Local Variables:
+ *   mode: c
+ *   c-basic-offset: 4
+ *   fill-column: 78
+ * End:
+ */

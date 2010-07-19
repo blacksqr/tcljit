@@ -26,7 +26,7 @@ struct BasicBlock {
 
 struct Value {
     enum { jitvalue_tcl, jitvalue_int, jitreg, jitvalue_long,
-        jitvalue_double } type;
+	   jitvalue_double } type;
     union {
         Tcl_Obj *obj;
         int integer;
@@ -43,3 +43,12 @@ struct Value {
 int JIT_Compile(Tcl_Obj *, Tcl_Interp *, ByteCode *);
 
 #endif /* TCLJIT_COMPILE_H */
+
+/* Emacs configuration.
+ *
+ * Local Variables:
+ *   mode: c
+ *   c-basic-offset: 4
+ *   fill-column: 78
+ * End:
+ */
