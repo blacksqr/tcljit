@@ -37,7 +37,7 @@ struct JIT_BCType { /* XXX Took from tclJitTypeCollect.h to skip circular ref */
 struct JIT_Proc {
     int eligible;
     unsigned int callCount; /* Starts as CALLCOUNT_BEFORE_JIT and moves down. */
-    unsigned char *ncode;   /* XXX Native code for the proc, NULL for now. */
+    unsigned char *ncode;
     int collectingTypes;
     struct JIT_BCType *bytecodeTypes;
 };

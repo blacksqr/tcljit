@@ -82,6 +82,9 @@ get_oper(unsigned char op)
     case JIT_INST_ADD:
 	snprintf(buffer, 3, "+");
 	break;
+    case INST_MULT:
+	snprintf(buffer, 3, "*");
+	break;
     case INST_EXPON:
 	snprintf(buffer, 3, "**");
 	break;
@@ -147,6 +150,7 @@ JIT_bb_output(char *procname, struct BasicBlock *blocks, int numblocks)
 		break;
 
 	    case JIT_INST_ADD:
+	    case INST_MULT:
 	    case INST_EXPON:
 	    case INST_BITXOR:
 	    case INST_RSHIFT:
@@ -163,7 +167,7 @@ JIT_bb_output(char *procname, struct BasicBlock *blocks, int numblocks)
         }
         printf("  Exit points:");
         for (j = 0; j < blocks[i].exitcount; j++) {
-            printf("    %p", blocks[i].exit[j]);
+            printf("    %d", blocks[i].exitblocks[j]);
         }
         putchar('\n');
     }
