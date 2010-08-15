@@ -1770,7 +1770,7 @@ TclObjInterpProcCore(
             procPtr->jitproc.bytecodeTypes = calloc(codePtr->numCodeBytes,
                     sizeof(struct JIT_BCType));
             if (procPtr->jitproc.bytecodeTypes == NULL) {
-                Tcl_Panic("unable to allocate space for JIT ...");
+                Tcl_Panic("unable to allocate space for JIT type collection");
             }
             /* XXX bytecodeTypes is never being freed. */
             procPtr->jitproc.collectingTypes = 1;
@@ -1782,6 +1782,8 @@ TclObjInterpProcCore(
                 /*printf("## Compile (%s)\n", TclGetString(procNameObj));*/
 	        int xxx = JIT_Compile(procNameObj, interp, codePtr);
             }
+            /* XXX Won't this possibly decrement "forever" and then
+             * overflow and become 0 again -- causing another compilation ? */
             JIT_UPDATEPROCCOUNT(procPtr);
         }
 #endif
