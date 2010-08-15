@@ -12,7 +12,7 @@ int allocReg(void *);
 #define MODRM(mod, reg, rm) (mod << 6) + (reg << 3) + rm
 
 #define PROLOGUE(code) PUSH_REG(code, EBP); MOV_REG_REG(code, ESP, EBP)
-#define EPILOGUE(code) LEAVE(code)
+#define EPILOGUE(code) LEAVE(code); RETN(code)
 
 
 /* Instructions. */
