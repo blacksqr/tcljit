@@ -13,6 +13,7 @@
 #define JIT_INST_JTRUE 36
 #define JIT_INST_JFALSE 38
 #define JIT_INST_ADD 53
+#define JIT_INST_INCR 29
 
 #endif /* TCLJIT_INSTS_H */
 

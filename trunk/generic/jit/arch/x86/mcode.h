@@ -18,12 +18,14 @@ int allocReg(void *);
 /* Instructions. */
 #define NOP(code) *code++ = 0x90
 
+#define INC_REG(code, reg) *code++ = 0x40 + reg
+#define DEC_REG(code, reg) *code++ = 0x48 + reg
+
 #define PUSH_REG(code, reg) *code++ = 0x50 + reg
 
 #define MOV_REG_REG(code, src, dest) \
     *code++ = 0x89; \
     *code++ = MODRM(0x3, src, dest)
-
 #define MOV_MEM_REG(code, mem, dest) \
     *code++ = 0xC7; \
     *code++ = MODRM(0x3, 0, dest); \
