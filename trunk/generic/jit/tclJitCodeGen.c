@@ -29,7 +29,6 @@ unsigned char *
 JIT_CodeGen(struct BasicBlock *CFG, int bbcount)
 {
     MCode code;
-    unsigned char *codeStart;
     int visited[bbcount];
 
     if (!bbcount) {
@@ -40,25 +39,25 @@ JIT_CodeGen(struct BasicBlock *CFG, int bbcount)
     code.used = 0;
     code.limit = getpagesize(); /* XXX Adjust for Windows. */
     code.mcode = malloc(code.limit);
-    codeStart = code.mcode;
+    code.codeEnd = code.mcode;
 
     memset(visited, 0, sizeof(visited));
 
     /* XXX There could be a register allocation phase here. */
 
-    PROLOGUE(code.mcode);
+    PROLOGUE(code.codeEnd);
 
     /* Assuming that node 0 in the CFG is the source node. */
     dfs(CFG, 0, visited, &code);
 
-    EPILOGUE(code.mcode);
+    EPILOGUE(code.codeEnd);
 
     int i;
-    for (i = 0; i < (code.mcode - codeStart); i++) {
+    for (i = 0; i < (code.codeEnd - code.mcode); i++) {
         printf("0x%X ", code.mcode[i]);
     }
     printf("\n");
-    printf(">>> %d <<<\n", (code.mcode - codeStart));
+    printf(">>> %d <<<\n", (code.codeEnd - code.mcode));
 
     return code.mcode; /* XXX retornar algo do mmap invés ? */
 }
@@ -89,7 +88,6 @@ dfs(struct BasicBlock *CFG, int visiting, int visited[], MCode *code)
 static void
 codegen(struct Quadruple *quads, MCode *code)
 {
-    unsigned char *mcode = code->mcode;
     struct Quadruple *ptr;
 
     if (!quads || !(quads->next)) {
@@ -107,10 +105,12 @@ codegen(struct Quadruple *quads, MCode *code)
             /* XXX Possibly expand code.mcode before advancing. */
             if (ptr->dest->type == jitreg) {
                 if (ptr->src_a->type == jitreg) {
-                    MOV_REG_REG(mcode, allocReg(ptr->src_a),
+                    MOV_REG_REG(code->codeEnd,
+                            allocReg(ptr->src_a),
                             allocReg(ptr->dest));
                 } else if (ptr->src_a->type == jitvalue_tcl) {
-                    MOV_MEM_REG(mcode, (ptrdiff_t)ptr->src_a->content.obj,
+                    MOV_MEM_REG(code->codeEnd,
+                            (ptrdiff_t)ptr->src_a->content.obj,
                             allocReg(ptr->dest));
                 } else {
                     /* XXX Unsupported. */

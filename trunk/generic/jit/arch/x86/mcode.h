@@ -16,6 +16,8 @@ int allocReg(void *);
 
 
 /* Instructions. */
+#define NOP(code) *code++ = 0x90
+
 #define PUSH_REG(code, reg) *code++ = 0x50 + reg
 
 #define MOV_REG_REG(code, src, dest) \
