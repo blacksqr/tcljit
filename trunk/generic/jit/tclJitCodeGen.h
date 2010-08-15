@@ -10,7 +10,7 @@
 #include "tclJitCompile.h"
 
 struct MCode {
-    unsigned char *mcode;
+    unsigned char *mcode, *codeEnd;
     int limit, used;
 };
 
