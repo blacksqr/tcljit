@@ -79,6 +79,7 @@ get_oper(unsigned char op)
     char *buffer = malloc(3);
 
     switch (op) {
+    case JIT_INST_INCR:
     case JIT_INST_ADD:
 	snprintf(buffer, 3, "+");
 	break;
@@ -149,6 +150,7 @@ JIT_bb_output(char *procname, struct BasicBlock *blocks, int numblocks)
 		       "vazio");
 		break;
 
+            case JIT_INST_INCR:
 	    case JIT_INST_ADD:
 	    case INST_MULT:
 	    case INST_EXPON:

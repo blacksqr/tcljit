@@ -169,6 +169,35 @@ codegen(struct Quadruple *quads, MCode *code)
                 /* XXX Unsupported. */
             }
             break;
+
+        case JIT_INST_INCR:
+            DEBUG("INST_INCR: %s += %d\n",
+                    value_type_str[ptr->dest->type],
+                    ptr->src_b->content.integer);
+            if (ptr->src_b->type != jitvalue_int || ptr->src_a != ptr->dest) {
+                Tcl_Panic("Incorrectly encoded instruction.");
+            }
+
+            int val = ptr->src_b->content.integer;
+            if (val == 1) {
+                INC_REG(code->codeEnd, allocReg(ptr->dest));
+            } else if (val == -1) {
+                DEC_REG(code->codeEnd, allocReg(ptr->dest));
+            } else {
+                /* XXX */
+                Tcl_Panic("Should have been a JIT_INST_ADD.");
+            }
+
+            break;
+
+        case JIT_INST_ADD:
+            DEBUG("INST_ADD: %s = %s + %s\n",
+                    value_type_str[ptr->dest->type],
+                    value_type_str[ptr->src_a->type],
+                    value_type_str[ptr->src_b->type]);
+            /* XXX Not done. */
+            break;
+
         }
     }
 }

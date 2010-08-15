@@ -479,11 +479,16 @@ build_quad(ByteCode *code, unsigned char *pc, int *adv, int pos, int bc_to_bb[],
 
     case INST_INCR_SCALAR1_IMM: /* 29 */
 	DEBUG(", incr_imm (%d %d), ", *(pc + 1), *(pc + 2));
-	/* *(pc + 1) em compiledLocals, *(pc + 2) == um inteiro */
+        /* XXX quad->src_a needs to be able to be converted to an integer,
+         * could signal this using JIT_ResolveType here. */
 	quad->dest = locals[*(pc + 1)].reg;
 	quad->src_a = locals[*(pc + 1)].reg;
 	quad->src_b = new_intvalue(*(pc + 2));
-	quad->instruction = JIT_INST_ADD;
+        if (abs(quad->src_b->content.integer) == 1) {
+            quad->instruction = JIT_INST_INCR;
+        } else {
+            quad->instruction = JIT_INST_ADD;
+        }
 	stack_push(Stack, quad);
 	*adv = 3;
 	break;
