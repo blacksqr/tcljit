@@ -5,23 +5,13 @@
 #include "tclJitOutput.h"
 #include "tclJitInsts.h"
 #include "tclJitTypeCollect.h"
-
-#define DEBUGGING 1 /* XXX */
-
-#define DEBUG(str, vaargs...)				\
-    do {						\
-	if (DEBUGGING) fprintf(stderr, str, ##vaargs);	\
-    } while (0)
+#include "tclJitCodeGen.h"
 
 #define IS_JUMP_INST(op) (op == INST_JUMP1 || op == INST_JUMP4 ||	\
 			  op == INST_JUMP_TRUE1 || op == INST_JUMP_TRUE4 || \
 			  op == INST_JUMP_FALSE1 || op == INST_JUMP_FALSE4)
 
 #define IS_JIT_CJUMP_INST(op) (op == JIT_INST_JTRUE || op == JIT_INST_JFALSE)
-
-/* XXX Acho que na verdade não vai dar certo usar malloc, precisa de outro
- * gerenciador (provavelmente vou usar algo do Tcl do que implementar outro).
- */
 
 /* Using a temporary stack to convert the stack machine nature of the TVM
  * to a form of register machine. */
@@ -31,6 +21,8 @@ struct stack {
 };
 
 struct stack *Stack;
+//typedef void *localstack_t;
+typedef struct Quadruple *localstack_t;
 
 /* XXX No verification on these stack functions yet. */
 struct stack *
@@ -42,7 +34,7 @@ stack_new()
 }
 
 void
-stack_push(struct stack *s, void *v)
+stack_push(struct stack *s, localstack_t v)
 {
     struct stack *n = malloc(sizeof(struct stack));
     n->v = v;
@@ -51,24 +43,24 @@ stack_push(struct stack *s, void *v)
 }
 
 void
-stack_set_top(struct stack *s, void *v)
+stack_set_top(struct stack *s, localstack_t v)
 {
     s->next->v = v;
 }
 
-void *
+localstack_t
 stack_top(struct stack *s)
 {
     return s->next->v;
 }
 
-void *
+localstack_t
 stack_belowtop(struct stack *s)
 {
     return s->next->next->v;
 }
 
-void *
+localstack_t
 stack_get_at(struct stack *s, int pos)
 {
     struct stack *ptr = s->next;
@@ -79,11 +71,11 @@ stack_get_at(struct stack *s, int pos)
     return ptr->v;
 }
 
-void *
+localstack_t
 stack_pop(struct stack *s)
 {
     struct stack *temp = s->next;
-    void *v = temp->v;
+    localstack_t v = temp->v;
 
     s->next = s->next->next;
     free(temp);
@@ -144,8 +136,12 @@ tclobj_to_long(Value v)
 
 /* XXX */
 #define GET_INT(value) value->content.integer
+#define REG_RESETCOUNT new_register(1)
+#define REG_NEW new_register(0)
 
 struct ObjReg {
+    //Var *var;
+    //Tcl_Obj **obj;
     Tcl_Obj *obj;
     Value reg;
 };
@@ -179,27 +175,30 @@ JIT_Compile(Tcl_Obj *procName, Tcl_Interp *interp, ByteCode *code)
     pc = code->codeStart;
     memset(leaders, 0, code->numCodeBytes * sizeof(int));
 
-    new_register(1);
+    REG_RESETCOUNT;
     compiledLocals = ((Interp *)interp)->varFramePtr->compiledLocals;
     for (i = 0; i < ((Interp *)interp)->varFramePtr->numCompiledLocals; i++) {
-        /*printf("%p\n", compiledLocals[i].value.objPtr);*/
         if (compiledLocals[i].value.objPtr != NULL) {
-            /* XXX */
+            /* This corresponds to a formal parameter. */
             locals[i].obj = Tcl_DuplicateObj(compiledLocals[i].value.objPtr);
+            //locals[i].obj = &(compiledLocals[i].value.objPtr);
         } else {
+	    //printf("NULL at locals %d<<\n", i);
             locals[i].obj = NULL;
         }
-        locals[i].reg = new_register(0);
+        locals[i].reg = REG_NEW;
     }
 
-    //printf("numCodeBytes = %d, numSrcBytes = %d, codeStartlen = %d\n",
-    //    code->numCodeBytes, code->numSrcBytes, strlen(code->codeStart));
     DEBUG("proc = %s\n", TclGetString(procName));
-    DEBUG("numCodeBytes = %d, numLitObjects = %d, numCompiledLocals = %d\n",
-	  code->numCodeBytes, code->numLitObjects, i);
+    DEBUG("numCodeBytes = %d, numSrcBytes = %d\n"
+            "numLitObjects = %d, numCompiledLocals = %d\n",
+            code->numCodeBytes, code->numSrcBytes,
+            code->numLitObjects, i);
+#ifdef DEBUGGING
     for (i = 0; i < code->numLitObjects; i++) {
         DEBUG(">>%s\n", Tcl_GetString(code->objArrayPtr[i]));
     }
+#endif
 
     numblocks = 1;
     leaders[code->numCodeBytes] = code->numCodeBytes;
@@ -227,30 +226,35 @@ JIT_Compile(Tcl_Obj *procName, Tcl_Interp *interp, ByteCode *code)
     }
 
     /* Map bytecode position to block number. */
-    //printf("Lideres (%d): ", numblocks);
+    //printf("Leaders (%d): ", numblocks);
     k = j;
-    int xx = 0;
+    int bcn = 0; /* bcn stands for bytecode number. */
     for (i = 0; i < numblocks; i++, j++) {
         //printf("%d (%d), ", leaders[j], leaders[j + 1] - leaders[j]);
-        for (xx = leaders[j]; xx < leaders[j] + leaders[j + 1] - 1; xx++) {
-            bc_to_bb[xx] = i;
+        for (bcn = leaders[j]; bcn < leaders[j] + leaders[j + 1] - 1; bcn++) {
+            bc_to_bb[bcn] = i;
         }
     }
     j = k;
     //printf("\n");
 
     blocks = malloc(numblocks * sizeof(struct BasicBlock));
+#ifdef DEBUGGING
     pc = code->codeStart;
-    for (i = 0; i < code->numCodeBytes; i++) {
-        DEBUG("%d, ", *pc);
+    DEBUG("%d", *pc);
+    pc++;
+    for (i = 1; i < code->numCodeBytes; i++) {
+        DEBUG(", %d", *pc);
         pc++;
     }
     DEBUG("\n");
+#endif
 
     /* Build basic blocks. */
     pc = code->codeStart;
     runningcount = 0;
     for (i = 0; i < numblocks; j++, i++) {
+        blocks[i].id = i;
         blocks[i].quads = calloc(1, sizeof(struct Quadruple));
         blocks[i].quads->next = NULL;
         blocks[i].exitcount = 0;
@@ -283,8 +287,8 @@ JIT_Compile(Tcl_Obj *procName, Tcl_Interp *interp, ByteCode *code)
             } else {
                 DEBUG("exits %d: %d\n", i, i + 1);
                 blocks[i].exitcount = 1;
-                blocks[i].exit = malloc(sizeof(struct BasicBlock *));
-                blocks[i].exit[0] = &blocks[i + 1];
+                blocks[i].exitblocks = malloc(1 * sizeof(int));
+                blocks[i].exitblocks[0] = i + 1;
             }
         } else {
             if (i + 1 == numblocks) {
@@ -292,15 +296,27 @@ JIT_Compile(Tcl_Obj *procName, Tcl_Interp *interp, ByteCode *code)
                 DEBUG("exit block: %d %d\n", i,
 		      GET_INT(blocks[i].lastquad->src_a));
                 blocks[i].exitcount = 1;
-                blocks[i].exit = malloc(sizeof(struct BasicBlock *));
-                blocks[i].exit[0] = &blocks[GET_INT(blocks[i].lastquad->dest)];
+                blocks[i].exitblocks = malloc(1 * sizeof(int));
+                blocks[i].exitblocks[0] = GET_INT(blocks[i].lastquad->dest);
             } else {
                 DEBUG("exits %d: %d %d\n", i, i + 1,
 		      GET_INT(blocks[i].lastquad->dest));
                 blocks[i].exitcount = 2;
-                blocks[i].exit = malloc(2 * sizeof(struct BasicBlock *));
-                blocks[i].exit[0] = &blocks[i + 1];
-                blocks[i].exit[1] = &blocks[GET_INT(blocks[i].lastquad->dest)];
+                blocks[i].exitblocks = malloc(2 * sizeof(int));
+                blocks[i].exitblocks[0] = i + 1;
+                blocks[i].exitblocks[1] = GET_INT(blocks[i].lastquad->dest);
+                /*
+                if (blocks[i].lastquad->instruction != JIT_INST_GOTO) {
+                    blocks[i].exitcount = 2;
+                    blocks[i].exitblocks = malloc(2 * sizeof(int));
+                    blocks[i].exitblocks[0] = i + 1;
+                    blocks[i].exitblocks[1] = GET_INT(blocks[i].lastquad->dest);
+                } else {
+                    blocks[i].exitcount = 1;
+                    blocks[i].exitblocks = malloc(1 * sizeof(int));
+                    blocks[i].exitblocks[0] = GET_INT(blocks[i].lastquad->dest);
+                }
+                */
             }
         }
     }
@@ -308,6 +324,10 @@ JIT_Compile(Tcl_Obj *procName, Tcl_Interp *interp, ByteCode *code)
     JIT_bb_output(TclGetString(procName), blocks, numblocks);
     printf("\n-------------\n\n");
 
+    /* XXX */
+    unsigned char *ncode;
+    ncode = JIT_CodeGen(blocks, numblocks);
+    /* XXX Install ncode. */
     /* XXX Missing free for "locals". */
     freeblocks(blocks, numblocks);
 
@@ -327,46 +347,44 @@ build_quad(ByteCode *code, unsigned char *pc, int *adv, int pos, int bc_to_bb[],
 
     switch (quad->instruction) {
 
-    case INST_PUSH1: // 1
+    case INST_PUSH1: /* 1 */
 	DEBUG(", pushing %d, ", *(pc + 1));
 	quad->instruction = JIT_INST_MOVE;
-	quad->dest = new_register(0);
+	quad->dest = REG_NEW;
 	quad->src_a = new_tclvalue(code->objArrayPtr[*(pc + 1)]);
-	stack_push(Stack, quad->dest);
-	//printf(", pushing %d (%s), ", *(pc + 1),
-	//    Tcl_GetString(code->objArrayPtr[*(pc + 1)]));
+	stack_push(Stack, quad);//->dest);
 	*adv = 2; /* 1 for push instruction plus 1 for the index */
 	break;
 
-    case INST_INVOKE_STK1: // 6
-	DEBUG(", invocando (argc = %d), ", *(pc + 1));
+    case INST_INVOKE_STK1: /* 6 */
+	DEBUG(", invoking (argc = %d), ", *(pc + 1));
 	quad->instruction = JIT_INST_CALL;
 	/* src_a: register "holding" the objv address.
 	 * src_b: parameters. */
-	quad->src_a = stack_get_at(Stack, *(pc + 1) - 1);
+	quad->src_a = stack_get_at(Stack, *(pc + 1) - 1)->dest;
 	//quad->src_b = new_listvalue(Stack, *(pc + 1) - 1);
 	*adv = 2;
 	break;
 
-    case INST_JUMP_FALSE1: // 38
+    case INST_JUMP_FALSE1: /* 38 */
 	DEBUG(", offset (jf %d %d), ", (char)*(pc + 1),
 	      bc_to_bb[pos + (char)*(pc + 1)]);
 	quad->instruction = JIT_INST_JFALSE;
-	quad->src_a = stack_pop(Stack);
+	quad->src_a = stack_pop(Stack)->dest;
 	quad->dest = new_intvalue(bc_to_bb[pos + (char)*(pc + 1)]);
 	*adv = 2;
 	break;
 
-    case INST_JUMP_TRUE1: // 36
+    case INST_JUMP_TRUE1: /* 36 */
 	DEBUG(", offset (jt %d %d), ", (char)*(pc + 1),
 	      bc_to_bb[pos + (char)*(pc + 1)]);
 	quad->instruction = JIT_INST_JTRUE;
-	quad->src_a = stack_pop(Stack);
+	quad->src_a = stack_pop(Stack)->dest;
 	quad->dest = new_intvalue(bc_to_bb[pos + (char)*(pc + 1)]);
 	*adv = 2;
 	break;
 
-    case INST_JUMP1: // 34
+    case INST_JUMP1: /* 34 */
 	DEBUG(", jump (%d %d), ", (char)*(pc + 1),
 	      bc_to_bb[pos + (char)*(pc + 1)]);
 	quad->instruction = JIT_INST_GOTO;
@@ -374,7 +392,7 @@ build_quad(ByteCode *code, unsigned char *pc, int *adv, int pos, int bc_to_bb[],
 	*adv = 2;
 	break;
 
-    case INST_POP: // 3
+    case INST_POP: /* 3 */
 	DEBUG(", pop, ");
 	stack_pop(Stack);
 	free(quad);   /* Discard this quad. */
@@ -382,10 +400,10 @@ build_quad(ByteCode *code, unsigned char *pc, int *adv, int pos, int bc_to_bb[],
 	*adv = 1;
 	break;
 
-    case INST_TRY_CVT_TO_NUMERIC: { // 64
+    case INST_TRY_CVT_TO_NUMERIC: { /* 64 */
 	DEBUG(" (type %d), ", JIT_TYPE_GET(code->procPtr, pos));
 	if (JIT_TYPE_RESOLVED(code->procPtr, pos)) {
-	    Value reg = stack_top(Stack);
+	    Value reg = stack_top(Stack)->dest;
 	    if (reg->type != jitreg) {
 		perror("INST_TRY_CVT_TO_NUMERIC");
 	    } else {
@@ -400,50 +418,89 @@ build_quad(ByteCode *code, unsigned char *pc, int *adv, int pos, int bc_to_bb[],
 	break;
     }
 
-    case INST_LOAD_SCALAR1: // 10
-	DEBUG(", scalar (%d), ", *(pc + 1));
+    case INST_LOAD_SCALAR1: { /* 10 */
+	//DEBUG(", loadscalar (%d #%p %d %d#), ", *(pc + 1), local,
+	//      TclIsVarLink(local), TclIsVarDirectReadable(local));
+	DEBUG(", loadscalar (%d), ", *(pc + 1));
+
+	//Var *local = locals[*(pc + 1)].var;
+	//Tcl_Obj *local_obj = Tcl_DuplicateObj(*(locals[*(pc + 1)].obj));
+	Tcl_Obj *local_obj = locals[*(pc + 1)].obj;
+
 	quad->instruction = JIT_INST_MOVE;
-	quad->dest = new_register(0);
-	quad->src_a = new_tclvalue(locals[*(pc + 1)].obj);
-	stack_push(Stack, quad->dest);
+	quad->dest = REG_NEW;
+
+	/*while (TclIsVarLink(local)) {
+	    printf("Following link..\n");
+	    local = local->value.linkPtr;
+	}
+	if (TclIsVarDirectReadable(local)) {
+	    printf(">>>> %p %p\n", local, local->value);
+	    local_obj = local->value.objPtr;
+	} else {
+	    printf("LOADING SCALAR at %p %d %d \n", local,
+		   TclIsVarScalar(local), TclIsVarUndefined(local));
+	    local_obj = TclPtrGetVar(NULL, local, NULL,
+				     NULL, NULL, 0, *(pc + 1));
+	    printf(">>>> %p <<<<\n", local_obj);
+	    }*/
+	/*local_obj = local->value.objPtr;
+	if (local_obj) {
+	    //Tcl_IncrRefCount(local_obj);
+	    Tcl_DuplicateObj(local_obj);
+	    }*/
+	quad->src_a = new_tclvalue(local_obj);
+
+	stack_push(Stack, quad);
 	*adv = 2;
 	break;
+    }
 
-    case INST_STORE_SCALAR1: // 17
+    case INST_STORE_SCALAR1: { /* 17 */
 	/* XXX Simplified this opcode for now. */
 	//DEBUG(", storescalar (%d flags: %d), ", *(pc + 1),
 	//        locals[*(pc + 1)].var.flags);
 	DEBUG(", storescalar (%d @ %p), ",
 	      *(pc + 1), locals[*(pc + 1)].reg);
+
+	struct Quadruple *top = stack_top(Stack);
+
 	quad->instruction = JIT_INST_MOVE;
 	quad->dest = locals[*(pc + 1)].reg;
-	quad->src_a = stack_top(Stack);
+	//locals[*(pc + 1)].var->value.objPtr = top->src_a->content.obj;
+        /* XXX !! */
+	//*(locals[*(pc + 1)].obj) = top->src_a->content.obj;
+	locals[*(pc + 1)].obj = top->src_a->content.obj;
+	quad->src_a = top->dest;
+	//stack_set_top(Stack, top->dest);
 	*adv = 2;
 	break;
+    }
 
-    case INST_INCR_SCALAR1_IMM: // 29
+    case INST_INCR_SCALAR1_IMM: /* 29 */
 	DEBUG(", incr_imm (%d %d), ", *(pc + 1), *(pc + 2));
 	/* *(pc + 1) em compiledLocals, *(pc + 2) == um inteiro */
 	quad->dest = locals[*(pc + 1)].reg;
 	quad->src_a = locals[*(pc + 1)].reg;
 	quad->src_b = new_intvalue(*(pc + 2));
 	quad->instruction = JIT_INST_ADD;
-	stack_push(Stack, quad->dest);
+	stack_push(Stack, quad);
 	*adv = 3;
 	break;
 
-    case INST_LT: // 47
-	DEBUG(", topo 1 < topo 2, ");
-	quad->src_b = stack_top(Stack);
-	quad->src_a = stack_belowtop(Stack);
-	quad->dest = new_register(0);
+    case INST_LT: /* 47 */
+	DEBUG(", top < belowTop, ");
+	quad->src_b = stack_top(Stack)->dest;
+	quad->src_a = stack_belowtop(Stack)->dest;
+	quad->dest = REG_NEW;
 	stack_pop(Stack);
-	stack_pop(Stack);
-	stack_set_top(Stack, quad->dest);
+	//stack_pop(Stack);
+	//stack_push(Stack, quad);
+	stack_set_top(Stack, quad);
 	*adv = 1;
 	break;
 
-    case INST_START_CMD: // 105
+    case INST_START_CMD: /* 105 */
 	DEBUG(", startcmd (cmd count = %d), ", TclGetUInt4AtPtr(pc + 5));
 	/* 4 bytes are used to indicate where the next command starts,
 	 * other 4 are used to indicate the length of this command, and
@@ -455,45 +512,16 @@ build_quad(ByteCode *code, unsigned char *pc, int *adv, int pos, int bc_to_bb[],
 	quad = NULL;
 	break;
 
-    case INST_ADD: // 53
-	DEBUG(", add, ");
-	quad->src_b = stack_pop(Stack);
-	quad->src_a = stack_pop(Stack);
-	quad->dest = new_register(0);
-	stack_push(Stack, quad->dest);
-	*adv = 1;
-	break;
-
-    case INST_RSHIFT: // 52
-	DEBUG(", rshift, ");
-	quad->src_b = stack_top(Stack);
-	quad->src_a = stack_belowtop(Stack);
-	quad->dest = new_register(0);
-	stack_pop(Stack);
-	stack_pop(Stack);
-	stack_push(Stack, quad->dest);
-	*adv = 1;
-	break;
-
-    case INST_BITXOR: // 43
-	DEBUG(", xor, ");
-	quad->src_b = stack_top(Stack);
-	quad->src_a = stack_belowtop(Stack);
-	quad->dest = new_register(0);
-	stack_pop(Stack);
-	stack_pop(Stack);
-	stack_push(Stack, quad->dest);
-	*adv = 1;
-	break;
-
-    case INST_EXPON: // 99
-	DEBUG(", exp, ");
-	quad->src_b = stack_top(Stack);
-	quad->src_a = stack_belowtop(Stack);
-	quad->dest = new_register(0);
-	stack_pop(Stack);
-	stack_pop(Stack);
-	stack_push(Stack, quad->dest);
+    case INST_BITXOR: /* 43 */
+    case INST_RSHIFT: /* 52 */
+    case INST_ADD:    /* 53 */
+    case INST_MULT:   /* 55 */
+    case INST_EXPON:  /* 99 */
+	DEBUG(", arith [%d], ", quad->instruction);
+	quad->src_b = stack_pop(Stack)->dest;
+	quad->src_a = stack_pop(Stack)->dest;
+	quad->dest = REG_NEW;
+	stack_push(Stack, quad);
 	*adv = 1;
 	break;
 
@@ -514,16 +542,19 @@ void freeblocks(struct BasicBlock *blocks, int count)
 
     for (i = 0; i < count; i++) {
         if (blocks[i].exitcount) {
-            free(blocks[i].exit);
+            free(blocks[i].exitblocks);
         }
         //printf("Block %d\n", i);
         while (blocks[i].quads) {
             temp = blocks[i].quads;
             blocks[i].quads = blocks[i].quads->next;
             //printf("  %p %p %p\n", temp->dest, temp->src_a, temp->src_b);
+	    /* XXX Problem: dest, src_a or src_b might be used in more than
+	       one place. Reference counting should solve this. */
             /*if (temp->dest) free(temp->dest);
-	      if (temp->src_a) free(temp->src_a);
-	      if (temp->src_b) free(temp->src_b);*/ /* XXX */
+	    if (temp->src_a) free(temp->src_a);
+	    if (temp->src_b) free(temp->src_b);
+	    temp->dest = temp->src_a = temp->src_b = NULL;*/
             free(temp);
         }
     }

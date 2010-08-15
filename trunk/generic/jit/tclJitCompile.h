@@ -9,6 +9,12 @@
 
 #include "tclCompile.h"
 
+#define DEBUGGING 1 /*  XXX Maybe use something from Tcl instead. */
+#define DEBUG(str, vaargs...)                           \
+    do {                                                \
+        if (DEBUGGING) fprintf(stderr, str, ##vaargs);  \
+    } while (0)
+
 typedef struct Value *Value;
 
 struct Quadruple {
@@ -19,9 +25,11 @@ struct Quadruple {
 };
 
 struct BasicBlock {
+    int id;
     int exitcount;
     struct Quadruple *quads, *lastquad;
-    struct BasicBlock **exit;
+    /*struct BasicBlock **exit;*/
+    int *exitblocks;
 };
 
 struct Value {
