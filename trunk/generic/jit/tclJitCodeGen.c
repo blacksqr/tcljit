@@ -6,7 +6,13 @@
  */
 #include <stdlib.h>
 #include <string.h>
-#include <unistd.h> /* XXX Check for Windows. */
+#ifdef _WIN32
+    /* XXX Sections under _WIN32 weren't tested. */
+    #include <windows.h>
+#else
+    #include <unistd.h>
+    #include <sys/mman.h>
+#endif
 #include "tclJitCompile.h"
 #include "tclJitCodeGen.h"
 #include "tclJitInsts.h"
@@ -24,6 +30,47 @@ static const char *value_type_str[] = {
 static void dfs(struct BasicBlock *, int, int *, MCode *);
 static void codegen(struct Quadruple *, MCode *);
 
+#ifdef _WIN32
+DWORD
+#else
+int
+#endif
+pagesize(void)
+{
+#ifdef _WIN32
+    DWORD pagesize;
+    SYSTEM_INFO si;
+
+    GetSystemInfo(&si);
+    return si.dwAllocationGranularity;
+#else
+    return getpagesize();
+#endif
+}
+
+void *
+newpage(void *size)
+{
+    void *page;
+
+#ifdef _WIN32
+    page = VirtualAlloc(NULL, *((DWORD *)size), MEM_COMMIT,
+            PAGE_EXECUTE_READWRITE);
+    if (!page) {
+        perror("VirtualAlloc");
+        exit(1);
+    }
+#else
+    page = mmap(NULL, *((size_t *)size), PROT_READ | PROT_WRITE | PROT_EXEC,
+            MAP_ANON | MAP_PRIVATE, 0, 0);
+    if (page == MAP_FAILED) {
+        perror("mmap");
+        exit(1);
+    }
+#endif
+
+    return page;
+}
 
 unsigned char *
 JIT_CodeGen(struct BasicBlock *CFG, int bbcount)
@@ -37,8 +84,8 @@ JIT_CodeGen(struct BasicBlock *CFG, int bbcount)
     }
 
     code.used = 0;
-    code.limit = getpagesize(); /* XXX Adjust for Windows. */
-    code.mcode = malloc(code.limit);
+    code.limit = pagesize();
+    code.mcode = newpage(&code.limit);
     code.codeEnd = code.mcode;
 
     memset(visited, 0, sizeof(visited));
@@ -59,7 +106,10 @@ JIT_CodeGen(struct BasicBlock *CFG, int bbcount)
     printf("\n");
     printf(">>> %d <<<\n", (code.codeEnd - code.mcode));
 
-    return code.mcode; /* XXX retornar algo do mmap invés ? */
+    return code.mcode;
+
+    /* XXX At some point either VirtualFree(code.mcode, 0, MEM_RELEASE)
+     * or munmap(code.mcode, code.limit) needs to be called. */
 }
 
 static void
