@@ -300,7 +300,8 @@ GENERIC_OBJS = regcomp.o regexec.o regfree.o regerror.o tclAlloc.o \
 	tclStubLib.o tclTimer.o tclTrace.o tclUtf.o tclUtil.o tclVar.o \
 	tclTomMathInterface.o
 
-GENERICJIT_OBJS = tclJitCompile.o tclJitOutput.o tclJitTypeCollect.o
+GENERICJIT_OBJS = tclJitCodeGen.o tclJitCompile.o tclJitOutput.o \
+	tclJitTypeCollect.o mcode.o
 
 TOMMATH_OBJS = bncore.o bn_reverse.o bn_fast_s_mp_mul_digs.o \
 	bn_fast_s_mp_sqr.o bn_mp_add.o bn_mp_and.o \
@@ -432,16 +433,20 @@ GENERIC_SRCS = \
 	$(GENERIC_DIR)/tclVar.c
 
 GENERICJIT_HDRS = \
+	$(GENERICJIT_DIR)/tclJitCodeGen.h \
 	$(GENERICJIT_DIR)/tclJitCompile.h \
 	$(GENERICJIT_DIR)/tclJitConf.h \
 	$(GENERICJIT_DIR)/tclJitInsts.h \
 	$(GENERICJIT_DIR)/tclJitOutput.h \
-	$(GENERICJIT_DIR)/tclJitTypeCollect.h
+	$(GENERICJIT_DIR)/tclJitTypeCollect.h \
+	$(GENERICJIT_DIR)/arch/x86/mcode.h
 
 GENERICJIT_SRCS = \
+	$(GENERICJIT_DIR)/tclJitCodeGen.c \
 	$(GENERICJIT_DIR)/tclJitCompile.c \
 	$(GENERICJIT_DIR)/tclJitOutput.c \
-	$(GENERICJIT_DIR)/tclJitTypeCollect.c
+	$(GENERICJIT_DIR)/tclJitTypeCollect.c \
+	$(GENERICJIT_DIR)/arch/x86/mcode.c
 
 STUB_SRCS = \
 	$(GENERIC_DIR)/tclStubLib.c
@@ -1137,6 +1142,14 @@ tclPipe.o: $(GENERIC_DIR)/tclPipe.c
 
 tclPkg.o: $(GENERIC_DIR)/tclPkg.c
 	$(CC) -c $(CC_SWITCHES) $(GENERIC_DIR)/tclPkg.c
+
+# XXX This needs to be adjusted.
+mcode.o: $(GENERICJIT_DIR)/arch/x86/mcode.c
+	$(CC) -c $(CC_SWITCHES) $(GENERICJIT_DIR)/arch/x86/mcode.c
+
+tclJitCodeGen.o: $(GENERICJIT_DIR)/tclJitCodeGen.c mcode.o
+	$(CC) -c $(CC_SWITCHES) $(GENERICJIT_DIR)/tclJitCodeGen.c \
+		$(GENERICJIT_DIR)/arch/x86/mcode.c
 
 tclJitCompile.o: $(GENERICJIT_DIR)/tclJitCompile.c
 	$(CC) -c $(CC_SWITCHES) $(GENERICJIT_DIR)/tclJitCompile.c
