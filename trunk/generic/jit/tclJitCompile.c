@@ -87,7 +87,7 @@ stack_pop(struct stack *s)
 Value
 new_tclvalue(Tcl_Obj *obj)
 {
-    Value val = malloc(sizeof(Value));
+    Value val = malloc(sizeof(*val));
 
     val->type = jitvalue_tcl;
     val->content.obj = obj;
@@ -97,7 +97,7 @@ new_tclvalue(Tcl_Obj *obj)
 Value
 new_intvalue(int integer)
 {
-    Value val = malloc(sizeof(Value));
+    Value val = malloc(sizeof(*val));
 
     val->type = jitvalue_int;
     val->content.integer = integer;
@@ -113,7 +113,7 @@ new_register(int reset, int offset, int flags)
         return NULL;
     }
 
-    Value reg = malloc(sizeof(Value));
+    Value reg = malloc(sizeof(*reg));
 
     regnum++;
     reg->type = jitreg;
@@ -142,8 +142,6 @@ tclobj_to_long(Value v)
 #define REG_NEW_EX(offset, flags) new_register(0, offset, flags)
 
 struct ObjReg {
-    //Var *var;
-    //Tcl_Obj **obj;
     Tcl_Obj *obj;
     Value reg;
 };
@@ -151,13 +149,6 @@ struct ObjReg {
 struct Quadruple *build_quad(ByteCode *, unsigned char *, int *, int, int[],
 			     struct ObjReg *);
 void freeblocks(struct BasicBlock *, int);
-
-
-/* XXX Preciso coletar tipos durante execução (TclExecute) também. Nem tanto
- * para montar o CFG e a representação em SSA, mas para gerar código. */
-
-/* Bytecodes obsoletos (que eu não vou me preocupar): INST_CALL_FUNC1,
- * INST_CALL_BUILTIN_FUNC1 */
 
 
 int
@@ -184,12 +175,9 @@ JIT_Compile(Tcl_Obj *procName, Tcl_Interp *interp, ByteCode *code)
         if (compiledLocals[i].value.objPtr != NULL) {
             /* This corresponds to a formal parameter. */
             locals[i].obj = Tcl_DuplicateObj(compiledLocals[i].value.objPtr);
-            //locals[i].obj = &(compiledLocals[i].value.objPtr);
         } else {
-	    //printf("NULL at locals %d<<\n", i);
             locals[i].obj = NULL;
         }
-        //locals[i].reg = REG_NEW;
         locals[i].reg = REG_NEW_EX(i, JIT_VALUE_LOCALVAR);
     }
 
@@ -206,7 +194,6 @@ JIT_Compile(Tcl_Obj *procName, Tcl_Interp *interp, ByteCode *code)
 
     numblocks = 1;
     leaders[code->numCodeBytes] = code->numCodeBytes;
-    //leaders[0] = 1;
     pc++;
     for (i = 1; i < code->numCodeBytes; i++) {
         op = *pc;
@@ -465,8 +452,6 @@ build_quad(ByteCode *code, unsigned char *pc, int *adv, int pos, int bc_to_bb[],
 
     case INST_STORE_SCALAR1: { /* 17 */
 	/* XXX Simplified this opcode for now. */
-	//DEBUG(", storescalar (%d flags: %d), ", *(pc + 1),
-	//        locals[*(pc + 1)].var.flags);
 	DEBUG(", storescalar (%d @ %p), ",
 	      *(pc + 1), locals[*(pc + 1)].reg);
 
@@ -474,12 +459,8 @@ build_quad(ByteCode *code, unsigned char *pc, int *adv, int pos, int bc_to_bb[],
 
 	quad->instruction = JIT_INST_MOVE;
 	quad->dest = locals[*(pc + 1)].reg;
-	//locals[*(pc + 1)].var->value.objPtr = top->src_a->content.obj;
-        /* XXX !! */
-	//*(locals[*(pc + 1)].obj) = top->src_a->content.obj;
 	locals[*(pc + 1)].obj = top->src_a->content.obj;
 	quad->src_a = top->dest;
-	//stack_set_top(Stack, top->dest);
 	*adv = 2;
 	break;
     }
@@ -488,7 +469,6 @@ build_quad(ByteCode *code, unsigned char *pc, int *adv, int pos, int bc_to_bb[],
 	DEBUG(", incr_imm (%d %d), ", *(pc + 1), *(pc + 2));
         /* XXX quad->src_a needs to be able to be converted to an integer,
          * could signal this using JIT_ResolveType here. */
-	//quadr->dest = new_tclvalue(locals[*(pc + 1)].obj);//locals[*(pc + 1)].reg;
 	quad->dest = locals[*(pc + 1)].reg;
 	quad->src_a = locals[*(pc + 1)].reg;
 	quad->src_b = new_intvalue(*(pc + 2));
