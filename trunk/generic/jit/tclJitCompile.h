@@ -39,6 +39,8 @@ struct Value {
         Tcl_Obj *obj;
         int integer;
         struct {
+            int offset; /* XXX explain */
+            int flags; /* XXX explain */
             int regnum;
             int type; /* XXX This is likely to change. */
         } vreg;
@@ -46,6 +48,8 @@ struct Value {
         double dval;
     } content;
 };
+
+#define JIT_VALUE_LOCALVAR 0
 
 
 int JIT_Compile(Tcl_Obj *, Tcl_Interp *, ByteCode *);

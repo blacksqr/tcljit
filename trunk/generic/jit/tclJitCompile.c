@@ -105,7 +105,7 @@ new_intvalue(int integer)
 }
 
 Value
-new_register(int reset)
+new_register(int reset, int offset, int flags)
 {
     static int regnum = 0;
     if (reset) {
@@ -117,8 +117,9 @@ new_register(int reset)
 
     regnum++;
     reg->type = jitreg;
-    //reg->content.regnum = regnum;
     reg->content.vreg.regnum = regnum;
+    reg->content.vreg.offset = offset; /* XXX explain */
+    reg->content.vreg.flags = flags; /* XXX explain */
     reg->content.vreg.type = -1;
     return reg;
 }
@@ -136,8 +137,9 @@ tclobj_to_long(Value v)
 
 /* XXX */
 #define GET_INT(value) value->content.integer
-#define REG_RESETCOUNT new_register(1)
-#define REG_NEW new_register(0)
+#define REG_RESETCOUNT new_register(1, -1, -1)
+#define REG_NEW new_register(0, -1, -1)
+#define REG_NEW_EX(offset, flags) new_register(0, offset, flags)
 
 struct ObjReg {
     //Var *var;
@@ -166,6 +168,7 @@ JIT_Compile(Tcl_Obj *procName, Tcl_Interp *interp, ByteCode *code)
     int leaders[code->numCodeBytes + 1], bc_to_bb[code->numCodeBytes + 1];
     int numblocks;
     unsigned char *pc, op;
+    unsigned char *ncode;
     Var *compiledLocals;
     struct Quadruple *ptr, *quad;
     struct BasicBlock *blocks;
@@ -186,7 +189,8 @@ JIT_Compile(Tcl_Obj *procName, Tcl_Interp *interp, ByteCode *code)
 	    //printf("NULL at locals %d<<\n", i);
             locals[i].obj = NULL;
         }
-        locals[i].reg = REG_NEW;
+        //locals[i].reg = REG_NEW;
+        locals[i].reg = REG_NEW_EX(i, JIT_VALUE_LOCALVAR);
     }
 
     DEBUG("proc = %s\n", TclGetString(procName));
@@ -324,10 +328,13 @@ JIT_Compile(Tcl_Obj *procName, Tcl_Interp *interp, ByteCode *code)
     JIT_bb_output(TclGetString(procName), blocks, numblocks);
     printf("\n-------------\n\n");
 
-    /* XXX */
-    unsigned char *ncode;
     ncode = JIT_CodeGen(blocks, numblocks);
-    /* XXX Install ncode. */
+    if (ncode == NULL) {
+        perror("JIT_Compile");
+        exit(1);
+    }
+    code->procPtr->jitproc.ncode = ncode;
+
     /* XXX Missing free for "locals". */
     freeblocks(blocks, numblocks);
 
@@ -481,6 +488,7 @@ build_quad(ByteCode *code, unsigned char *pc, int *adv, int pos, int bc_to_bb[],
 	DEBUG(", incr_imm (%d %d), ", *(pc + 1), *(pc + 2));
         /* XXX quad->src_a needs to be able to be converted to an integer,
          * could signal this using JIT_ResolveType here. */
+	//quadr->dest = new_tclvalue(locals[*(pc + 1)].obj);//locals[*(pc + 1)].reg;
 	quad->dest = locals[*(pc + 1)].reg;
 	quad->src_a = locals[*(pc + 1)].reg;
 	quad->src_b = new_intvalue(*(pc + 2));

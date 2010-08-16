@@ -6,6 +6,7 @@
  */
 #include <stdlib.h>
 #include <string.h>
+#include <stddef.h>
 #ifdef _WIN32
     /* XXX Sections under _WIN32 weren't tested. */
     #include <windows.h>
@@ -13,6 +14,7 @@
     #include <unistd.h>
     #include <sys/mman.h>
 #endif
+#include "tclInt.h"
 #include "tclJitCompile.h"
 #include "tclJitCodeGen.h"
 #include "tclJitInsts.h"
@@ -138,6 +140,7 @@ dfs(struct BasicBlock *CFG, int visiting, int visited[], MCode *code)
 static void
 codegen(struct Quadruple *quads, MCode *code)
 {
+    int regn;
     struct Quadruple *ptr;
 
     if (!quads || !(quads->next)) {
@@ -159,7 +162,7 @@ codegen(struct Quadruple *quads, MCode *code)
                             allocReg(ptr->src_a),
                             allocReg(ptr->dest));
                 } else if (ptr->src_a->type == jitvalue_tcl) {
-                    MOV_MEM_REG(code->codeEnd,
+                    MOV_IMM32_REG(code->codeEnd,
                             (ptrdiff_t)ptr->src_a->content.obj,
                             allocReg(ptr->dest));
                 } else {
@@ -174,15 +177,62 @@ codegen(struct Quadruple *quads, MCode *code)
             DEBUG("INST_INCR: %s += %d\n",
                     value_type_str[ptr->dest->type],
                     ptr->src_b->content.integer);
-            if (ptr->src_b->type != jitvalue_int || ptr->src_a != ptr->dest) {
+            if (ptr->src_b->type != jitvalue_int ||
+                    ptr->src_a->type != jitreg ||
+                    ptr->src_a != ptr->dest) {
                 Tcl_Panic("Incorrectly encoded instruction.");
             }
 
             int val = ptr->src_b->content.integer;
+
+	    /* XXX Artificial code (missing proper register usage). */
+	    regn = EAX; /* XXX allocReg(ptr->dest); */
+
+	    //printf(">> %p %d<<\n", ptr->dest->content.obj,
+	    //        (int)ptr->dest->content.obj->internalRep.longValue);
+	    //MOV_MEM_REG(code->codeEnd,
+	    //        ptr->dest->content.obj->internalRep.longValue, EAX);
+
+	    if (ptr->dest->content.vreg.flags == JIT_VALUE_LOCALVAR) {
+		/* Load local variable into regn. */
+		long int offset;
+
+		MOV_DISP8DREG_REG(code->codeEnd, 8, EBP, regn);
+		/* The only param passed to the func is in EAX (regn) now. */
+
+		NOP(code->codeEnd);
+		NOP(code->codeEnd);
+		/* regn is pointing at an Interp struct. */
+		offset = offsetof(Interp, varFramePtr);
+		MOV_DISP8DREG_REG(code->codeEnd, offset, regn, regn);
+		/* regn is now pointing at an CallFrame struct. */
+		offset = offsetof(CallFrame, compiledLocals);
+		MOV_DISP8DREG_REG(code->codeEnd, offset, regn, regn);
+		/* regn is now pointing at an array of Var structs. */
+		if (ptr->dest->content.vreg.offset) {
+		    ADD_IMM8_REG(code->codeEnd,
+				 sizeof(Var) * ptr->dest->content.vreg.offset,
+				 regn);
+		    /* regn is now pointing to the correct element in the
+		     * Var array. */
+		}
+		offset = offsetof(Var, value.objPtr);
+		MOV_DISP8DREG_REG(code->codeEnd, offset, regn, regn);
+		/* regn is now pointing to the expected Tcl_Obj. */
+		offset = offsetof(Tcl_Obj, internalRep);
+		MOV_DISP8DREG_REG(code->codeEnd, offset, regn, regn);
+		MOV_DREG_REG(code->codeEnd, regn, regn);
+		/* regn now contains the possible long value. */
+		NOP(code->codeEnd);
+		NOP(code->codeEnd);
+	    } else {
+		Tcl_Panic("dur dur.");
+	    }
+
             if (val == 1) {
-                INC_REG(code->codeEnd, allocReg(ptr->dest));
+                INC_REG(code->codeEnd, regn);
             } else if (val == -1) {
-                DEC_REG(code->codeEnd, allocReg(ptr->dest));
+                DEC_REG(code->codeEnd, regn);
             } else {
                 /* XXX */
                 Tcl_Panic("Should have been a JIT_INST_ADD.");

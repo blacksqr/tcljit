@@ -21,6 +21,7 @@
 #ifdef TCL_JIT
 #include "jit/tclJitCompile.h"
 #include "jit/tclJitConf.h"
+#include "jit/tclJitExec.h"
 #endif
 
 /*
@@ -1788,7 +1789,25 @@ TclObjInterpProcCore(
         }
 #endif
 
-	result = TclExecuteByteCode(interp, codePtr);
+#if TCL_JIT
+        if (procPtr->jitproc.ncode != NULL) {
+            printf("ABOUT to run JIT\n");
+            int x;
+            if (Tcl_GetIntFromObj(interp, ((Interp *)interp)->varFramePtr->compiledLocals[0].value.objPtr, &x) != TCL_OK) {
+                printf("BUH!\n");
+            }
+            //printf("<<<< %d >>>>\n", (int)((Interp *)interp)->varFramePtr->compiledLocals[0].value.objPtr->internalRep.longValue);
+            printf("<<<< %p %d >>>>\n", ((Interp *)interp)->varFramePtr->compiledLocals[0].value.objPtr->typePtr, x);
+            result = JIT_RUN(procPtr->jitproc.ncode, interp);
+            printf("JIT RESULT = %d\n", result);
+            /* XXX */
+            result = TCL_OK;
+        } else
+#else
+        {
+            result = TclExecuteByteCode(interp, codePtr);
+        }
+#endif
 
 #ifdef TCL_JIT
     if (result == TCL_ERROR || result == TCL_CONTINUE || result == TCL_BREAK) {
