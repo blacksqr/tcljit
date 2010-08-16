@@ -188,11 +188,6 @@ codegen(struct Quadruple *quads, MCode *code)
 	    /* XXX Artificial code (missing proper register usage). */
 	    regn = EAX; /* XXX allocReg(ptr->dest); */
 
-	    //printf(">> %p %d<<\n", ptr->dest->content.obj,
-	    //        (int)ptr->dest->content.obj->internalRep.longValue);
-	    //MOV_MEM_REG(code->codeEnd,
-	    //        ptr->dest->content.obj->internalRep.longValue, EAX);
-
 	    if (ptr->dest->content.vreg.flags == JIT_VALUE_LOCALVAR) {
 		/* Load local variable into regn. */
 		long int offset;
@@ -203,9 +198,11 @@ codegen(struct Quadruple *quads, MCode *code)
 		NOP(code->codeEnd);
 		NOP(code->codeEnd);
 		/* regn is pointing at an Interp struct. */
+
 		offset = offsetof(Interp, varFramePtr);
 		MOV_DISP8DREG_REG(code->codeEnd, offset, regn, regn);
 		/* regn is now pointing at an CallFrame struct. */
+
 		offset = offsetof(CallFrame, compiledLocals);
 		MOV_DISP8DREG_REG(code->codeEnd, offset, regn, regn);
 		/* regn is now pointing at an array of Var structs. */
@@ -216,13 +213,16 @@ codegen(struct Quadruple *quads, MCode *code)
 		    /* regn is now pointing to the correct element in the
 		     * Var array. */
 		}
+
 		offset = offsetof(Var, value.objPtr);
 		MOV_DISP8DREG_REG(code->codeEnd, offset, regn, regn);
 		/* regn is now pointing to the expected Tcl_Obj. */
-		offset = offsetof(Tcl_Obj, internalRep);
-		MOV_DISP8DREG_REG(code->codeEnd, offset, regn, regn);
+
+		offset = offsetof(Tcl_Obj, internalRep.longValue);
+		ADD_IMM8_REG(code->codeEnd, offset, regn);
 		MOV_DREG_REG(code->codeEnd, regn, regn);
 		/* regn now contains the possible long value. */
+
 		NOP(code->codeEnd);
 		NOP(code->codeEnd);
 	    } else {
