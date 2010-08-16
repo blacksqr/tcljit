@@ -22,14 +22,33 @@ int allocReg(void *);
 #define DEC_REG(code, reg) *code++ = 0x48 + reg
 
 #define PUSH_REG(code, reg) *code++ = 0x50 + reg
+#define POP_REG(code, reg) *code++ = 0x58 + reg
 
+#define ADD_IMM8_REG(code, imm, reg) \
+    *code++ = 0x83; \
+    *code++ = MODRM(0x3, 0, reg); \
+    *code++ = imm
+
+/* movl %reg, %reg */
 #define MOV_REG_REG(code, src, dest) \
     *code++ = 0x89; \
     *code++ = MODRM(0x3, src, dest)
-#define MOV_MEM_REG(code, mem, dest) \
-    *code++ = 0xC7; \
-    *code++ = MODRM(0x3, 0, dest); \
-    IMM32(code, mem)
+/* movl $imm32, %reg */
+#define MOV_IMM32_REG(code, imm32, dest) \
+    *code++ = 0xB8 + dest; \
+    IMM32(code, imm32)
+/* movl disp8(%reg), %reg */
+#define MOV_DISP8DREG_REG(code, disp, src, dest) \
+    *code++ = 0x8b; \
+    *code++ = MODRM(0x1, dest, src); \
+    *code++ = disp
+/* movl (%reg), %reg */
+#define MOV_DREG_REG(code, src, dest) \
+    *code++ = 0x8b; \
+    *code++ = MODRM(0x0, dest, src)
+
+/* XXX Using prefix D to stand for Dereference.
+ * So, DREG means Deference at memory contained in Register. */
 
 #define LEAVE(code) *code++ = 0xC9
 #define RETN(code) *code++ = 0xC3 /* Near return. */

@@ -19,7 +19,8 @@
     } while (0)
 
 #define JIT_PROCRESET(ptr) do {						\
-	if (ptr->jitproc.ncode != NULL) { free(ptr->jitproc.ncode); }	\
+	if (ptr->jitproc.ncode != NULL) { ; } \
+    /*free(ptr->jitproc.ncode); }*/ \
 	if (ptr->jitproc.collectingTypes) {				\
 	    free(ptr->jitproc.bytecodeTypes); }				\
 	JIT_PROCSETUP(ptr);						\
