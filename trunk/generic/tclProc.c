@@ -1791,9 +1791,11 @@ TclObjInterpProcCore(
 
 #if TCL_JIT
         if (procPtr->jitproc.ncode != NULL) {
+            //printf("JIT Entering.. %p\n", (void *)((Interp *)interp));
             result = JIT_RUN(procPtr->jitproc.ncode, (Interp *)interp);
-            printf("JIT RESULT = %d (%d)\n", result,
-                    ((Interp *)interp)->objResultPtr->internalRep.longValue);
+            //printf("JIT RESULT = %d (%d %s)\n", result,
+            //        ((Interp *)interp)->objResultPtr->internalRep.longValue,
+            //        ((Interp *)interp)->objResultPtr->bytes);
         } else
 #endif
         {
