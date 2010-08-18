@@ -312,8 +312,10 @@ JIT_Compile(Tcl_Obj *procName, Tcl_Interp *interp, ByteCode *code)
         }
     }
 
+#if DEBUGGING
     JIT_bb_output(TclGetString(procName), blocks, numblocks);
     printf("\n-------------\n\n");
+#endif
 
     ncode = JIT_CodeGen(blocks, numblocks);
     if (ncode == NULL) {
@@ -337,7 +339,9 @@ build_quad(ByteCode *code, unsigned char *pc, int *adv, int pos, int bc_to_bb[],
     quad->instruction = *pc;
     DEBUG("%d ", quad->instruction);
 
-    /* XXX O que fazer com INST_DONE ? Pular e retornar próxima instrução ? */
+    /* XXX INST_DONE precisa estar presente em algum lugar do
+     * código gerado para sinalizar que algum Tcl_Obj* precisa ser posto
+     * como resultado (Tcl_SetObjResult). */
 
     switch (quad->instruction) {
 
