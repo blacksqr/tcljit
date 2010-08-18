@@ -195,9 +195,10 @@ codegen(struct Quadruple *quads, MCode *code)
 		MOV_DISP8DREG_REG(code->codeEnd, 8, EBP, regn);
 		/* The only param passed to the func is in EAX (regn) now. */
 
-		NOP(code->codeEnd);
-		NOP(code->codeEnd);
 		/* regn is pointing at an Interp struct. */
+
+		NOP(code->codeEnd);
+		NOP(code->codeEnd);
 
 		offset = offsetof(Interp, varFramePtr);
 		MOV_DISP8DREG_REG(code->codeEnd, offset, regn, regn);
@@ -216,12 +217,13 @@ codegen(struct Quadruple *quads, MCode *code)
 
 		offset = offsetof(Var, value.objPtr);
 		MOV_DISP8DREG_REG(code->codeEnd, offset, regn, regn);
+		MOV_REG_REG(code->codeEnd, regn, EDX); /* XXX Copy of Tcl_Obj*/
 		/* regn is now pointing to the expected Tcl_Obj. */
 
 		offset = offsetof(Tcl_Obj, internalRep.longValue);
 		ADD_IMM8_REG(code->codeEnd, offset, regn);
-		MOV_DREG_REG(code->codeEnd, regn, regn);
-		/* regn now contains the possible long value. */
+		//MOV_DREG_REG(code->codeEnd, regn, regn);
+                /* regn is now pointed to the possible long value. */
 
 		NOP(code->codeEnd);
 		NOP(code->codeEnd);
@@ -230,14 +232,23 @@ codegen(struct Quadruple *quads, MCode *code)
 	    }
 
             if (val == 1) {
-                INC_REG(code->codeEnd, regn);
+                INC_DREG(code->codeEnd, regn);
             } else if (val == -1) {
-                DEC_REG(code->codeEnd, regn);
+                DEC_DREG(code->codeEnd, regn);
             } else {
                 /* XXX */
                 Tcl_Panic("Should have been a JIT_INST_ADD.");
             }
 
+	    /* XXX Supondo, de mentira, que retornaremos agora então é
+	     * necessário invocar Tcl_SetObjResult. */
+#if 1
+	    PUSH_REG(code->codeEnd, EDX); /* Saved Tcl_Obj pointer. */
+	    PUSH_DISP8REG(code->codeEnd, 8, EBP); /* Pointer to Interp */
+            MOV_IMM32_REG(code->codeEnd, (ptrdiff_t)Tcl_SetObjResult, ECX);
+            CALL_ABSOLUTE_REG(code->codeEnd, ECX);
+            XOR_REG_REG(code->codeEnd, regn, regn); /* TCL_OK == 0 */
+#endif
             break;
 
         case JIT_INST_ADD:
