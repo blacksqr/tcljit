@@ -1791,16 +1791,9 @@ TclObjInterpProcCore(
 
 #if TCL_JIT
         if (procPtr->jitproc.ncode != NULL) {
-            //printf("ABOUT to run JIT (%d)\n", ((Interp *)interp)->maxNestingDepth);
-            //printf("ABOUT to run JIT (%d)\n", ((Interp *)interp)->varFramePtr->level);
-            //printf("ABOUT to run JIT (%d)\n", ((Interp *)interp)->varFramePtr->compiledLocals[0].flags);
-            //printf("ABOUT to run JIT (%p)\n", ((Interp *)interp)->varFramePtr->compiledLocals[0].value.objPtr);
-            //printf("ABOUT to run JIT (%d)\n", ((Interp *)interp)->varFramePtr->compiledLocals[0].value.objPtr->refCount);
-            printf("ABOUT to run JIT (%d)\n", ((Interp *)interp)->varFramePtr->compiledLocals[0].value.objPtr->internalRep.longValue);
             result = JIT_RUN(procPtr->jitproc.ncode, (Interp *)interp);
-            printf("JIT RESULT = %d\n", result);
-            /* XXX */
-            result = TCL_OK;
+            printf("JIT RESULT = %d (%d)\n", result,
+                    ((Interp *)interp)->objResultPtr->internalRep.longValue);
         } else
 #endif
         {
@@ -1810,6 +1803,8 @@ TclObjInterpProcCore(
 #ifdef TCL_JIT
     if (result == TCL_ERROR || result == TCL_CONTINUE || result == TCL_BREAK) {
         procPtr->jitproc.eligible = 0;
+        /* XXX Could/should as well eliminate the possible existent
+         * native code in procPtr->jitproc.ncode */
     }
 #endif
 	if (TCL_DTRACE_PROC_RETURN_ENABLED()) {
