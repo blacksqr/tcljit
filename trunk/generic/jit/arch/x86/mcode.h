@@ -13,6 +13,10 @@ int allocReg(void *);
 #define PROLOGUE(code) PUSH_REG(code, EBP); MOV_REG_REG(code, ESP, EBP)
 #define EPILOGUE(code) LEAVE(code); RETN(code)
 
+/* Copy parameter n at 8+4*n(%EBP) to a register. n starts in 0. */
+#define COPY_PARAM_REG(code, paramn, reg) \
+    MOV_DISP8DREG_REG(code, 8 + 4*paramn, EBP, reg)
+
 /* Some OSes may not require this alignment. */
 #define ALIGN_STACK(code) AND_IMM8_REG(code, -16, ESP)
 
