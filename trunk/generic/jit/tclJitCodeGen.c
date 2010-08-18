@@ -101,12 +101,14 @@ JIT_CodeGen(struct BasicBlock *CFG, int bbcount)
 
     EPILOGUE(code.codeEnd);
 
+#if DEBUGGING
     int i;
     for (i = 0; i < (code.codeEnd - code.mcode); i++) {
         printf("0x%X ", code.mcode[i]);
     }
     printf("\n");
     printf(">>> %d <<<\n", (code.codeEnd - code.mcode));
+#endif
 
     return code.mcode;
 
@@ -183,6 +185,7 @@ codegen(struct Quadruple *quads, MCode *code)
                 Tcl_Panic("Incorrectly encoded instruction.");
             }
 
+            long int offset;
             int val = ptr->src_b->content.integer;
 
 	    /* XXX Artificial code (missing proper register usage). */
@@ -190,7 +193,6 @@ codegen(struct Quadruple *quads, MCode *code)
 
 	    if (ptr->dest->content.vreg.flags == JIT_VALUE_LOCALVAR) {
 		/* Load local variable into regn. */
-		long int offset;
 
 		MOV_DISP8DREG_REG(code->codeEnd, 8, EBP, regn);
 		/* The only param passed to the func is in EAX (regn) now. */
@@ -222,7 +224,6 @@ codegen(struct Quadruple *quads, MCode *code)
 
 		offset = offsetof(Tcl_Obj, internalRep.longValue);
 		ADD_IMM8_REG(code->codeEnd, offset, regn);
-		//MOV_DREG_REG(code->codeEnd, regn, regn);
                 /* regn is now pointed to the possible long value. */
 
 		NOP(code->codeEnd);
@@ -242,13 +243,26 @@ codegen(struct Quadruple *quads, MCode *code)
 
 	    /* XXX Supondo, de mentira, que retornaremos agora então é
 	     * necessário invocar Tcl_SetObjResult. */
-#if 1
 	    PUSH_REG(code->codeEnd, EDX); /* Saved Tcl_Obj pointer. */
 	    PUSH_DISP8REG(code->codeEnd, 8, EBP); /* Pointer to Interp */
             MOV_IMM32_REG(code->codeEnd, (ptrdiff_t)Tcl_SetObjResult, ECX);
             CALL_ABSOLUTE_REG(code->codeEnd, ECX);
+
+            /* "Remove" 8(EBP) from stack. */
+            ADD_IMM8_REG(code->codeEnd, 4, ESP);
+
+            /* Update the string representation. */
+            POP_REG(code->codeEnd, EDX); /* Pointer to Tcl_Obj. */
+            MOV_REG_REG(code->codeEnd, EDX, ECX);
+            offset = offsetof(Tcl_Obj, typePtr);
+            MOV_DISP8DREG_REG(code->codeEnd, offset, ECX, ECX);
+            offset = offsetof(Tcl_ObjType, updateStringProc);
+            MOV_DISP8DREG_REG(code->codeEnd, offset, ECX, ECX);
+            /* ECX now contains the address of the updateStringProc for int. */
+            PUSH_REG(code->codeEnd, EDX); /* Saved Tcl_Obj pointer. */
+            CALL_ABSOLUTE_REG(code->codeEnd, ECX);
+
             XOR_REG_REG(code->codeEnd, regn, regn); /* TCL_OK == 0 */
-#endif
             break;
 
         case JIT_INST_ADD:
