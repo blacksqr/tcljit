@@ -44,7 +44,7 @@ pagesize(void)
     SYSTEM_INFO si;
 
     GetSystemInfo(&si);
-    return si.dwAllocationGranularity;
+    return si.dwPageSize;
 #else
     return getpagesize();
 #endif
@@ -56,7 +56,7 @@ newpage(void *size)
     void *page;
 
 #ifdef _WIN32
-    page = VirtualAlloc(NULL, *((DWORD *)size), MEM_COMMIT,
+    page = VirtualAlloc(NULL, *((DWORD *)size), MEM_COMMIT | MEM_RESERVE,
             PAGE_EXECUTE_READWRITE);
     if (!page) {
         perror("VirtualAlloc");
@@ -128,7 +128,6 @@ dfs(struct BasicBlock *CFG, int visiting, int visited[], MCode *code)
     /* Generate code for this block. */
     codegen(block->quads, code);
 
-    //for (i = block->exitcount - 1; i >= 0; i--) {
     for (i = 0; i < block->exitcount; i++) {
         /* Go to the next basic block. */
         to_visit = block->exitblocks[i];
@@ -194,13 +193,10 @@ codegen(struct Quadruple *quads, MCode *code)
 	    if (ptr->dest->content.vreg.flags == JIT_VALUE_LOCALVAR) {
 		/* Load local variable into regn. */
 
-		MOV_DISP8DREG_REG(code->codeEnd, 8, EBP, regn);
+                COPY_PARAM_REG(code->codeEnd, 0, regn);
 		/* The only param passed to the func is in EAX (regn) now. */
 
 		/* regn is pointing at an Interp struct. */
-
-		NOP(code->codeEnd);
-		NOP(code->codeEnd);
 
 		offset = offsetof(Interp, varFramePtr);
 		MOV_DISP8DREG_REG(code->codeEnd, offset, regn, regn);
@@ -209,6 +205,7 @@ codegen(struct Quadruple *quads, MCode *code)
 		offset = offsetof(CallFrame, compiledLocals);
 		MOV_DISP8DREG_REG(code->codeEnd, offset, regn, regn);
 		/* regn is now pointing at an array of Var structs. */
+
 		if (ptr->dest->content.vreg.offset) {
 		    ADD_IMM8_REG(code->codeEnd,
 				 sizeof(Var) * ptr->dest->content.vreg.offset,
@@ -224,10 +221,7 @@ codegen(struct Quadruple *quads, MCode *code)
 
 		offset = offsetof(Tcl_Obj, internalRep.longValue);
 		ADD_IMM8_REG(code->codeEnd, offset, regn);
-                /* regn is now pointed to the possible long value. */
-
-		NOP(code->codeEnd);
-		NOP(code->codeEnd);
+                /* regn is now pointing to the possible long value. */
 	    } else {
 		Tcl_Panic("dur dur.");
 	    }
