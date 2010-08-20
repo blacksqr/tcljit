@@ -35,12 +35,18 @@ struct BasicBlock {
 struct Value {
     enum { jitvalue_tcl, jitvalue_int, jitreg, jitvalue_long,
 	   jitvalue_double } type;
+
+    /* Flags are used to indicate where the value can be found in
+     * runtime. See below for the available flags. */
+    int flags;
+    /* Offset is used when the value may be in an array, indicating
+     * its position. */
+    int offset;
+
     union {
         Tcl_Obj *obj;
         int integer;
         struct {
-            int offset; /* XXX explain */
-            int flags; /* XXX explain */
             int regnum;
             int type; /* XXX This is likely to change. */
         } vreg;
@@ -49,7 +55,9 @@ struct Value {
     } content;
 };
 
+/* The existent flags are NOT meant to be ORed. */
 #define JIT_VALUE_LOCALVAR 0
+#define JIT_VALUE_OBJARRAY 1
 
 
 int JIT_Compile(Tcl_Obj *, Tcl_Interp *, ByteCode *);

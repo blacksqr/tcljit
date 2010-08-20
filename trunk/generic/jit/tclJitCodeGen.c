@@ -165,6 +165,8 @@ codegen(struct Quadruple *quads, MCode *code)
                             allocReg(ptr->src_a),
                             allocReg(ptr->dest));
                 } else if (ptr->src_a->type == jitvalue_tcl) {
+                    /* XXX */
+                    printf("Badly supported.\n");
                     MOV_IMM32_REG(code->codeEnd,
                             (ptrdiff_t)ptr->src_a->content.obj,
                             allocReg(ptr->dest));
@@ -192,7 +194,7 @@ codegen(struct Quadruple *quads, MCode *code)
 	    /* XXX Artificial code (missing proper register allocation). */
 	    regn = EAX; /* XXX allocReg(ptr->dest); */
 
-	    if (ptr->dest->content.vreg.flags == JIT_VALUE_LOCALVAR) {
+	    if (ptr->dest->flags == JIT_VALUE_LOCALVAR) {
 		/* Load local variable into regn. */
 
                 COPY_PARAM_REG(code->codeEnd, 0, regn);
@@ -208,10 +210,9 @@ codegen(struct Quadruple *quads, MCode *code)
 		MOV_DISP8DREG_REG(code->codeEnd, offset, regn, regn);
 		/* regn is now pointing at an array of Var structs. */
 
-		if (ptr->dest->content.vreg.offset) {
+		if (ptr->dest->offset) {
 		    ADD_IMM8_REG(code->codeEnd,
-				 sizeof(Var) * ptr->dest->content.vreg.offset,
-				 regn);
+                            sizeof(Var) * ptr->dest->offset, regn);
 		    /* regn is now pointing to the correct element in the
 		     * Var array. */
 		}
