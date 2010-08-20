@@ -183,7 +183,7 @@ codegen(struct Quadruple *quads, MCode *code)
             if (ptr->src_b->type != jitvalue_int ||
                     ptr->src_a->type != jitreg ||
                     ptr->src_a != ptr->dest) {
-                Tcl_Panic("Incorrectly encoded instruction.");
+                Tcl_Panic("Incorrectly encoded INCR instruction.");
             }
 
             long int offset;
