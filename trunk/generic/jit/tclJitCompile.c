@@ -85,11 +85,13 @@ stack_pop(struct stack *s)
 
 
 Value
-new_tclvalue(Tcl_Obj *obj)
+new_tclvalue(Tcl_Obj *obj, int flags, int offset)
 {
     Value val = malloc(sizeof(*val));
 
     val->type = jitvalue_tcl;
+    val->flags = flags;
+    val->offset = offset;
     val->content.obj = obj;
     return val;
 }
@@ -105,7 +107,7 @@ new_intvalue(int integer)
 }
 
 Value
-new_register(int reset, int offset, int flags)
+new_register(int reset, int flags, int offset)
 {
     static int regnum = 0;
     if (reset) {
@@ -117,9 +119,9 @@ new_register(int reset, int offset, int flags)
 
     regnum++;
     reg->type = jitreg;
+    reg->flags = flags;
+    reg->offset = offset;
     reg->content.vreg.regnum = regnum;
-    reg->content.vreg.offset = offset; /* XXX explain */
-    reg->content.vreg.flags = flags; /* XXX explain */
     reg->content.vreg.type = -1;
     return reg;
 }
@@ -139,7 +141,7 @@ tclobj_to_long(Value v)
 #define GET_INT(value) value->content.integer
 #define REG_RESETCOUNT new_register(1, -1, -1)
 #define REG_NEW new_register(0, -1, -1)
-#define REG_NEW_EX(offset, flags) new_register(0, offset, flags)
+#define REG_NEW_EX(flags, offset) new_register(0, flags, offset)
 
 struct ObjReg {
     Tcl_Obj *obj;
@@ -178,7 +180,7 @@ JIT_Compile(Tcl_Obj *procName, Tcl_Interp *interp, ByteCode *code)
         } else {
             locals[i].obj = NULL;
         }
-        locals[i].reg = REG_NEW_EX(i, JIT_VALUE_LOCALVAR);
+        locals[i].reg = REG_NEW_EX(JIT_VALUE_LOCALVAR, i);
     }
 
     DEBUG("proc = %s\n", TclGetString(procName));
@@ -349,9 +351,10 @@ build_quad(ByteCode *code, unsigned char *pc, int *adv, int pos, int bc_to_bb[],
 	DEBUG(", pushing %d, ", *(pc + 1));
 	quad->instruction = JIT_INST_MOVE;
 	quad->dest = REG_NEW;
-	quad->src_a = new_tclvalue(code->objArrayPtr[*(pc + 1)]);
-	stack_push(Stack, quad);//->dest);
-	*adv = 2; /* 1 for push instruction plus 1 for the index */
+	quad->src_a = new_tclvalue(code->objArrayPtr[*(pc + 1)],
+                JIT_VALUE_OBJARRAY, *(pc + 1));
+	stack_push(Stack, quad);
+	*adv = 2; /* 1 for the push instruction plus 1 for the index */
 	break;
 
     case INST_INVOKE_STK1: /* 6 */
@@ -417,37 +420,14 @@ build_quad(ByteCode *code, unsigned char *pc, int *adv, int pos, int bc_to_bb[],
     }
 
     case INST_LOAD_SCALAR1: { /* 10 */
-	//DEBUG(", loadscalar (%d #%p %d %d#), ", *(pc + 1), local,
-	//      TclIsVarLink(local), TclIsVarDirectReadable(local));
+        /* XXX Simplified. */
 	DEBUG(", loadscalar (%d), ", *(pc + 1));
 
-	//Var *local = locals[*(pc + 1)].var;
-	//Tcl_Obj *local_obj = Tcl_DuplicateObj(*(locals[*(pc + 1)].obj));
 	Tcl_Obj *local_obj = locals[*(pc + 1)].obj;
 
 	quad->instruction = JIT_INST_MOVE;
 	quad->dest = REG_NEW;
-
-	/*while (TclIsVarLink(local)) {
-	    printf("Following link..\n");
-	    local = local->value.linkPtr;
-	}
-	if (TclIsVarDirectReadable(local)) {
-	    printf(">>>> %p %p\n", local, local->value);
-	    local_obj = local->value.objPtr;
-	} else {
-	    printf("LOADING SCALAR at %p %d %d \n", local,
-		   TclIsVarScalar(local), TclIsVarUndefined(local));
-	    local_obj = TclPtrGetVar(NULL, local, NULL,
-				     NULL, NULL, 0, *(pc + 1));
-	    printf(">>>> %p <<<<\n", local_obj);
-	    }*/
-	/*local_obj = local->value.objPtr;
-	if (local_obj) {
-	    //Tcl_IncrRefCount(local_obj);
-	    Tcl_DuplicateObj(local_obj);
-	    }*/
-	quad->src_a = new_tclvalue(local_obj);
+	quad->src_a = new_tclvalue(local_obj, JIT_VALUE_LOCALVAR, *(pc + 1));
 
 	stack_push(Stack, quad);
 	*adv = 2;
