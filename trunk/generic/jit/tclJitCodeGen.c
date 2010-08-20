@@ -18,6 +18,7 @@
 #include "tclJitCompile.h"
 #include "tclJitCodeGen.h"
 #include "tclJitInsts.h"
+#include "tclJitExec.h"
 #include "arch/arch.h"
 
 //#if DEBUGGING
@@ -94,21 +95,22 @@ JIT_CodeGen(struct BasicBlock *CFG, int bbcount)
 
     /* XXX There could be a register allocation phase here. */
 
-    PROLOGUE(code.codeEnd);
+    initLabelTable();
+    //PROLOGUE(code.codeEnd);
 
     /* Assuming that node 0 in the CFG is the source node. */
     dfs(CFG, 0, visited, &code);
 
-    EPILOGUE(code.codeEnd);
+    //EPILOGUE(code.codeEnd);
+    RETN(code.codeEnd);
+    finishLabelTable();
 
-#if DEBUGGING
     int i;
     for (i = 0; i < (code.codeEnd - code.mcode); i++) {
         printf("0x%X ", code.mcode[i]);
     }
     printf("\n");
     printf(">>> %d <<<\n", (code.codeEnd - code.mcode));
-#endif
 
     return code.mcode;
 
@@ -187,7 +189,7 @@ codegen(struct Quadruple *quads, MCode *code)
             long int offset;
             int val = ptr->src_b->content.integer;
 
-	    /* XXX Artificial code (missing proper register usage). */
+	    /* XXX Artificial code (missing proper register allocation). */
 	    regn = EAX; /* XXX allocReg(ptr->dest); */
 
 	    if (ptr->dest->content.vreg.flags == JIT_VALUE_LOCALVAR) {
@@ -218,6 +220,15 @@ codegen(struct Quadruple *quads, MCode *code)
 		MOV_DISP8DREG_REG(code->codeEnd, offset, regn, regn);
 		MOV_REG_REG(code->codeEnd, regn, EDX); /* XXX Copy of Tcl_Obj*/
 		/* regn is now pointing to the expected Tcl_Obj. */
+
+                /* Check for typePtr == &tclIntType */
+                /*PUSH_REG(code->codeEnd, EDX);
+                offset = offsetof(Tcl_Obj, typePtr);
+                MOV_DISP8DREG_REG(code->codeEnd, offset, EDX, EDX);
+                MOV_IMM32_REG(code->codeEnd, (ptrdiff_t)&tclIntType, ECX);
+                CMP_REG_REG(code->codeEnd, EDX, ECX);
+                JUMP_EQ(code, "LINTERP");
+                POP_REG(code->codeEnd, EDX);*/
 
 		offset = offsetof(Tcl_Obj, internalRep.longValue);
 		ADD_IMM8_REG(code->codeEnd, offset, regn);
@@ -256,7 +267,17 @@ codegen(struct Quadruple *quads, MCode *code)
             PUSH_REG(code->codeEnd, EDX); /* Saved Tcl_Obj pointer. */
             CALL_ABSOLUTE_REG(code->codeEnd, ECX);
 
+            ADD_IMM8_REG(code->codeEnd, 4, ESP);
+            /* XXX Trying to not depend on stack frame. */
+
             XOR_REG_REG(code->codeEnd, regn, regn); /* TCL_OK == 0 */
+            //GOTO(code, "OK");
+            /* Interpret the code instead. */
+            //LABEL(code, "LINTERP");
+            //int result = JIT_RESULT_INTERPRET;
+            //MOV_IMM32_REG(code->codeEnd, result, EAX);
+
+            //LABEL(code, "OK");
             break;
 
         case JIT_INST_ADD:
