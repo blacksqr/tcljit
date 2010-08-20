@@ -1,9 +1,17 @@
 #ifndef TCLJIT_X86_MCODE_H
 #define TCLJIT_X86_MCODE_H
 
+#include "tclJitCodeGen.h"
+
 typedef enum { EAX, ECX, EDX, EBX, ESP, EBP, ESI, EDI } regs;
 
 int allocReg(void *);
+void initLabelTable(void);
+void finishLabelTable(void);
+void jumpEqual(struct MCode *, const char *);
+void jumpNotEqual(struct MCode *, const char *);
+void jumpTo(struct MCode *, const char *);
+void makeLabel(struct MCode *, const char *);
 
 /* Auxiliary macros. Most of these may need to be ported to
  * different instruction sets. */
@@ -12,6 +20,8 @@ int allocReg(void *);
 
 #define PROLOGUE(code) PUSH_REG(code, EBP); MOV_REG_REG(code, ESP, EBP)
 #define EPILOGUE(code) LEAVE(code); RETN(code)
+
+#define LABEL(mcode, label) makeLabel(mcode, label)
 
 /* Copy parameter n at 8+4*n(%EBP) to a register. n starts in 0. */
 #define COPY_PARAM_REG(code, paramn, reg) \
@@ -53,6 +63,10 @@ int allocReg(void *);
     *code++ = 0xFF; \
     *code++ = MODRM(0x3, 2, reg)
 
+#define CMP_REG_REG(code, src, dest) \
+    *code++ = 0x39; \
+    *code++ = MODRM(0x3, src, dest)
+
 #define XOR_REG_REG(code, src, dest) \
     *code++ = 0x33; \
     *code++ = MODRM(0x3, src, dest)
@@ -67,6 +81,19 @@ int allocReg(void *);
     *code++ = MODRM(0x3, 0, reg); \
     *code++ = imm
 
+#define JUMP_EQ(mcode, label) jumpEqual(mcode, label)
+#define JUMP_NOTEQ(mcode, label) jumpNotEqual(mcode, label)
+#define GOTO(mcode, label) jumpTo(mcode, label)
+
+#define SET_NE_REG(code, reg) \
+    *code++ = 0x0F; \
+    *code++ = 0x95; \
+    *code++ = MODRM(0x3, 0, reg)
+#define SET_EQ_REG(code, reg) \
+    *code++ = 0x0F; \
+    *code++ = 0x94; \
+    *code++ = MODRM(0x3, 0, reg)
+
 /* movl %reg, %reg */
 #define MOV_REG_REG(code, src, dest) \
     *code++ = 0x89; \
@@ -77,12 +104,12 @@ int allocReg(void *);
     IMM32(code, imm)
 /* movl disp8(%reg), %reg */
 #define MOV_DISP8DREG_REG(code, disp, src, dest) \
-    *code++ = 0x8b; \
+    *code++ = 0x8B; \
     *code++ = MODRM(0x1, dest, src); \
     *code++ = disp
 /* movl (%reg), %reg */
 #define MOV_DREG_REG(code, src, dest) \
-    *code++ = 0x8b; \
+    *code++ = 0x8B; \
     *code++ = MODRM(0x0, dest, src)
 
 #define LEAVE(code) *code++ = 0xC9
