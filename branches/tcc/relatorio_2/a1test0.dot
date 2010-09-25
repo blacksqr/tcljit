@@ -1,0 +1,57 @@
+digraph g {
+	ratio = auto;
+	node [shape = none];
+
+	Block0 [label=<
+		<table border="0" cellborder="0" cellspacing="0">
+		<tr><td border="1">
+		<table border="0" cellborder="0" port="block0">
+		<tr><td port="enter"></td></tr>
+		<tr><td align="left">oi</td></tr>
+		<tr><td align="left">test1</td></tr>
+		<tr><td align="left">t := 3 * 2</td></tr>
+		<tr><td port="leave"></td></tr>
+		</table></td>
+		<td border="0">B1</td></tr>
+		</table>>]
+
+	Block1 [label=<
+		<table border="0" cellborder="0" cellspacing="0">
+		<tr><td border="1">
+		<table border="0" cellborder="0">
+		<tr><td port="enter"></td></tr>
+		<tr><td align="left">lega</td></tr>
+		<tr><td align="left">lverdade</td></tr>
+		<tr><td align="left">t := 4 / 2</td></tr>
+		<tr><td port="leave"></td></tr>
+		</table></td>
+		<td border="0">B2</td></tr>
+		</table>>]
+
+	Block2 [label=<
+		<table border="0" cellborder="0" cellspacing="0">
+		<tr><td border="1">
+		<table border="0" cellborder="0">
+		<tr><td port="enter"></td></tr>
+		<tr><td align="left">t := 127</td></tr>
+		<tr><td port="leave"></td></tr>
+		</table></td>
+		<td border="0">B3</td></tr>
+		</table>>]
+
+	Block3 [label=<
+		<table border="0" cellborder="0" cellspacing="0">
+		<tr><td border="1">
+		<table border="0" cellborder="0">
+		<tr><td port="enter"></td></tr>
+		<tr><td port="leave"></td></tr>
+		</table></td>
+		<td border="0">B4</td></tr>
+		</table>>]
+
+	Block0:leave -> Block1:enter
+	Block0:leave -> Block2:enter
+	Block1:leave -> Block2:enter
+	Block2:leave -> Block3:enter
+	Block2:enter -> Block1:leave
+}
