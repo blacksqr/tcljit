@@ -828,12 +828,7 @@ seguida pelo Linux e quase a mesma pelo Mac OS X (ver \cite{macosx-abi}).
 
 %\paragraph{Modos de endereçamento}
 %\quad \\
-% Esses trechos de código ...
-%
-% ... XXX convenções x86
-%caller, calle save XXX. XXX Variações nas instruções, macros
-%XXX... . XXX arch.h, redefinir macros para outras arquiteturas XXX.
-
+% XXX
 
 \paragraph{Início e término da geração}
 \quad \\
@@ -967,7 +962,7 @@ código gerado, chegamos ao assunto principal dessa subseção.
 
 Devido a granularidade alta, imposta pela representação intermediária
 atual, mesmo uma instrução simples como a \verb!JIT_INST_INCR! requer uma
-quantidade relativamente alta de bytes para codificá-la e portanto
+quantidade relativamente alta de bytes para codificá-la e, portanto,
 podemos aproveitá-la para uma discussão detalhada.
 
 \begin{figure}[h]
@@ -980,30 +975,243 @@ podemos aproveitá-la para uma discussão detalhada.
   \caption{Código exemplo para análise da instrução JIT\_INST\_INCR \label{myinc}}
 \end{figure}
 
-O exemplo da figura \ref{myinc} gera apenas um bloco básico, com
+O exemplo da figura \ref{myinc} gera apenas um bloco básico com
 apenas uma quádrupla. O comando \verb!incr! da \texttt{Tcl} permite
 que uma variável, que pode ter seu valor representado como um inteiro,
 seja incrementada ou decrementada em qualquer quantidade inteira.
 Porém, o compilador
-JIT, ao detectar o bytecode \verb!INST_INCR_SCALAR1_IMM! codifica-o
+JIT, ao detectar o bytecode \verb!INST_INCR_SCALAR1_IMM! (criado pela
+\texttt{Tcl} para o comando \verb!incr!) codifica-o
 como \verb!JIT_INST_INCR! somente se o valor absoluto do incremento
 for 1. Para os demais casos uma instrução \verb!JIT_INST_ADD! é estabelecida.
 Nesse exemplo temos o comportamento padrão do comando \verb!incr!, que
 incrementa em 1 unidade a variável indicada. Feitas essas
-considerações partimos efetivamente para o código de máquina desse
-trecho.
+considerações partimos efetivamente para o código de máquina, um pouco
+simplificado, desse trecho.
 
 Assumindo que a instrução \verb!JIT_INST_INCR! tenha sido corretamente
 codificada, o valor do operando A (campo \verb!src_a! da estrutura
-\verb!Quadruple! \ref{quad-struct}) necessariamente contém uma
+\verb!Quadruple! -- figura \ref{quad-struct}) necessariamente contém uma
 indicação de que o operando é uma variável local. Sendo assim,
-precisamos chegar a essa variável local.
+precisamos chegar a essa variável local. Na seção \ref{codeexec} foi
+descrito a assinatura da função criada pelo compilador JIT mas ainda
+não foi dito quais os tipos dos parâmetros que seriam
+passados. Seguindo a compatibilidade com a função
+\verb!TclExecuteByteCode!, o primeiro parâmetro é uma estrutura
+interna denominada \verb!Interp! que será utilizada para chegar a
+variável local. Tendo essa informação, os primeiros bytes a serem
+gerados aqui dizem respeito a movimentação do primeiro parâmetro para
+um registrador.
+\begin{figure}[h]
+  \centering
+  \begin{lstlisting}[language=C]
+#define COPY_PARAM_REG(code, paramn, reg) \
+    MOV_DISP8DREG_REG(code, 8 + 4 * paramn, EBP, reg)
 
-XXX
+#define MOV_DISP8DREG_REG(code, disp, src, dest) \
+    *code++ = 0x8B;                              \
+    *code++ = MODRM(0x1, dest, src);             \
+    *code++ = disp
+  \end{lstlisting}
+  \caption{Cópia de parâmetro para registrador seguindo ABI escolhida\label{copy-param}}
+\end{figure}
+O código na figura \ref{copy-param} realiza essa
+função de acordo com a ABI escolhida. Assumindo um uso da forma:
+\verb!COPY_PARAM_REG(code, 0, EAX)!, teremos em tempo de execução o
+endereço de uma estrutura \verb!Interp! no registrador
+\verb!eax!. Note que aqui temos outra variação da instrução
+\verb!MOV!, que pode ser traduzida para assembly como:
+\verb!movl 8(%ebp), %eax!. Nesse ponto podemos atravessar a estrutura até
+chegarmos ao \textit{array} que contém todas as variáveis locais --
+trecho de código na figura \ref{goto-varstruct}.
 
-\subsubsection{Limitações (ou Simplificações?)}
+\begin{figure}[h]
+  \centering
+  \begin{lstlisting}[language=C]
+    long int offset;
+    offset = offsetof(Interp, varFramePtr);
+    MOV_DISP8DREG_REG(code, offset, EAX, EAX);
+    offset = offsetof(CallFrame, compiledLocals);
+    MOV_DISP8DREG_REG(code, offset, EAX, EAX);
+  \end{lstlisting}
+  \caption{Percorrendo Interp até variáveis locais\label{goto-varstruct}}
+\end{figure}
 
-XXX
+Na estrutura \verb!Interp! tem-se que o campo \verb!varFramePtr!
+aponta para um \verb!CallFrame! que possui acesso as variáveis atualmente em
+uso. A estrutura \verb!CallFrame!, por sua vez, tem um
+\verb!array! de tipo \verb!Var!, chamado de \verb!compiledLocals! e
+que guarda as variáveis locais. Portanto, a figura
+\ref{goto-varstruct} gera código equivalente a:
+\verb!interp->varFramePtr->compiledLocals!, assumindo
+que \verb!interp! aponte para o parâmetro de tipo
+\verb!Interp!. Prosseguindo, faz-se uso do campo
+\verb!offset! da estrutura \verb!Value! de \verb!src_a!, deslocando em
+\verb!compiledLocals! até o ponto desejado e tornando possível acessar
+o \verb!Tcl_Obj! que representa a variável local procurada -- ver figura
+\ref{goto-localvar}, continuação da figura \ref{goto-varstruct}. Note
+que a variável que queremos acessar aqui é um parâmetro para a função
+escrita em \texttt{Tcl} e, além disso, é o primeiro parâmetro e, por
+essa razão, o deslocamento será 0 no \verb!array! \verb!compiledLocals!.
+
+\begin{figure}[h]
+  \centering
+  \begin{lstlisting}[language=C]
+#define ADD_IMM8_REG(code, imm, reg) \
+    *code++ = 0x83;                  \
+    *code++ = MODRM(0x3, 0, reg);    \
+    *code++ = imm
+
+
+    if (src_a->offset) {
+      ADD_IMM8_REG(code, sizeof(Var) * src_a->offset, EAX);
+    }
+    offset = offsetof(Var, value.objPtr);
+    MOV_DISP8DREG_REG(code, offset, EAX, EAX);
+  \end{lstlisting}
+  \caption{Acessando variável local\label{goto-localvar}}
+\end{figure}
+
+Estando sobre o objeto desejado, é possível obter o valor inteiro
+contido no mesmo (se houver). Entretanto, o endereço desse objeto será
+reutilizado antes do código de máquina terminar e, portanto, salva-se
+em outro registrador (se possível). O código na
+figura \ref{inc-tclobj} avança até o ponto em que o valor contido no
+objeto é incrementado, simplificações são feitas de modo que é
+assumido que o objeto já construiu uma representação de tipo inteiro.
+
+\begin{figure}[h]
+  \centering
+  \begin{lstlisting}[language=C]
+#define INC_DREG(code, reg)      \
+    *code++ = 0xFF;              \
+    *code++ = MODRM(0x0, 0, reg)
+
+
+    MOV_REG_REG(code, EAX, EDX);
+
+    offset = offsetof(Tcl_Obj, internalRep.longValue);
+    ADD_IMM8_REG(code, offset, EAX);
+    INC_DREG(code, EAX);
+  \end{lstlisting}
+  \caption{Salvando endereço e incrementando em uma unidade uma variável local\label{inc-tclobj}}
+\end{figure}
+
+Nesse momento a variável local já foi incrementada mas ainda
+precisamos realizar algumas tarefas antes de retornar. De acordo com o
+funcionamento da \texttt{Tcl}, é
+necessário definir o objeto resultado da função \verb!myinc! para o
+interpretador em que a função executa. A linguagem
+\texttt{Tcl} faz uso da função \verb!Tcl_SetObjResult! para tal
+operação. Também é necessário atualizar a representação em
+\verb!string! do objeto incrementado. Depois dessas tarefas podemos
+retornar o código \verb!TCL_OK! (\verb!0!) para indicar sucesso.
+O código contido nas figuras \ref{myinc-last-macros} e \ref{myinc-last}
+realiza essas tarefas finais.
+
+\begin{figure}[ht!]
+  \centering
+  \begin{lstlisting}[language=C]
+#define PUSH_DISP8REG(code, disp, reg) \
+    *code++ = 0xFF;                    \
+    *code++ = MODRM(0x1, 6, reg);      \
+    *code++ = disp
+#define MOV_IMM32_REG(code, imm32, reg) \
+    *code++ = 0xB8 + dest;              \
+    IMM32(code, imm32)
+#define CALL_ABSOLUTE_REG(code, reg) \
+    *code++ = 0xFF;                  \
+    *code++ = MODRM(0x3, 2, reg)
+#define POP_REG(code, reg) *code++ = 0x58 + reg
+#define XOR_REG_REG(code, src, dest) \
+    *code++ = 0x33;                  \
+    *code++ = MODRM(0x3, src, dest)
+
+#define IMM32(code, v) \
+    *code++ = v; *code++ = v >> 8; \
+    *code++ = v >> 16; *code++ = v >> 24
+  \end{lstlisting}
+  \caption{Macros adicionais requeridos pela figura \ref{myinc-last}\label{myinc-last-macros}}
+\end{figure}
+
+\begin{figure}[ht!]
+  \centering
+  \begin{lstlisting}[language=C]
+    /* Chamar Tcl_SetObjResult. */
+    PUSH_REG(code, EDX);
+    PUSH_DISP8REG(code, 8, EBP);
+    MOV_IMM32_REG(code, (ptrdiff_T)Tcl_SetObjResult, ECX);
+    CALL_ABSOLUTE_REG(code, ECX);
+
+    /* ``Remove'' 8(%ebp) da pilha. */
+    ADD_IMM8_REG(code, 4, ESP);
+
+    /* Atualizar representacao string por meio da
+     * funcao updateStringProc do tipo do objeto. */
+    POP_REG(code, EDX);
+    MOV_REG_REG(code, EDX, ECX);
+    offset = offsetof(Tcl_Obj, typePtr);
+    MOV_DISP8DREG_REG(code, offset, ECX, ECX);
+    offset = offsetof(Tcl_ObjType, updateStringProc);
+    MOV_DISP8DREG_REG(code, offset, ECX, ECX);
+    PUSH_REG(code, EDX);
+    CALL_ABSOLUTE_REG(code, ECX);
+
+    ADD_IMM8_REG(code, 4, ESP);
+
+    /* Retornar TCL_OK. */
+    XOR_REG_REG(code, EAX, EAX);
+  \end{lstlisting}
+  \caption{Tarefas finais para o código da figura \ref{myinc}\label{myinc-last}}
+\end{figure}
+
+Após concluir a geração de código para a quádrupla atual, verifica-se
+que não há mais quádruplas ou mesmo outros blocos a serem visitados. A função
+\verb!JIT_CodeGen! está pronta para encerrar; ajustando a permissão
+das páginas utilizadas e retornando
+o endereço inicial para essa sequência de bytes que pode ser executada
+como uma função. Para a figura \ref{myinc} foram utilizados 51 bytes,
+o código de máquina para esse trecho é dado por:
+\begin{verbatim}
+0x8B 0x45 0x08 0x8B 0x40 0x64 0x8B 0x40 0x28 0x8B 0x40 0x04 0x89
+0xC2 0x83 0xC0 0x10 0xFF 0x00 0x52 0xFF 0x75 0x08 0xB9 0x66 0x02
+0x09 0x0A 0xFF 0xD1 0x83 0xC4 0x04 0x5A 0x89 0xD1 0x8B 0x49 0x0C
+0x8B 0x49 0x0C 0x52 0xFF 0xD1 0x83 0xC4 0x04 0x33 0xC0 0xC3
+\end{verbatim}
+
+%Com esse código gerado funcionando podemos descrever como eliminar a
+%suposição de que o objeto a ser incrementado contém um valor inteiro
+%coerente na união \verb!internalRep! (ver figura \ref{inc-tclobj}).
+% XXX Se continuar aqui vou precisar detalhar labels
+% pendentes.. talvez essa seção fique demasiadamente longa.
+
+%XXX
+Nesta seção foi considerado que detalhar todos os formatos das instruções aqui
+codificadas seria uma distração. O leitor é convidado a visitar a
+tabela \ref{opencoding} no apêndice A que descreve todas as instruções
+codificadas nesse documento juntamente com os nomes das macros utilizadas.
+
+
+\subsubsection{Infraestrutura}
+
+Até o momento já foram apresentadas diversas macros que efetivamente
+geram código de máquina para a arquitetura IA-32. Agora é rapidamente
+discutido como o gerador de código encontra estas definições.
+
+O gerador de código encontra as definições adequadas a serem
+utilizadas a partir de um arquivo de cabeçalho
+(\verb!generic/jit/arch/arch.h! no código fonte) que faz a seleção
+baseado em definições do compilador utilizado. No caso desse trabalho,
+a linguagem \texttt{Tcl} tem sido compilada exclusivamente com o
+\texttt{gcc} e a existência da definição \verb!__i386__! foi
+suficiente para inclusão das macros esperadas. Portar o gerador para
+outra arquitetura implica em: ajuste desse arquivo que faz a seleção do
+que incluir e, também, a adaptação das macros existentes para esse outro
+conjunto de instruções.
+
+%\subsubsection{Limitações (ou Simplificações?)}
+%XXX
+%
 
 
 \section{Dificuldades Encontradas}
@@ -1178,3 +1386,40 @@ pagenowrite(void *page, size_t len)
 #endif
 }
 \end{lstlisting}
+
+\renewcommand{\arraystretch}{1.2}
+\begin{table}[ht!]
+  \caption{Variações de todas as instruções codificadas
+    exibidas\label{opencoding}}
+  \centering
+  \begin{tabular}{l l l l l}
+    \toprule
+    Opcode  & Instrução     & Operando 1    & Operando 2    & Macro \\
+    \midrule
+
+    0x83 /0 ib & \verb!ADD imm8,r/m32! & ModRM:r/m (r) & ModRM:reg
+    (r,w) & \verb!ADD_IMM8_REG! \\
+
+    0xFF /2 & \verb!CALL r/m32! & ModRM:r/m (r) &      &
+    \verb!CALL_ABSOLUTE_REG! \\
+
+    0xFF /0 & \verb!INC r/m32! & ModRM:r/m (r,w) &  & \verb!INC_DREG! \\
+
+    0x89 /r & \verb!MOV r32,r/m32!& ModRM:reg (r) & ModRM:r/m (w) &
+    \verb!MOV_REG_REG! \\
+\hline
+    0xB8+rd & \verb!MOV imm32,r32! & imm32 & reg (w)
+    & \verb!MOV_IMM32_REG! \\
+    & & & & \verb!MOV_DISP8DREG_REG! \\ \hline
+
+    0x58+rd & \verb!POP r32!     & reg (w)       &        & \verb!POP_REG!\\
+
+    0x50+rd & \verb!PUSH r32!    & reg (r)       &        & \verb!PUSH_REG!\\
+    0xFF /6 & \verb!PUSH r/m32!  & ModRM:r/m (r) &        & \verb!PUSH_DISP8REG!\\
+
+    0x33 /r & \verb!XOR r32,r/m32!& ModRM:reg (r) & ModRM:reg (r,w)&
+    \verb!XOR_REG_REG! \\
+
+    \bottomrule
+  \end{tabular}
+\end{table}
