@@ -60,7 +60,7 @@ presente em roteadores da Cisco, pois vem incluso no Cisco IOS
 (\textit{Internetwork Operating Systems}), mas esse trabalho
 não tem como foco tal tipo de dispositivo e, portanto, consumo de
 memória não será um dos pontos levados em consideração. Porém, entre
-os fatores complicadores consideramos também a manutenabilidade do
+os fatores complicadores consideramos também a manutenibilidade do
 sistema. Um nível muito alto de abstração, como dito no início do
 texto, impediria a utilização de um programa de desempenho crítico e,
 por outro lado, um nível muito baixo dificultaria a correção/detecção de
@@ -214,7 +214,7 @@ Por outro lado, operações aritméticas podem ser bastante favorecidas.
 O trabalho feito no Psyco, mostra melhoria
 de 109 vezes no tempo de execução para aritmética de inteiros e 10,9
 vezes em aritmética de ponto flutuante \cite{psyco}. Após essa
-primeira análise, ve-se que entre todos os
+primeira análise, vê-se que entre todos os
 \textit{opcodes} definidos cerca de 100 deles são de
 uso geral, enquanto que o restante é dedicado a alguns poucos comandos
 pré-definidos. Além disso, por volta de 20 deles realizam a mesma
@@ -247,7 +247,7 @@ capaz de determinar quando iniciar e parar a geração de código.
 Neste projeto atualmente é feito uso dos
 limites de um procedimento como pontos de início e parada. Também é
 interessante que o sistema colete informações, como de tipos
-utilizados, para possívelmente permitir gerar código mais específico
+utilizados, para possivelmente permitir gerar código mais específico
 para alguns trechos ou também analisar a forma com que certos procedimentos
 são mais frequentemente utilizados. Alguns tipos numéricos da
 \texttt{Tcl} vem sendo coletados durante a interpretação pela máquina
@@ -405,7 +405,7 @@ invocar tal função passando os parâmetros esperados. A validade dessas
 duas últimas tarefas se deve ao fato de que uma função qualquer é
 simplesmente uma sequência de bytes que foi gerada por algum
 compilador para alguma arquitetura. Porém, realizar essas tarefas pode
-requerer uma certa flexbilidade da linguagem que se deseja
+requerer uma certa flexibilidade da linguagem que se deseja
 utilizar. No caso da linguagem \texttt{C}, que foi a escolhida para
 esse projeto, é permitido realizar um \textit{cast} adequado que
 resolve esse problema. Especificamente, queremos tratar o endereço em
@@ -463,7 +463,7 @@ além de apresentar uma característica relevante para a otimização que
 realiza movimentação de código: mover uma quádrupla tende a requerer
 menor esforço do do que rearranjar uma representação em forma de
 árvore. Entretanto, conforme discutido em \citeonline[p. 96]{muchnick},
-também é possivel que a representação em árvore apresente vantagens
+também é possível que a representação em árvore apresente vantagens
 em relação à utilizada, sendo a eliminação de registradores virtuais
 temporários e armazenamentos nos mesmos uma delas.
 
@@ -526,7 +526,7 @@ instrução é de desvio ou não. O campo \verb!id! serve, até o momento,
 somente para \textit{debugging}. A identificação dos blocos básicos e
 construção do CFG não difere daquela apresentada em
 \citeonline[p. 173-175]{muchnick}, porém não é feito, até o momento, o
-uso de blocos básicos extendidos. A visualização dos blocos básicos
+uso de blocos básicos estendidos. A visualização dos blocos básicos
 ainda não ocorre de forma didática, sendo possível apenas uma exibição
 em modo texto bastante simples; com algum esforço é possível
 transformar essa saída em uma entrada para algum programa que trata do
@@ -601,7 +601,7 @@ são todos ponteiros para uma estrutura \verb!Tcl_Obj!, podendo assumir
 qualquer tipo interno presente na linguagem. Nesse exemplo podemos
 assumir, e de fato assim ocorrerá, que todos são inteiros. No caso da
 \textit{string} \verb!'puts'! armazenada no registrador 4 tem-se que ela
-servirá como chave em uma tabela hash que possui como valor a
+servirá como chave em uma tabela \textit{hash} que possui como valor a
 respectiva função (ou não, gerando um erro). Todos esses ponteiros
 estarão armazenados num \textit{array} quando a função for executada,
 sendo necessário definir os campos \verb!flags! e \verb!offset! da
@@ -616,7 +616,7 @@ representar o código da figura \ref{fig:gray}, e agora 18 quádruplas
 são empregadas com o mesmo resultado. Nessa quantidade numérica
 superior destaca-se o uso de 9 bytes para representar a instrução
 \verb!INST_START_CMD! da \texttt{Tcl}, destinando 1 byte para o código
-da instrução em si, 4 bytes para indicar a posição relativa do ínicio
+da instrução em si, 4 bytes para indicar a posição relativa do início
 do próximo comando e
 4 bytes para contar a quantidade de comandos que fazem parte desse que
 está iniciando de modo a possibilitar ao  interpretador respeitar
@@ -736,7 +736,7 @@ atual simplificação feita na outra representação, que, diferentemente
 da máquina virtual em execução, não verifica por exceções e tão pouco
 por código de retorno anormal -- tais tarefas são realizadas em
 diversos trechos da função \verb!TclExecuteByteCode! mas também são
-específicamente feitas na execução da instrução \verb!DONE!.
+especificamente feitas na execução da instrução \verb!DONE!.
 
 A instrução \verb!PUSH! é mapeada fazendo uso de uma pilha temporária e
 também de um \textit{array} de objetos literais. Um operando que segue a
@@ -830,7 +830,7 @@ específico caso a geração de código tenha sucesso.
 \subsubsection{Código de máquina IA-32}
 
 A arquitetura IA-32 tem sido amplamente utilizada nos computadores de
-uso pessoal, matendo portabilidade a nível de código objeto desde o
+uso pessoal, mantendo portabilidade a nível de código objeto desde o
 processador 8086 e fazendo uso de um conjunto de instruções complexo (CISC).
 Essa última característica reflete a grande quantidade de instruções
 existentes nessa arquitetura (e que tem aumentando) e também a
@@ -847,24 +847,24 @@ seguida pelo Linux e quase a mesma pelo Mac OS X (ver \citeonline{macosx-abi}).
 \paragraph{Início e término da geração}
 \quad \\
 Antes de gerar código específico para um CFG, a função
-\verb!JIT_CodeGen! gera um prológo genérico que pode ser visto na
+\verb!JIT_CodeGen! gera um prólogo genérico que pode ser visto na
 figura \ref{prologo-epilogo}. Após toda a geração do código novamente
-temos um código genérico, agora chamado de epilógo e que também é
+temos um código genérico, agora chamado de epílogo e que também é
 apresentado na figura \ref{prologo-epilogo}. A divisão da pilha em
 partes (\textit{frames}) origina o conceito de \textit{stack frame}
-que é manuseado pelo código do prológo. Cada \textit{stack frame} pode
+que é manuseado pelo código do prólogo. Cada \textit{stack frame} pode
 variar de tamanho, e por isso definimos um ponto base para acessar
 parâmetros ou variáveis locais de forma que seja respeitada as
 condições da ABI. Essa base, ou ponto de referência, fica definida como
 o endereço contido no registrador \verb!ebp! após a execução do
-prológo. É possível encontrar definições de prológo que incluam código
+prólogo. É possível encontrar definições de prólogo que incluam código
 para salvar os registradores \verb!ebx!, \verb!edi!, \verb!esi!
 e \verb!esp! uma vez que, de acordo com a ABI seguida, esses
 registradores (além do \verb!ebp! que já é salvo) precisam ser
 preservados entre chamadas. Na
 implementação atual, código para salvar qualquer um desses
-registradores precisa ser gerado conforme necessário. O epilógo possui
-código antônimo daquele contido no prológo, efetivamente desfazendo o
+registradores precisa ser gerado conforme necessário. O epílogo possui
+código antônimo daquele contido no prólogo, efetivamente desfazendo o
 \textit{stack frame} construído e retornando para o endereço contido
 na topo da pilha corrente.
 
@@ -885,7 +885,7 @@ na topo da pilha corrente.
 
 #define MODRM(mod, reg, rm) (mod << 6) + (reg << 3) + rm
   \end{lstlisting}
-  \caption{Código para epilógo e prólogo breve em x86\label{prologo-epilogo}}
+  \caption{Código para epílogo e prólogo breve em x86\label{prologo-epilogo}}
 \end{figure}
 
 Assume-se que \verb!code! seja um ponteiro da forma do \verb!codeEnd!
@@ -1034,7 +1034,7 @@ função de acordo com a ABI escolhida. Assumindo um uso da forma:
 \verb!COPY_PARAM_REG(code, 0, EAX)!, teremos em tempo de execução o
 endereço de uma estrutura \verb!Interp! no registrador
 \verb!eax!. Note que aqui temos outra variação da instrução
-\verb!MOV!, que pode ser traduzida para assembly como:
+\verb!MOV!, que pode ser traduzida para \textit{assembly} como:
 \verb!movl 8(%ebp), %eax!. Nesse ponto podemos atravessar a estrutura até
 chegarmos ao \textit{array} que contém todas as variáveis locais --
 trecho de código na figura \ref{goto-varstruct}.
@@ -1212,7 +1212,7 @@ de um desvio condicional baseado na \textit{flag} \verb!OF!, do
 registrador \verb!EFLAGS! (ver \citeonline[seção 3.4.3]{intel_basicarch}),
 para um ponto de retorno que indica que
 ouve \textit{overflow}. O compilador JIT, quando completo, precisa no
-mínimo fazer esse tratamento e reinciar a execução do procedimento por meio
+mínimo fazer esse tratamento e reiniciar a execução do procedimento por meio
 de interpretação em vista que a linguagem \texttt{Tcl}
 trabalha com números inteiros de tamanho arbitrário de forma
 transparente.
@@ -1273,8 +1273,8 @@ Com o avanço da implementação, descrita nesse relatório, a geração de
 código nativo realizada de forma manual demonstrou-se bastante
 propensa a erros. Detalhes na geração do byte ModR/M causaram muitas
 falhas de segmentação até chegar ao código final correto; saídas
-produzidas pelo compilador gcc, analisada pelas ferramentas otool ou
-objdump, ajudaram na correção ao longo do processo.
+produzidas pelo compilador gcc, analisada pelas ferramentas \verb!otool! ou
+\verb!objdump!, ajudaram na correção ao longo do processo.
 
 \section{Próximos Passos}
 
