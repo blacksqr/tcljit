@@ -54,7 +54,7 @@ os dados, quais otimizações aplicar e algoritmos para diversas fases da
 compilação, devem ser feitas de forma a conseguir balancear baixo
 tempo de compilação com código gerado de alta qualidade. Ainda há o
 quesito de consumo de memória principal, que, apesar da crescente
-capacidade disponível, geralmente costuma ser um recurso escasso em
+capacidade disponível, ainda costuma ser um recurso escasso em
 dispositivos embarcados. Sabe-se que o interpretador \texttt{Tcl} está
 presente em roteadores da Cisco, pois vem incluso no Cisco IOS
 (\textit{Internetwork Operating Systems}), mas esse trabalho
@@ -71,7 +71,7 @@ qualquer é escrito em \texttt{RPython} (uma implementação mais
 restrita da linguagem \texttt{Python}) e o PyPy realiza a tradução do
 mesmo para a
 linguagem \texttt{C} incluindo (atualmente) juntamente um compilador
-JIT específico para arquitetura IA-32. Entretanto, um
+JIT. Entretanto, um
 dos objetivos do trabalho discutido aqui é analisar como um sistema de
 tamanho reduzido compete com sistemas mais robustos. Não se tem a
 intenção de fornecer um ambiente de alto nível para construção de
@@ -79,23 +79,23 @@ outras máquinas virtuais com ou sem compiladores JIT para
 \texttt{Tcl}, mas sim uma implementação específica e direta.
 A escolha da
 linguagem \texttt{C} reflete esse objetivo porque não adiciona novas
-dependências ao núcleo da linguagem \texttt{Tcl} além de ser
-considerada bastante eficiente.
+dependências ao núcleo da linguagem \texttt{Tcl} além de possibilitar
+criação de programas com desempenho aceitável.
 
-XXX Revisar
 Procura-se visar a simplicidade, de forma que o trabalho desenvolvido
 possa servir de base para expansão a novas arquiteturas e também para
 aplicação de técnicas de compilação diversas sob a
 \texttt{Tcl}. Na representação intermediária, quádruplas são
 escolhidas para formar blocos básicos e
 esses, por sua vez, são utilizados para definir grafos de fluxo de
-controle que servem de entrada a outra representação escolhida -- SSA
+controle que são diretamente utilizados na geração de código e também
+podem servir de entrada a representação SSA
 (\textit{Static Single Assignment}). A arquitetura IA-32 foi escolhida
 como alvo, pois está presente em boa parte dos computadores de uso
 pessoal, porém a linguagem \texttt{Tcl} atualmente executa em várias
 outras arquiteturas. Nesse sentido, permitir portar para IA-64, ARM, e
 outras, sem tornar a tarefa demasiadamente complicada faz parte da
-simplicidade que se pretende práticar.
+simplicidade que se pretende obter.
 
 A seção \ref{rev_biblio} realiza uma revisão bibliográfica relevando
 trabalhos que, de alguma forma, buscaram melhorar a performance da
@@ -104,9 +104,12 @@ compiladores JIT que apresentam alguma semelhança com o nosso. Em
 seguida, na seção \ref{proposta} é descrito uma proposta um pouco mais
 detalhada a respeito desse compilador. Na seção \ref{desenvolvimento}
 alguns detalhes do que já foi desenvolvido são apresentados, incluindo a
-estrutura atual para quádruplas e blocos básicos. As demais seções
+estrutura atual para quádruplas e blocos básicos, código de máquina
+para IA-32, e também um pouco sobre a instalação e execução do
+compilador JIT e do código nativo. As demais seções
 se destinam a mencionar dificuldades encontradas até qui, além de
-descrever o que será feito a partir desse ponto.
+descrever o que será feito a partir do ponto em que se encontra o
+trabalho.
 
 
 \section{Revisão Bibliográfica}
@@ -247,7 +250,8 @@ interessante que o sistema colete informações, como de tipos
 utilizados, para possívelmente permitir gerar código mais específico
 para alguns trechos ou também analisar a forma com que certos procedimentos
 são mais frequentemente utilizados. Alguns tipos numéricos da
-\texttt{Tcl} são coletados mas ainda não utilizados na compilação final.
+\texttt{Tcl} vem sendo coletados durante a interpretação pela máquina
+virtual mas ainda não são utilizados na compilação JIT.
 
 Após essas etapas pretendia-se aplicar pelo menos algumas das
 otimizações clássicas tais como remoção de código morto, propagação de
@@ -268,8 +272,8 @@ instrução e esta, por sua vez, é utilizada durante a geração de código
 para escolher um caminho no \textit{switch} de instruções e produzir
 uma sequência de instruções de máquina pré-estabelecidas. Essa forma
 de ``seleção'' é bastante econômica em termos computacionais, mas não
-se preocupa com o custo combinado de instruções. A alocação de
-registradores ... XXX ....
+se preocupa com o custo combinado de instruções. % A alocação de
+%registradores ... XXX ....
 A possibilidade de métodos mais sofisticados ainda é
 possível mas se tornou um ponto para um projeto futuro.
 
@@ -290,9 +294,18 @@ código para outras arquiteturas.
 \section{Desenvolvimento}
 \label{desenvolvimento}
 
-XXX Introdução ao desenvolvimento XXX.
+A situação da implementação do compilador JIT até esse momento é descrita nas
+subseções seguintes. Esta seção inicia detalhando como nosso
+compilador foi introduzido na máquina virtual da linguagem \texttt{Tcl} e
+também como é determinado os procedimentos a serem compilados. Em
+seguida é descrito como pode ocorrer a execução do código de máquina
+representado como uma sequência de bytes. A representação
+intermediária e estruturas utilizadas são apresentadas na sequência e
+são feitas considerações a respeito do projeto inicial. Finalmente
+temos uma seção um pouco maior que descreve a geração de código
+de máquina para a arquitetura IA-32 e uma breve consideração sobre
+portabilidade para outras arquiteturas.
 
-XXX Falta descrever como coleta tipos, onde coleta. Qual seção por ? XXX
 
 \subsection{Instalação e execução do compilador JIT}
 \label{install-exec}
@@ -404,11 +417,12 @@ dessa assinatura é devido àquela existente para a função
 \verb!TclExecuteByteCode!. Essa última função mencionada é invocada
 por meio da \verb!TclObjInterpProcCore! nos casos em que o compilador
 JIT não gerou código de máquina para um procedimento. Manter a
-compatibilidade entre essas duas funções atualmente é
-apenas uma questão de conveniência, uma vez que, conforme discutido em
-\ref{codegen}, o compilador JIT atual trabalha apenas com
-procedimentos folha -- aqueles que não fazem chamadas a outros procedimentos.
-XXX Revisar essa última frase.
+compatibilidade entre essas duas funções, passando os mesmo
+parâmetros, proporciona ao código gerado pelo compilador JIT tratar
+objetos literais, parâmetros do procedimento \texttt{Tcl}, variáveis
+locais e outros detalhes de forma bastante similar ao da
+implementação da \verb!TclExecuteByteCode!.
+
 
 \subsection{Representação Intermediária}
 A seguir é apresentado a evolução das escolhas feitas a respeito da
@@ -453,8 +467,8 @@ também é possivel que a representação em árvore apresente vantagens
 em relação à utilizada, sendo a eliminação de registradores virtuais
 temporários e armazenamentos nos mesmos uma delas.
 
-Na versão atual do compilador a seguinte estrutura representa uma
-quádrupla:
+Na versão atual do compilador a estrutura apresentada na figura
+\ref{quad-struct} representa uma quádrupla.
 
 \begin{figure}[h]
   \centering
@@ -817,14 +831,14 @@ específico caso a geração de código tenha sucesso.
 
 A arquitetura IA-32 tem sido amplamente utilizada nos computadores de
 uso pessoal, matendo portabilidade a nível de código objeto desde o
-processador 8086 e fazendo uso de um conjunto de instruções complexo.
+processador 8086 e fazendo uso de um conjunto de instruções complexo (CISC).
 Essa última característica reflete a grande quantidade de instruções
 existentes nessa arquitetura (e que tem aumentando) e também a
 variedade de combinações permitidas. Convenções a cerca de chamadas de
 funções também tem sido estabelecidas, formando parte de uma interface
 binária de aplicação (ABI). Nesse trabalho seguiu-se a ABI para
 chamada de funções descrita em \citeonline{systemv-abi}, que é a mesma
-seguida pelo Linux e quase a mesma pelo Mac OS X (ver \cite{macosx-abi}).
+seguida pelo Linux e quase a mesma pelo Mac OS X (ver \citeonline{macosx-abi}).
 
 %\paragraph{Modos de endereçamento}
 %\quad \\
@@ -1159,7 +1173,7 @@ realiza essas tarefas finais.
 
     ADD_IMM8_REG(code, 4, ESP);
 
-    /* Retornar TCL_OK. */
+    /* Retornar TCL_OK (ver ABI). */
     XOR_REG_REG(code, EAX, EAX);
   \end{lstlisting}
   \caption{Tarefas finais para o código da figura \ref{myinc}\label{myinc-last}}
@@ -1185,11 +1199,29 @@ o código de máquina para esse trecho é dado por:
 % XXX Se continuar aqui vou precisar detalhar labels
 % pendentes.. talvez essa seção fique demasiadamente longa.
 
-%XXX
+Apesar do bytecode codificado acima ser um dos mais simples, é
+possível reutilizar boa parte desse código para alguns outros. Uma
+instrução de adição ou subtração entre uma variável e uma constante
+qualquer requer somente a troca da \verb!INC_DREG! por uma outra
+similar a já exibida \verb!ADD_IMM8_REG!. A parte do código que acessa
+variáveis locais também pode ser reaproveitada por grande parte das
+demais instruções \texttt{Tcl}. Além disso, serve de base para remoção
+de pelo menos uma simplificação: a falta de verificação por
+\textit{overflow}. Após incrementar a variável, poderíamos fazer uso
+de um desvio condicional baseado na \textit{flag} \verb!OF!, do
+registrador \verb!EFLAGS! (ver \citeonline[seção 3.4.3]{intel_basicarch}),
+para um ponto de retorno que indica que
+ouve \textit{overflow}. O compilador JIT, quando completo, precisa no
+mínimo fazer esse tratamento e reinciar a execução do procedimento por meio
+de interpretação em vista que a linguagem \texttt{Tcl}
+trabalha com números inteiros de tamanho arbitrário de forma
+transparente.
+
 Nesta seção foi considerado que detalhar todos os formatos das instruções aqui
-codificadas seria uma distração. O leitor é convidado a visitar a
-tabela \ref{opencoding} no apêndice A que descreve todas as instruções
-codificadas nesse documento juntamente com os nomes das macros utilizadas.
+codificadas seria uma distração. O leitor é convidado a visitar as
+tabelas \ref{instr-encoding} e \ref{op-encoding} no apêndice A que
+descreve todas as instruções codificadas nesse documento juntamente
+com os nomes das macros utilizadas.
 
 
 \subsubsection{Infraestrutura}
@@ -1216,8 +1248,6 @@ conjunto de instruções.
 
 \section{Dificuldades Encontradas}
 
-XXX Atualizar
-
 A primeira dificuldade encontrada foi em relação a aprendizagem
 (parcial) do funcionamento da linguagem de programação \texttt{Tcl} --
 especificamente a versão 8.5.8 --
@@ -1239,43 +1269,24 @@ específico é compartilhado ou não antes de, dependendo do uso,
 duplicar o mesmo. Não são tarefas tão complexas mas tendem a ser
 pontos de erros obscuros em programas não tão curtos e não tão simples.
 
-%Entretanto, a maior dificuldade tem realmente sido conseguir dedicar
-%tempo adequado ao trabalho. Sabe-se que a implementação de um
-%compilador JIT não é algo simples, ... XXX.
-
+Com o avanço da implementação, descrita nesse relatório, a geração de
+código nativo realizada de forma manual demonstrou-se bastante
+propensa a erros. Detalhes na geração do byte ModR/M causaram muitas
+falhas de segmentação até chegar ao código final correto; saídas
+produzidas pelo compilador gcc, analisada pelas ferramentas otool ou
+objdump, ajudaram na correção ao longo do processo.
 
 \section{Próximos Passos}
 
-XXX Revisar
-
-Até o momento pouco foi implementado, porém logo em seguida o que se pretende
-fazer é a coleta de tipos. Somente durante a interpretação os
-tipos numéricos são descobertos, a representação em \textit{bytecodes}
-não possui instruções dedicadas para operandos na pilha com tipos
-diferenciados pois todos são inicialmente do tipo \verb!Tcl_Obj! e,
-portanto, podem assumir valores de qualquer tipo. Sem essa
-coleta fica inviável a
-aplicação de até mesmo da otimização de propagação de constante
-seguido de empacotamento de constante pois, caso contrário, não
-sabemos quais os tipos dos valores em uso.
-
-Seguindo a proposta atual é necessário realizar a construção da forma
-SSA após, ou em conjunto, com o passo anterior. Pretende-se seguir o
-trabalho de \citeonline{cytron} aqui, obedecendo os algoritmos lá
-descritos. Também pretende-se aplicar nesse momento pelo menos algumas
-das otimizações que se beneficiam com a representação SSA, tais como
-propagação de constantes e eliminação de código morto. Ainda será
-avaliado a possibilidade se realizar alocação de registradores
-enquanto nessa forma, o trabalho por \citeonline{wimmer_franz} discute
-tal tarefa e será a referência base para essa decisão.
-
-Do restante planeja-se seguir com as etapas previstas anteriormente,
-refinando-as conforme o projeto avança.
-
+Devido ao tempo restante espera-se que somente duas atividades
+continuem sendo desenvolvidas:
+\begin{enumerate}
+\item Geração de código para uma maior quantidade de bytecodes
+  \texttt{Tcl} de modo a possibilitar análise coerente de resultados;
+\item Escrita do texto final.
+\end{enumerate}
 
 \section{Conclusões}
-
-XXX JIT é bastante amplo .. compiladores em geral são ... XXX
 
 Compiladores JIT tem sido implementados em máquinas virtuais que demandam
 alta performance. Entre as linguagens de programação, \texttt{Java} se
@@ -1285,13 +1296,13 @@ dinâmicos que fazem uso de uma variedade de técnicas.
 
 Escolhas adequadas para todas as partes de um compilador JIT tornam
 possível o uso de um compilador otimizador em tempo de execução. Esse
-texto teve maior foco nas representações intermediárias utilizadas (ou
-que serão utilizadas) nesse projeto. Quádruplas para formar blocos
+texto teve maior foco nas representações intermediárias utilizadas, ou
+que se pretende utilizar, nesse projeto. Quádruplas para formar blocos
 básicos e permitir a construção do grafo de fluxo de controle (CFG)
 foi mais discutida aqui, mas também foi mencionado a representação SSA
 que inicia-se com a entrada de um CFG. A SSA tem sido aplicada em
-diversos compiladores otimizadores, pois permite aplicar (ao menos)
-as otimizações de movimentação de código, propagação de constantes e
+diversos compiladores otimizadores, pois permite aplicar, ao menos,
+as otimizações de movimentação de código, propagação de constante e
 eliminação de redundância parcial de forma eficiente.
 
 A conversão de \textit{bytecodes} de uma máquina de pilha para uma
@@ -1303,14 +1314,33 @@ de pilha. Entretanto, um número reduzido de quádruplas não indica
 necessariamente menor consumo de memória do que uma quantidade
 superior de \textit{bytecodes}.
 
+Detalhes relacionados a definição de onde instalar o compilador JIT na
+linguagem alvo e de quando executar a compilação JIT envolvem pelo
+menos um entendimento simplificado do funcionamento da máquina
+virtual. Com a experiência adquirida até o momento, essa etapa aparenta
+ser a mais simples de ser feita.
+
+A geração de código de máquina, em especial para uma arquitetura CISC,
+de forma manual é dispendiosa e propensa a erros. Apesar da alta
+granularidade imposta pela representação intermediária atual,
+mostrou-se necessidade de 51 bytes para a codificação simplificada de um
+procedimento em \texttt{Tcl} com um único comando
+\verb!incr!. Entretanto, discute-se que, entre essa quantidade total,
+um número significativo de bytes pode ser reaproveitado por muitas das
+outras instruções para acesso a variáveis locais. Além disso, com
+pequenas alterações é possível codificar outras instruções simples, ou
+variações do \verb!incr! que não façam uso de incremento de valor
+absoluto 1, da linguagem \texttt{Tcl}.
+
 % XXX mais ?
+
 
 % Referências
 \bibliography{biblio}
 
 
-%\appendix
-%\chapter{Apêndice A}
+%\newpage
+
 \section*{Apêndice A}
 
 \renewcommand\lstlistingname{Código}
@@ -1321,7 +1351,6 @@ void *
 newpage(void *size)
 {
     void *page;
-
 #ifdef _WIN32
     page = VirtualAlloc(NULL, *((DWORD *)size),
                         MEM_COMMIT | MEM_RESERVE,
@@ -1339,7 +1368,6 @@ newpage(void *size)
         exit(1);
     }
 #endif
-
     return page;
 }
 \end{lstlisting}
@@ -1351,16 +1379,15 @@ newpage(void *size)
 DWORD
 pagesize(void)
 {
-  DWORD pagesize;
-  SYSTEM_INFO si;
-  GetSystemInfo(&si);
-  return si.dwPageSize;
+    DWORD pagesize;
+    SYSTEM_INFO si;
+    GetSystemInfo(&si);
+    return si.dwPageSize;
 }
 #else
-int
-pagesize(void)
+int pagesize(void)
 {
-  return getpagesize();
+    return getpagesize();
 }
 #endif
 \end{lstlisting}
@@ -1387,39 +1414,55 @@ pagenowrite(void *page, size_t len)
 }
 \end{lstlisting}
 
+\newpage
+
 \renewcommand{\arraystretch}{1.2}
+
 \begin{table}[ht!]
-  \caption{Variações de todas as instruções codificadas
-    exibidas\label{opencoding}}
+  \caption{Variações das instruções codificadas, sintaxe AT\&T\label{instr-encoding}}
   \centering
-  \begin{tabular}{l l l l l}
+  \begin{tabular}{l l c l}
     \toprule
-    Opcode  & Instrução     & Operando 1    & Operando 2    & Macro \\
+    Opcode  & Instrução     & Cod. Oper.    & Macro \\
     \midrule
 
-    0x83 /0 ib & \verb!ADD imm8,r/m32! & ModRM:r/m (r) & ModRM:reg
-    (r,w) & \verb!ADD_IMM8_REG! \\
+    0x83 /0 ib & \verb!ADD imm8,r/m32! & A  & \verb!ADD_IMM8_REG! \\
 
-    0xFF /2 & \verb!CALL r/m32! & ModRM:r/m (r) &      &
-    \verb!CALL_ABSOLUTE_REG! \\
+    0xFF /2 & \verb!CALL r/m32! & B & \verb!CALL_ABSOLUTE_REG! \\
 
-    0xFF /0 & \verb!INC r/m32! & ModRM:r/m (r,w) &  & \verb!INC_DREG! \\
+    0xFF /0 & \verb!INC r/m32! & C & \verb!INC_DREG! \\
 
-    0x89 /r & \verb!MOV r32,r/m32!& ModRM:reg (r) & ModRM:r/m (w) &
-    \verb!MOV_REG_REG! \\
-\hline
-    0xB8+rd & \verb!MOV imm32,r32! & imm32 & reg (w)
-    & \verb!MOV_IMM32_REG! \\
-    & & & & \verb!MOV_DISP8DREG_REG! \\ \hline
+    0x89 /r & \verb!MOV r32,r/m32!& D & \verb!MOV_REG_REG! \\
+    \hline
+    0xB8+rd & \verb!MOV imm32,r32! & E & \verb!MOV_IMM32_REG! \\
+    & & & \verb!MOV_DISP8DREG_REG! \\
+    \hline
 
-    0x58+rd & \verb!POP r32!     & reg (w)       &        & \verb!POP_REG!\\
+    0x58+rd & \verb!POP r32!     & F & \verb!POP_REG!\\
 
-    0x50+rd & \verb!PUSH r32!    & reg (r)       &        & \verb!PUSH_REG!\\
-    0xFF /6 & \verb!PUSH r/m32!  & ModRM:r/m (r) &        & \verb!PUSH_DISP8REG!\\
+    0x50+rd & \verb!PUSH r32!    & G & \verb!PUSH_REG!\\
+    0xFF /6 & \verb!PUSH r/m32!  & B & \verb!PUSH_DISP8REG!\\
 
-    0x33 /r & \verb!XOR r32,r/m32!& ModRM:reg (r) & ModRM:reg (r,w)&
-    \verb!XOR_REG_REG! \\
+    0x33 /r & \verb!XOR r32,r/m32!& A & \verb!XOR_REG_REG! \\
 
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+\begin{table}[ht!]
+  \caption{Codificações para os operandos da tabela \ref{instr-encoding}\label{op-encoding}}
+  \centering
+  \begin{tabular}{c l l}
+    \toprule
+    Cod. Oper. & Operando 1 & Operando 2 \\
+    \midrule
+    A & imm8 & ModRM:r/m (r,w) \\
+    B & ModRM:r/m (r) & \\
+    C & ModRM:r/m (r,w) & \\
+    D & ModRM:reg (r)& ModRM:r/m (w) \\
+    E & imm32 & reg (w) \\
+    F & reg (w) & \\
+    G & reg (r) & \\
     \bottomrule
   \end{tabular}
 \end{table}
