@@ -297,12 +297,12 @@ código para outras arquiteturas.
 A situação da implementação do compilador JIT até esse momento é descrita nas
 subseções seguintes. Esta seção inicia detalhando como nosso
 compilador foi introduzido na máquina virtual da linguagem \texttt{Tcl} e
-também como é determinado os procedimentos a serem compilados. Em
+também como são determinados os procedimentos a serem compilados. Em
 seguida é descrito como pode ocorrer a execução do código de máquina
 representado como uma sequência de bytes. A representação
 intermediária e estruturas utilizadas são apresentadas na sequência e
 são feitas considerações a respeito do projeto inicial. Finalmente
-temos uma seção um pouco maior que descreve a geração de código
+temos uma seção um pouco mais extensa que descreve a geração de código
 de máquina para a arquitetura IA-32 e uma breve consideração sobre
 portabilidade para outras arquiteturas.
 
@@ -342,7 +342,7 @@ inicializada. A manutenção dos campos dessa estrutura \verb!JIT_Proc!
 depende de, em grande parte, chamadas a outra função,
 \verb!TclObjInterpProcCore!. Essa,
 por sua vez, é chamada por meio da \verb!TclObjInterpProc! que é associada
-a um ponteiro \verb!Proc! por meio da função \verb!Tcl_ProcObjCmd! que
+a um ponteiro para \verb!Proc! por meio da função \verb!Tcl_ProcObjCmd! que
 faz uso da função pública \verb!Tcl_CreateObjCommand!. A escolha da
 \verb!TclObjInterpProcCore! foi, portanto, devido ao modo com que os
 procedimentos escritos puramente em \texttt{Tcl} são criados
@@ -351,6 +351,7 @@ Portanto, a execução de um procedimento \texttt{Tcl},
 criado da forma descrita anteriormente, necessariamente causa a
 execução da função \verb!TclObjInterpProcCore!.
 
+Voltamos a atenção para a estrtura \verb!JIT_Proc! agora.
 O campo \verb!collectingTypes!, inicializado em \verb!0!, é utilizado para
 detectar se já foi alocado memória para o campo \verb!bytecodeTypes!
 ou não, sendo atualizado para \verb!1! na primeira execução de uma
@@ -406,7 +407,7 @@ duas últimas tarefas se deve ao fato de que uma função qualquer é
 simplesmente uma sequência de bytes que foi gerada por algum
 compilador para alguma arquitetura. Porém, realizar essas tarefas pode
 requerer uma certa flexibilidade da linguagem que se deseja
-utilizar. No caso da linguagem \texttt{C}, que foi a escolhida para
+utilizar. No caso da linguagem \texttt{C}, a escolhida para
 esse projeto, é permitido realizar um \textit{cast} adequado que
 resolve esse problema. Especificamente, queremos tratar o endereço em
 \verb!ncode! como um ponteiro para uma função que recebe dois
@@ -888,11 +889,12 @@ na topo da pilha corrente.
   \caption{Código para epílogo e prólogo breve em x86\label{prologo-epilogo}}
 \end{figure}
 
-Assume-se que \verb!code! seja um ponteiro da forma do \verb!codeEnd!
+Para os códigos exibidos adiante assume-se que \verb!code! seja um
+ponteiro da forma do \verb!codeEnd!
 da estrutura \verb!MCode! (figura \ref{mcode-struct}) e disponha de
 uma região de memória suficiente para a execução correta dessas macros.
 
-Na figura \ref{prologo-epilogo}, entre as linhas 1 a 4 têm-se algo
+Na figura \ref{prologo-epilogo}, entre as linhas 1 a 4, têm-se algo
 semelhante com código em \texttt{Assembly} de sintaxe
 AT\&T. A partir da linha 6 observa-se um trabalho semelhante, porém
 simplificado, de um montador para x86. Para entender o significado das
@@ -920,7 +922,7 @@ utilizadas e também as informações ``/r'' e ``+rd''. A primeira dessas
 indica que a instrução faz uso de um byte chamado de ModR/M que segue
 o valor hexadecimal. Esse byte ModR/M é divido em três partes: mod (2 bits),
 reg/opcode (3 bits) e r/m (3 bits), da direita para esquerda seguindo
-a ordem \textit{little-endian}. O byte final é formado conforme
+a ordem \textit{little-endian}. O formato final do byte é formado conforme
 a linha 13 da figura \ref{prologo-epilogo}.
 A parte ``reg/opcode'' determina ou um
 número de registrador ou mais três bits de informação de acordo com
@@ -967,8 +969,8 @@ linha 9 do código da figura \ref{prologo-epilogo} está resolvida.
 
 \paragraph{Percorrendo blocos e gerando código}
 \quad \\
-Uma busca em profundidade é disparada partindo do nó (bloco básico) na posição
-0 do CFG e a cada bloco visitado ocorre geração de código para aquele
+Uma busca em profundidade é disparada partindo do nó (bloco básico) inicial
+do CFG e a cada bloco visitado ocorre geração de código para aquele
 bloco. Uma quádrupla por vez do bloco básico corrente é acessada e um
 \textit{switch} de instruções define qual cláusula corresponde a
 instrução contida na quádrupla. Determinada a instrução que deverá ter
@@ -986,7 +988,7 @@ podemos aproveitá-la para uma discussão detalhada.
       return [incr x]
     }
   \end{lstlisting}
-  \caption{Código exemplo para análise da instrução JIT\_INST\_INCR \label{myinc}}
+  \caption{Código exemplo para análise da geração de código \label{myinc}}
 \end{figure}
 
 O exemplo da figura \ref{myinc} gera apenas um bloco básico com
@@ -994,12 +996,12 @@ apenas uma quádrupla. O comando \verb!incr! da \texttt{Tcl} permite
 que uma variável, que pode ter seu valor representado como um inteiro,
 seja incrementada ou decrementada em qualquer quantidade inteira.
 Porém, o compilador
-JIT, ao detectar o bytecode \verb!INST_INCR_SCALAR1_IMM! (criado pela
-\texttt{Tcl} para o comando \verb!incr!) codifica-o
+JIT, ao detectar o \textit{bytecode} \verb!INST_INCR_SCALAR1_IMM! (gerado pela
+\texttt{Tcl} para o comando \verb!incr!), codifica-o
 como \verb!JIT_INST_INCR! somente se o valor absoluto do incremento
 for 1. Para os demais casos uma instrução \verb!JIT_INST_ADD! é estabelecida.
 Nesse exemplo temos o comportamento padrão do comando \verb!incr!, que
-incrementa em 1 unidade a variável indicada. Feitas essas
+incrementa em uma unidade a variável indicada. Feitas essas
 considerações partimos efetivamente para o código de máquina, um pouco
 simplificado, desse trecho.
 
@@ -1034,7 +1036,7 @@ função de acordo com a ABI escolhida. Assumindo um uso da forma:
 \verb!COPY_PARAM_REG(code, 0, EAX)!, teremos em tempo de execução o
 endereço de uma estrutura \verb!Interp! no registrador
 \verb!eax!. Note que aqui temos outra variação da instrução
-\verb!MOV!, que pode ser traduzida para \textit{assembly} como:
+\verb!MOV!, que pode ser traduzida para \texttt{Assembly} como:
 \verb!movl 8(%ebp), %eax!. Nesse ponto podemos atravessar a estrutura até
 chegarmos ao \textit{array} que contém todas as variáveis locais --
 trecho de código na figura \ref{goto-varstruct}.
@@ -1115,10 +1117,15 @@ Nesse momento a variável local já foi incrementada mas ainda
 precisamos realizar algumas tarefas antes de retornar. De acordo com o
 funcionamento da \texttt{Tcl}, é
 necessário definir o objeto resultado da função \verb!myinc! para o
-interpretador em que a função executa. A linguagem
-\texttt{Tcl} faz uso da função \verb!Tcl_SetObjResult! para tal
-operação. Também é necessário atualizar a representação em
-\verb!string! do objeto incrementado. Depois dessas tarefas podemos
+interpretador em que a função executa. Note que efetivamente não é feito
+uso de interpretador aqui, entretanto é necessário guardar uma cópia desse
+\verb!Tcl_Obj! em \verb!interp->objResultPtr! pois possívelmente será acessado
+por outros comandos \texttt{Tcl} por meio da função \verb!Tcl_GetObjResult!.
+Para preencher esse requerimento é feito uso da função \verb!Tcl_SetObjResult!.
+Também é necessário atualizar a representação em
+\verb!string! do objeto incrementado, caso contrário um comando
+\verb!print! exibiria o equivalente ao conteúdo existente antes do incremento.
+Depois dessas tarefas podemos
 retornar o código \verb!TCL_OK! (\verb!0!) para indicar sucesso.
 O código contido nas figuras \ref{myinc-last-macros} e \ref{myinc-last}
 realiza essas tarefas finais.
@@ -1199,7 +1206,7 @@ o código de máquina para esse trecho é dado por:
 % XXX Se continuar aqui vou precisar detalhar labels
 % pendentes.. talvez essa seção fique demasiadamente longa.
 
-Apesar do bytecode codificado acima ser um dos mais simples, é
+Apesar do \textit{bytecode} codificado acima ser um dos mais simples, é
 possível reutilizar boa parte desse código para alguns outros. Uma
 instrução de adição ou subtração entre uma variável e uma constante
 qualquer requer somente a troca da \verb!INC_DREG! por uma outra
@@ -1221,7 +1228,7 @@ Nesta seção foi considerado que detalhar todos os formatos das instruções aq
 codificadas seria uma distração. O leitor é convidado a visitar as
 tabelas \ref{instr-encoding} e \ref{op-encoding} no apêndice A que
 descreve todas as instruções codificadas nesse documento juntamente
-com os nomes das macros utilizadas.
+com os nomes das macros definidas.
 
 
 \subsubsection{Infraestrutura}
@@ -1281,7 +1288,7 @@ produzidas pelo compilador gcc, analisada pelas ferramentas \verb!otool! ou
 Devido ao tempo restante espera-se que somente duas atividades
 continuem sendo desenvolvidas:
 \begin{enumerate}
-\item Geração de código para uma maior quantidade de bytecodes
+\item Geração de código para uma maior quantidade de \textit{bytecodes}
   \texttt{Tcl} de modo a possibilitar análise coerente de resultados;
 \item Escrita do texto final.
 \end{enumerate}
