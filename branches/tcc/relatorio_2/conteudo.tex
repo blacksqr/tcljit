@@ -107,7 +107,7 @@ alguns detalhes do que já foi desenvolvido são apresentados, incluindo a
 estrutura atual para quádruplas e blocos básicos, código de máquina
 para IA-32, e também um pouco sobre a instalação e execução do
 compilador JIT e do código nativo. As demais seções
-se destinam a mencionar dificuldades encontradas até qui, além de
+se destinam a mencionar dificuldades encontradas até aqui, além de
 descrever o que será feito a partir do ponto em que se encontra o
 trabalho.
 
@@ -280,7 +280,7 @@ possível mas se tornou um ponto para um projeto futuro.
 Finalmente temos a geração de código. O foco desse trabalho é a
 arquitetura IA-32, que possui uma ampla quantidade de instruções, extensões e
 diversas formas de endereçamento.
-Porém, muitos dos recursos existentes não têm sido aproveitados de forma
+Porém, muitos dos recursos existentes não têm sido aproveitados de
 forma a tornar factível a criação do gerador.
 Idéias e trechos de trabalhos anteriores, como Harpy \cite{harpy}
 ou o \textit{Tiny Code Generator} (incluído nas versões mais recentes do
@@ -351,7 +351,7 @@ Portanto, a execução de um procedimento \texttt{Tcl},
 criado da forma descrita anteriormente, necessariamente causa a
 execução da função \verb!TclObjInterpProcCore!.
 
-Voltamos a atenção para a estrtura \verb!JIT_Proc! agora.
+Voltamos a atenção para a estrutura \verb!JIT_Proc! agora.
 O campo \verb!collectingTypes!, inicializado em \verb!0!, é utilizado para
 detectar se já foi alocado memória para o campo \verb!bytecodeTypes!
 ou não, sendo atualizado para \verb!1! na primeira execução de uma
@@ -462,7 +462,7 @@ básicos que representam os nós do CFG.
 A representação em quádruplas é relativamente simples de se construir,
 além de apresentar uma característica relevante para a otimização que
 realiza movimentação de código: mover uma quádrupla tende a requerer
-menor esforço do do que rearranjar uma representação em forma de
+menor esforço do que rearranjar uma representação em forma de
 árvore. Entretanto, conforme discutido em \citeonline[p. 96]{muchnick},
 também é possível que a representação em árvore apresente vantagens
 em relação à utilizada, sendo a eliminação de registradores virtuais
@@ -920,7 +920,7 @@ Na coluna ``\textit{Opcode}'' da tabela \ref{mov-push-1} encontram-se
 os códigos hexadecimais das variações de \verb!MOV! e \verb!PUSH!
 utilizadas e também as informações ``/r'' e ``+rd''. A primeira dessas
 indica que a instrução faz uso de um byte chamado de ModR/M que segue
-o valor hexadecimal. Esse byte ModR/M é divido em três partes: mod (2 bits),
+o valor hexadecimal. Esse byte ModR/M é dividido em três partes: mod (2 bits),
 reg/opcode (3 bits) e r/m (3 bits), da direita para esquerda seguindo
 a ordem \textit{little-endian}. O formato final do byte é formado conforme
 a linha 13 da figura \ref{prologo-epilogo}.
@@ -1124,7 +1124,7 @@ por outros comandos \texttt{Tcl} por meio da função \verb!Tcl_GetObjResult!.
 Para preencher esse requerimento é feito uso da função \verb!Tcl_SetObjResult!.
 Também é necessário atualizar a representação em
 \verb!string! do objeto incrementado, caso contrário um comando
-\verb!print! exibiria o equivalente ao conteúdo existente antes do incremento.
+\verb!puts! exibiria o equivalente ao conteúdo existente antes do incremento.
 Depois dessas tarefas podemos
 retornar o código \verb!TCL_OK! (\verb!0!) para indicar sucesso.
 O código contido nas figuras \ref{myinc-last-macros} e \ref{myinc-last}
