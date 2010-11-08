@@ -1,0 +1,272 @@
+\chapter{Avaliação Experimental}
+\label{avaliacao}
+
+\section{Metodologia}
+\label{sec:metodologia}
+
+%\begin{itemize}
+%\item o que e como avaliar
+%\item quais programas serão utilizados na avaliação
+%\end{itemize}
+
+% Reordenar frases: A segunda passa a ser a última.
+Para avaliar o desempenho do compilador JIT desenvolvido, foi feita uma
+análise detalhada com seis \textit{benchmarks} simples. Todos os
+testes foram realizados em um computador com processador Intel Core 2
+Duo, modelo E4700; memória principal de 2 GiB de 666 MHz, DDR2 DIMM;
+\textit{kernel} Linux 2.6.32-25-generic. Foram coletados dados acerca
+de: tempo total de execução (\textit{wallclock}),
+tempo da compilação JIT, tempo exclusivo de execução de procedimentos
+com e sem o JIT desenvolvido.
+% XXX Talvez coletar mais usando o PAPI, cache l1 hit/miss
+Em todos os casos fez-se uso da ferramenta PAPI \cite{papisite}
+ 4.1.1 e,
+com exceção do \textit{wallclock}, a implementação da \texttt{Tcl} foi
+instrumentada para coletar os dados específicos. Foram utilizadas duas
+versões da \texttt{Tcl} 8.5.7, a padrão e outra modificada que inclui
+o compilador JIT.
+% Talvez medir tamanho do código gerado pelo JIT.
+
+\section{Benchmarks}
+
+A implementação atual do compilador cobre apenas um subconjunto
+da linguagem \texttt{Tcl}, portanto alguns \textit{benchmarks}
+específicos e rudimentares foram criados para possibilitar
+uma avaliação inicial. Há uma suíte de testes para a \texttt{Tcl}, a Tclbench
+\cite{tclbench-site}, porém somente uma quantidade bastante pequena dos
+testes lá existentes podem ser executados com sucesso neste sistema e,
+portanto, seu uso não foi considerado.
+
+Em todos os \textit{benchmarks} faz-se uso de um parâmetro $n$ com
+significado específico para cada teste. Os \textit{benchmarks}
+utilizados foram:
+% (códigos ver apêndice
+%\ref{apendice-bench}).
+
+\begin{description}
+\item[fact] Fatorial iterativo. Calcula $n$ vezes o fatorial dos
+  números de 1 a 12
+\item[gcd] Máximo divisor comum. Este teste é realizado
+  para todos os elementos do produto cartesiano
+ $I \times J = \{(i, j) \mid i \in \mathbb{N} \wedge j \in \mathbb{N},
+ i \le n \wedge j \le n\}$
+\item[gray] Calcula o código gray \cite{graycode} de um número;
+  quase um \textit{microbenchmark}. O parâmetro $n$ indica um
+  intervalo $[0, n)$ para ter seus respectivos códigos gray gerados.
+\item[prime] Verifica se um número é primo ou não. Parâmetro $n$
+  define o intervalo ($[0, n]$) de números a serem verificados.
+\item[sum$_1$] Somatório de números naturais no intervalo
+ $[1, i]$, onde $i$ representa o número da iteração atual no intervalo
+ $[1, n]$
+\item[sum$_2$] Somatório definido por:
+\[ \sum_{i=0}^k a_i\mbox{, onde } a_i = \left\{
+    \begin{array}{c l}
+      i & \mbox{se } i \mbox{ mod } 4 = 0 \\
+      -i & \mbox{se } i \mbox{ mod } 3 = 0 \\
+      0
+    \end{array}
+  \right.
+\] com $k$ equivalente a iteração atual no intervalo $[1, n]$
+\end{description}
+
+
+\section{Desempenho}
+
+Para verificar o desempenho a nível macro do compilador JIT,
+realizou-se primeiramente a coleta do tempo gasto em execuções
+completas. As Figuras
+\ref{fig:fact-tempo}, \ref{fig:gcd-tempo}, \ref{fig:gray-tempo},
+\ref{fig:prime-tempo}, \ref{fig:sum1-tempo} e \ref{fig:sum2-tempo}
+apresentam os dados obtidos para os seis \textit{benchmarks}
+distintos. Em todos os casos foram realizadas 100 execuções com tamanho de
+$n$ uniformemente espaçado entre os valores mínimo e máximo utilizados.
+
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[scale=0.70]{figs/fact_tempo}
+  \caption{Tempo total de execução para fact \label{fig:fact-tempo}}
+\end{figure}
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[scale=0.70]{figs/gcd_tempo}
+  \caption{Tempo total de execução para gcd \label{fig:gcd-tempo}}
+\end{figure}
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[scale=0.70]{figs/gray_tempo}
+  \caption{Tempo total de execução para gray \label{fig:gray-tempo}}
+\end{figure}
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[scale=0.70]{figs/prime_tempo}
+  \caption{Tempo total de execução para prime \label{fig:prime-tempo}}
+\end{figure}
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[scale=0.70]{figs/sum1_tempo}
+  \caption{Tempo total de execução para sum$_1$ \label{fig:sum1-tempo}}
+\end{figure}
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[scale=0.70]{figs/sum2_tempo}
+  \caption{Tempo total de execução para sum$_2$ \label{fig:sum2-tempo}}
+\end{figure}
+
+Em grande parde das execuções, a linha que indica o tempo com uso
+do compilador JIT permaneceu abaixo da linha do interpretador padrão da
+\texttt{Tcl}. Isto era esperado em vista das restrições do sistema
+implementado.
+
+Dentre os testes, \textbf{sum$_1$} (Figura
+\ref{fig:sum1-tempo}) apresenta a maior
+redução (mais de 20 vezes em média). Isto é reflexo do código ali
+contido, sendo constituído principalmente de deslocamentos entre
+endereços da pilha e soma de inteiros. O gerador de código atual
+consegue eliminar boa parde de toda a movimentação de objetos de tipo
+\verb!Tcl_Obj!, realizando todas as conversões de \verb!Tcl_Obj! para
+inteiro (se possível) num bloco básico especial dedicado para esta
+tarefa.
+% XXX esse bloco básico especial é aquele gerado na reordenação
+% de instruções
+Com isso, é possível trabalhar com instruções de máquina que operam
+diretamente sobre esses valores inteiros e elimina-se muito do
+\textit{overhead} existente na máquina virtual \texttt{Tcl}. O teste
+\textbf{sum$_2$} (Figura \ref{fig:sum2-tempo}) também
+apresentou um ganho significativo, apesar de fazer uso de divisão por
+constante com uso da \verb!IDIV!. Esta é a forma mais simples e geral de
+realizar a divisão, mas os compiladores otimizadores a evitam
+\cite{opt-invariantintdiv} por consumir muitos ciclos.
+%XXX Será que ficou claro por que teve os ganhos ?
+
+Os \texttt{benchmarks} \textbf{fact} (Figura \ref{fig:fact-tempo}),
+\textbf{gcd} (Figura \ref{fig:gcd-tempo}) e \textbf{gray} (Figura
+\ref{fig:gray-tempo}) não apresentam resultados tão expressivos. No
+caso do \textbf{gray}, tem-se que ele é o teste que requer a menor
+quantidade de \textit{bytes} para sua codificação e talvez
+procedimentos muito pequenos não sejam altamente beneficiados pelo
+compilador atual. Os outros dois têm tamanho próximo do
+\textbf{sum$_1$}, mas fazem uso de instruções de multiplicação ou
+divisão.
+
+Nota-se que \textbf{prime} (Figura \ref{fig:prime-tempo}),
+e \textbf{sum$_2$} apresentaram um comportamento
+diferenciado nas primeiras execuções. Apesar de $n$ aumentar,
+houve um decréscimo de tempo entre a primeira e a segunda
+execução nestes casos ao passo em que isto não ocorre quando o código é
+interpretado.
+Coincidentemente \textbf{prime} e \textbf{sum$_2$} são os que
+mais requerem do compilador dinâmico, sendo necessário emitir, na
+etapa final, 725 e 609
+\textit{bytes}, respectivamente, e, portanto, requerem um tempo maior
+na compilação antes da primeira execução nativa. Entretanto, deve-se
+notar que os tempos de execução em questão são baixos e que pequenas
+modificações no ambiente do sistema operacional podem causar pequenas
+flutuações e anomalias nos resultados. Com estes dados, ainda não é
+possível concluir que, de fato, o tempo de compilação influenciou
+nesse fenômeno observado.
+
+%XXX Quantidade de execuções, nao influencia as curvas ? Talvez
+%compilar algo depois de 1 execução nao tenha muita vantagem.
+
+%prime: 768 bytes
+%sum2: 633 bytes
+%gcd: 401 bytes
+%sum1: 363 bytes
+
+%fact: 367 bytes
+%gray: 179 bytes
+
+Para facilitar a visualização da diferença de desempenho,
+destaca-se a Figura \ref{fig:media-tempo}. O \textit{microbenchmark}
+apresenta o menor ganho (cerca de 25\%) mas pode-se verificar que o
+tempo gasto pelo laço que
+executa o teste domina o tempo total. Somente para executar
+\verb!for {set i 0} {$i < $n} {incr i} { .. }!, no maior
+teste, gasta-se cerca
+de 0,45 segundos, deixando menos de 0,07 segundos para efetivamente
+executar o \verb!gray!.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.70]{figs/melhoria}
+  \caption{Melhoria em relação ao tempo do interpretador padrão (vezes) \label{fig:media-tempo}}
+\end{figure}
+
+Apesar de apresentar resultados positivos, os dados exibidos até
+agora estão ``contaminados'' com \textit{overhead} herdado da
+máquina virtual \texttt{Tcl}. Para deteminar quanto tempo exatamente
+é consumido pelo compilador dinâmico, mais dois testes foram
+realizados.
+
+Com a Figura \ref{fig:tempo-compilacao} verifica-se que o tempo de
+compilação tem influência quase nula no tempo total, custando entre
+$49 \times 10^{-6}$ e $79 \times 10^{-6}$ segundos. Também nota-se que
+o crescimento do tempo de compilação não acompanha o crescimento dos
+\textit{bytes} na mesma proporção.
+A linha de tendência 1, para os \textit{bytes}, é
+descrita por $y = 10,143x^2 + 31,771x + 168.8$ e apresenta um índice
+de correlação com os dados de 0,9379. Enquanto isso, a linha de
+tendência 2 é dada por $y = 1,3571x^2 - 3,9x + 52,4$ com índice de
+correlação de 0,9876. Onde $1 \le x \le 6$. A tendência é que o tempo
+de compilação continue baixo.
+
+\begin{figure}[ht]
+  \centering
+  \includegraphics[scale=0.71]{figs/tempo_compilacao}
+  \caption{Quantidade de bytes x86 e tempo de compilação \label{fig:tempo-compilacao}}
+\end{figure}
+
+A Tabela \ref{tabela-execacc} apresenta os resultados do último teste
+desta seção. Para chegar-se a estes dados, utilizou-se dados dos
+resultados anteriores para $n$ no maior caso e depois $n$ foi fixado
+de acordo com o valor máximo utilizado nos testes específicos de
+\textit{wallclock} e, então, foram feitas 10 execuções em cada
+situação nova e tomada a média do tempo.
+
+\begin{table}[ht!]
+  \caption{Tempo de execução dos \textit{benchmarks} no maior caso\label{tabela-execacc}}
+  \centering
+  \begin{tabular}{l c c c c c c r}
+    \toprule
+& \multicolumn{2}{c}{JIT (s)} & \multicolumn{2}{c}{NO JIT (s)} \\
+\cmidrule(r){2-3} \cmidrule(r){4-5}
+    \textit{Benchmark}  & Total & Exclusivo & Total & Exclusivo & Melhoria (vezes) \\
+    \midrule
+    fact & 0,14 & 0,04  & 0,30 & 0,19  & 4,75    \\
+    gcd & 1,32 & 0,37  & 2,08 & 1,14  & 3,08   \\
+    gray & 0,52 & 0,13  & 0,57 & 0,17   & 1,30   \\
+    prime & 0,04 & 0,03 & 0,56 & 0,54   & 18,00     \\
+    sum$_1$ & 0,46 & 0,44 & 10,60 & 10,22   & 23,22    \\
+    sum$_2$ & 0,73 & 0,71 & 11,61 & 10,87   & 15,30     \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+% XXX Coletar novamente tempo para prime, sum1 e sum2 nos testes acima.
+%XXX Comentar Tabela \ref{tabela-execacc}
+A última coluna da Tabela \ref{tabela-execacc} refere-se a melhoria na
+nova situação: tempo exclusivo com JIT e sem JIT. Os
+\textit{benchmarks} \textbf{fact}, \textbf{gcd} e \textbf{gray} que
+tinham tido o menor ganho (Figura \ref{fig:media-tempo}) melhoraram um
+pouco se comparados somente seu tempo exclusivo de execução. Isso
+indica que o tempo gasto pelo restante do sistema JIT instalado na
+\texttt{Tcl} tem impacto menor para menores procedimentos. Entretanto,
+também vê-se que o resultado nos demais testes não
+foi tão bom quanto antes. No três casos verifica-se que a diferença
+entre os tempos das colunas ``Total'' e ``Exclusivo'' para o caso sem
+JIT é maior, indicando que o sistema de compilação possa estar
+despendendo tempo extra em alguma atividade realizada.
+
+%%% Não consegui fazer dar tempo :/
+%\section{Análise Detalhada}
+
+%\begin{itemize}
+%\item impaccto do ambiente no hardware
+%\item coletar métricas com a ferramenta PAPI
+%  (\url{http://icl.cs.utk.edu/papi/})
+%\end{itemize}
+
+%%%%%%%%%% XXXX
+%* Apesar dos resultados obtidos terem sido tomados a partir de
+%exemplos sintéticos, pode-se ter uma visão do que pode-se melhorar na
+%implementação do interpretador da \texttt{Tcl}.

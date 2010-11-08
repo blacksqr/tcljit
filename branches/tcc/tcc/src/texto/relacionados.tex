@@ -1,0 +1,95 @@
+\chapter{Trabalhos Relacionados}
+
+\begin{itemize}
+\item LuaJit
+\item Pypy
+\item Yap
+\item Java
+\item Self
+\end{itemize}
+
+
+\section{Revisão Bibliográfica}
+\label{rev_biblio}
+
+A linguagem \texttt{Tcl} já obteve ganhos de performance em diferentes
+estudos feitos. Um deles, que atualmente faz parte da implementação da
+linguagem, descrito em \citeonline{tcl_bytecode}, é a geração e a
+interpretação de \textit{bytecodes}. Anterior a esse trabalho, foi
+demonstrado em \citeonline{sah_tc} que o \textit{parsing} do código
+realizado a todo momento para sua reinterpretação e também a conversão
+excessiva entre tipos de dados, pois a \texttt{Tcl} trata tudo como
+\textit{string},
+eram os grandes consumidores do tempo de execução. Com esse trabalho
+feito, a linguagem passou a utilizar representação dupla para os
+valores presentes na execução do programa. Uma representação é
+interna, possivelmente mais eficiente para se trabalhar. A outra é a
+típica representação em \textit{string} que a linguagem sempre usou. Caso uma
+delas não esteja disponível, a outra é utilizada para recriar essa
+representação se necessário.
+
+Um trabalho mais recente, descrito por \citeonline{vitale_catenation}, lida
+com a eliminação do \textit{overhead} de decodificação dos
+\textit{bytecodes}, introduzido pelo trabalho descrito anteriormente,
+fazendo uso de \textit{templates} que contém as instruções em
+código nativo utilizadas para interpretar cada \textit{bytecode}.
+Esse código é obtido por meio da compilação do próprio interpretador
+\texttt{Tcl} e cada \textit{template} é copiado múltiplas vezes,
+numa área de memória alocada em tempo de execução, conforme a quantidade de
+cada \textit{bytecode} gerado. Nesse mesmo trabalho, o interpretador foi
+modificado de forma a sempre executar somente tal código formado por
+uma concatenação de \textit{templates}, eliminando o \textit{overhead} de
+decodificação. Demonstrou-se que em certos testes o desempenho da
+linguagem pode melhorar em até 60\% com a aplicação dessa técnica.
+Esse trabalho é provavelmente o mais próximo, quando considerando
+somente a \texttt{Tcl}, do que se pretende produzir aqui.
+Ele não gera código, mas cópia código já gerado por um compilador
+estático e replica conforme necessário, fazendo os devidos
+ajustes, em tempo de execução. Por um lado o tempo de ``compilação'' é
+bastante baixo, porém, não dá espaço para técnicas de otimização e assim
+limita o potencial de melhoria de desempenho.
+
+Outros trabalhos, para diferentes linguagens, se assemelham mais com a
+proposta aqui discutida. A busca por máquinas virtuais de alta
+performance tem, atualmente, se dirigido principalmente a linguagem
+\texttt{Java}. É comum a presença de compiladores JIT em máquinas
+virtuais para essa linguagem, cada um com diferentes
+características. A JUDO \cite{judo}, faz uso
+de compilação dinâmica com dois tipos de compiladores e coleta
+informações em tempo de execução. O primeiro desses compiladores é um
+mais simples, que gera código rapidamente, destinado a compilação
+de métodos invocados pela primeira vez. O segundo compilador é
+utilizado quando informações coletadas indicam que certos métodos
+são executados muito frequentemente e, portanto, estes podem se
+beneficiar com a aplicação de otimizações. Essa recompilação dinâmica
+é feita com o intuito de balancear o tempo gasto na compilação com o tempo
+efetivamente gasto na execução do programa. Esse sistema trabalha com
+a compilação de métodos por inteiro, assim como o trabalho proposto
+aqui. Enquanto isso, o trabalho discutido em \citeonline{suganuma_pldi_2003}
+avalia a aplicação de compilação dinâmica a regiões de código, evitando
+a compilação de trechos raramente executados. Além disso, esse sistema
+utiliza um modo misto de execução, na qual interpretação e execução de
+código nativo se alternam. Nesse ponto, nosso trabalho e o de
+\citeonline{suganuma_pldi_2003} se assemelham.
+
+Nos dois trabalhos sobre JIT mencionados acima não há uma descrição
+a cerca das representações intermediárias (IR) utilizadas. Porém, um
+outro trabalho
+apresentado sobre a JVM (\textit{Java Virtual Machine}) CACAO \cite{cacao},
+descreve algo parecido com a nossa proposta. De forma semelhante com a
+``TVM'' (\textit{Tcl Virtual Machine}), a JVM tem uma arquitetura de
+pilha e a CACAO faz uma conversão para uma representação orientada a
+registradores com uso de poucas instruções. O artigo por
+\citeonline{suganuma_ibm} vai além, exibindo a evolução de uma JVM
+desenvolvida na IBM onde, inicialmente, era utilizado uma IR baseado
+em pilha, porém mais compacta que a representação em \textit{bytecodes} da
+\texttt{Java}, e que mais tarde passou também a se basear em
+registradores. Os autores argumentam que para conseguir balancear
+performance e tempo foi necessário, além de outros avanços, fazer uso
+de 3 representações: aquela que já existia (chamada de EBC --
+\textit{Extended Bytecode}) e de mais duas baseadas em
+registradores. Cada uma delas recebe um conjunto de otimizações, sendo
+feito propagação e cópias de constantes, eliminação de código morto,
+eliminação de verificação de exceção, e algumas outras, enquanto que na
+forma de quádruplas. A última dessas aparece na forma SSA, com os nós
+sendo formados por quádruplas.
