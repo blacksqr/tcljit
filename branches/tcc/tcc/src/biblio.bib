@@ -1,0 +1,799 @@
+@Book{muchnick,
+  author = 	 {Steven S. Muchnick},
+  title = 	 {{Advanced Compiler Design and Implementation}},
+  publisher = 	 {Morgan Kaufmann Publishers Inc.},
+  address =      {San Francisco, CA, USA},
+  year = 	 {1997}
+}
+
+@Article{cytron,
+  author = {Ron Cytron and Jeanne Ferrante and Barry K. Rosen and Mark N. Wegman},
+  title = {{Efficiently Computing Static Single Assignment Form and the Control Dependence Graph}},
+  journal = {ACM Transactions on Programming Languages and Systems},
+  volume = {13},
+  number = {4},
+  pages = {451 -- 490},
+  year = {1991}
+}
+
+@article{cacao,
+  author = {Andreas Krall and Reinhard Grafl},
+  title = {{CACAO -- A 64 bit JavaVM Just-in-Time Compiler}},
+  journal   = {Concurrency - Practice and Experience},
+  volume    = {9},
+  number    = {11},
+  year = {1997},
+  pages = {1017--1030},
+}
+
+% XXX verificar resultado
+@manual{alphaproc,
+	author = {DEC},
+	title = {{Alpha Architecture Handbook -- Version 3}},
+	year = {1996},
+	publisher = {Digital Equipment Corporation},
+	address = {Maynard, MA, USA}
+}
+
+@inproceedings{opt-invariantintdiv,
+ author = {Granlund, Torbj\"{o}rn and Montgomery, Peter L.},
+ title = {{Division by Invariant Integers using Multiplication}},
+ booktitle = {{Proceedings of the Conference on Programming Language Design and Implementation}},
+ year = {1994},
+ location = {Orlando, Florida, United States},
+ pages = {61--72},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+}
+
+@Article{suganuma_ibm,
+  author = {T. Suganuma and T. Ogasawara and K. Kawachiya and M. Takeuchi and  K. Ishizaki and A. Koseki and T. Inagaki and T. Yasue and M. Kawahito and T. Onodera and H. Komatsu and T. Nakatani},
+  title = {{Evolution of a Java Just-In-Time Compiler for IA-32 platforms}},
+  journal = {IBM Journal of  Research and Development},
+  volume = {48},
+  number = {5/6},
+  year = {2004},
+  pages = {767--795},
+  publisher = {IBM Corp.},
+  address = {Riverton, NJ, USA}
+}
+
+@InProceedings{wimmer_franz,
+  author = 	 {Christian Wimmer and Michale Franz},
+  title = 	 {{Linear Scan Register Allocation on SSA Form}},
+  booktitle =    {{Proceedings of International Symposium on Code Generation and Optimization}},
+  year =         {2010},
+  pages =        {170--179},
+  location =     {Toronto, Ontario, Canada},
+  publisher =    {ACM},
+  address =      {New York, NY, USA}
+}
+
+% Nao utilizado no momento
+% Unpublished class project report, Universidade de Wiconsin
+@misc{dkoski,
+ author = {David Koski},
+ title = {A Tcl Compiler},
+ year = {1995},
+ month = {October},
+ howpublished = {Projeto de classe não publicado, Universidade de Wisconsin}
+}
+
+% Nao utilizado no momento
+@misc{sah_blow,
+ author = {Adam Sah and Jon Blow},
+ title = {A Compiler for the Tcl Language},
+ year = {1993}
+}
+
+% XXX Corrigir localizacao
+@techreport{sah_tc,
+ Author = {Adam Sah},
+ Title = {{TC: An Efficient Implementation of the Tcl Language}},
+ Institution = {EECS Department, University of California, Berkeley},
+ Year = {1994},
+ Month = {Apr},
+ URL = {\url{http://www.eecs.berkeley.edu/Pubs/TechRpts/1994/5189.html}},
+ Number = {UCB/CSD-94-812},
+ publisher = {University of California at Berkeley},
+  address = {Berkeley, CA, USA},
+ Abstract = {Tcl is a highly dynamic language that is especially challenging to execute efficiently. In this paper, I discuss many issues involved in implementing Tcl, and describe a design for a faster system that maintains Tcl semantics, including its C callout mechanism. This design focuses on a method for caching the parsed representation for data values, and lazily converting to strings on demand. This allows most computations to be performed using native types (e.g. integers) rather than strings. The current implementation is presented along with results showing a speedup of about 5-10 times over the existing Tcl interpreter.}
+}
+
+@inproceedings{rush_lang,
+ author = {Adam Sah and Jon Blow and Brian Dennis},
+ title = {An Introduction to the Rush Language},
+ institution = {EECS Department, University of California, Berkeley},
+ address = {Berkeley, CA, USA},
+ year = {1994},
+ booktitle = {TCLTK'94: Proceedings of the Tcl/Tk 1994 Workshop},
+ location = {New Orleans, Louisiana}
+}
+
+@inproceedings{tcl_bytecode,
+ author = {Brian T. Lewis},
+ title = {{An On-The-Fly Bytecode Compiler for Tcl}},
+ booktitle = {Proceedings of the USENIX Tcl/Tk Workshop},
+ year = {1996},
+ location = {Monterey, California},
+ publisher = {USENIX Association},
+ address = {Berkeley, CA, USA}
+}
+
+% XXX Corrigir localizacao
+@techreport{ousterhout_89,
+ author = {John K. Ousterhout},
+ title = {{Tcl: An Embeddable Command Language}},
+ institution = {EECS Department, University of California, Berkeley},
+ year = {1989},
+ month = {Nov},
+ url = {\url{http://www.eecs.berkeley.edu/Pubs/TechRpts/1989/5742.html}},
+ publisher = {University of California at Berkeley},
+ address = {Berkeley, CA, USA},
+ number = {UCB/CSD-89-541},
+ abstract = {Tcl is an interpreter for a tool command language. It consists of a library package that is embedded in tools (such as editors, debuggers, etc.) as the basic command interpreter. Tcl provides (a) a parser for a simple textual command language, (b) a collection of built-in utility commands, and (c) a C interface that tools use to augment the built-in commands with tool-specific commands. Tcl is particularly attractive when integrated with the widget library of a window system: it increases the programmability of the widgets by providing mechanisms for variables, procedures, expressions, etc.; it allows users to program both the appearance and the actions of widgets; and it offers a simple but powerful communication mechanism between interactive programs.}
+}
+
+@inproceedings{pypy,
+ author = {Armin Rigo and Samuele Pedroni},
+ title = {{PyPy's Approach to Virtual Machine Construction}},
+ booktitle = {{Symposium on Object-oriented Programming Systems, Languages, and Applications}},
+ year = {2006},
+ pages = {944--953},
+ location = {Portland, Oregon, USA},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+}
+
+@inproceedings{tcl_to_c,
+ author = {Forest R. Rouse and Wayne Christopher},
+ title = {A Tcl to C compiler},
+ booktitle = {TCLTK '98: Proceedings of the 3rd Annual USENIX Workshop on Tcl/Tk},
+ year = {1995},
+ location = {Toronto, Canada},
+ publisher = {USENIX Association},
+ address = {Berkeley, CA, USA},
+}
+
+@inproceedings{vitale_catenation,
+ author = {Benjamin Vitale and Tarek S. Abdelrahman},
+ title = {{Catenation and Specialization for Tcl Virtual Machine Performance}},
+ booktitle = {{Proceedings of the workshop on Interpreters, Virtual Machines and Emulators}},
+ year = {2004},
+ pages = {42--50},
+ publisher = {ACM Press},
+ location = {Washington, D.C.},
+ address = {New York, NY, USA}
+}
+
+@book{bluebook,
+ author = {Adele Goldberg and David Robson},
+ title = {Smalltalk-80: the language and its implementation},
+ year = {1983},
+ isbn = {0-201-11371-6},
+ publisher = {Addison-Wesley Longman Publishing Co., Inc.},
+ address = {Boston, MA, USA},
+}
+
+
+@article{lua95_pl,
+ author = {Roberto Ierusalimschy and Luiz Henrique de Figueiredo and Luiz Henrique and Figueiredo Waldemar and Waldemar Celes Filho},
+ title = {Lua - an Extensible Extension Language},
+ journal = {Software: Practice e Experience},
+ year = {1995},
+ volume = {26},
+ pages = {635--652}
+}
+
+@inproceedings{self_origin,
+ author = {David Ungar and Randall B. Smith},
+ title = {Self: The power of simplicity},
+ booktitle = {OOPSLA '87: Conference proceedings on Object-oriented programming systems, languages and applications},
+ year = {1987},
+ pages = {227--242},
+}
+
+
+@Book{arm_arch,
+ title = {{ARM Architecture Reference Manual}},
+ author = {David Seal},
+ year = {2001},
+ publisher = {Addison Wesley},
+ address = {Boston, MA, USA}
+}
+
+@manual{powerpc,
+ url = {http://www.ibm.com/developerworks/systems/library/es-archguide-v2.html},
+ note = {Acessado em 5 de novembro de 2010},
+ year = {2005},
+ address = {(Online)},
+ author = {IBM},
+ title = {{PowerPC Architecture Book, Version 2.02}},
+}
+
+@manual{intel_basicarch,
+ title = {{Intel® 64 and IA-32 Architectures Software Developer’s Manual -- Volume 1: Basic Architecture}},
+  author = 	 {Intel},
+  year = 	 {2009},
+  address = {(Online)},
+  url = {http://www.intel.com/products/processor/manuals/},
+  note = {Acessado em 24 de setembro de 2010}
+}
+
+@manual{intel_aam,
+  title = {Intel® 64 and IA-32 Architectures Software Developer's Manual -- Volume 2A: Instruction Set Reference, A-M},
+  author = {Intel},
+  year = {2009},
+  address = {(Online)},
+  url = {http://www.intel.com/products/processor/manuals/},
+  note = {Acessado em 23 de setembro de 2010}
+}
+
+@manual{intel_naz,
+  title = {Intel® 64 and IA-32 Architectures Software Developer's Manual -- Volume 2B: Instruction Set Reference, N-Z},
+  author = {Intel},
+  year = {2009},
+  address = {(Online)},
+  url = {http://www.intel.com/products/processor/manuals/},
+  note = {Acessado em 23 de setembro de 2010}
+}
+
+@manual{intel_prog,
+  title = {Intel® 64 and IA-32 Architectures Software Developer's Manual -- Volume 3A: System Programming Guide, Part 1},
+  author = {Intel},
+  year = {2009},
+  address = {(Online)},
+  url = {http://www.intel.com/products/processor/manuals/},
+  note = {Acessado em 23 de setembro de 2010}
+}
+
+
+@Booklet{systemv-abi,
+  title = 	 {System V Application Binary Interface},
+  author = 	 {{SANTA CRUZ OPERATION}},
+  url = {http://www.sco.com/developers/devspecs/abi386-4.pdf},
+  year = 	 {1997},
+  edition =      {4},
+  note = 	 {Acessado em 24 de setembro de 2010}
+}
+
+
+
+@Misc{macosx-abi,
+  title = 	 {Mac OS X ABI Function Call Guide},
+  organization = {Apple},
+  howpublished = {\url{http://developer.apple.com/mac/library/documentation/DeveloperTools/Conceptual/LowLevelABI/Mac_OS_X_ABI_Function_Calls.pdf}},
+  year = 	 {2009},
+  note = 	 {Acessado em 24 de setembro de 2010},
+}
+%  address = 	 {1 Infinite Loop - Cupertino, CA 954014},
+
+@Book{assembly1,
+ author = {Richard Blum},
+ title = {{Professional Assembly Language}},
+ publisher = {Wrox},
+ year = {2005},
+ address = {Birmingham, UK}
+}
+
+@Book{krbook,
+ author = {Brian W. Kernighan and Dennis M. Ritchie},
+ title = {{C Programming Language}},
+ year = {1988},
+ publisher = {Prentice Hall},
+ address = {Upper Saddle River, NJ, USA}
+}
+
+@Article{instrselec-dynamic,
+author = {Alfred V. Aho and Mahadevan Ganapathi and Steven W. K. Tjiang},
+ title = {{Code generation using Tree Matching and Dynamic Programming}},
+ journal = {ACM Transactions on Programming Languages and Systems},
+ volume = {11},
+ issue = {4},
+ year = {1989},
+ pages = {491--516},
+ numpages = {26},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+} 
+
+@Book{sebesta,
+ author = {Robert W. Sebesta},
+title = {{Concepts of Programming Languages}},
+	year = {2009},
+	edition = {9th},
+	publisher = {Addison-Wesley Publishing Company},
+	address = {USA},
+}
+
+% Sistemas com uso de compilacao JIT
+
+@inproceedings{deutsch84efficient,
+ author = "L. Peter Deutsch and Allan M. Schiffman",
+ title = {{Efficient Implementation of the {Smalltalk-80} System}},
+ booktitle = {{Proceedings of the Symposium on Principles of Programming Languages}},
+ address = "Salt Lake City, Utah",
+ publisher = {ACM},
+ pages = "297--302",
+ year = "1984",
+}
+
+@Book{partialeval,
+ author = {N. D. Jones and C. K. Gomard and P. Sestoft},
+ title = {Partial Evaluation and Automatic Program Generation},
+ year = {1993},
+ publisher = {Prentice Hall},
+ address = {Upper Saddle River, NJ, USA}
+}
+
+% Não li ainda
+@inproceedings{psyco,
+ author = {Armin Rigo},
+ title = {{Representation-based Just-In-Time Specialization and the Psyco Prototype for Python}},
+ booktitle = {Proceedings of the Symposium on Partial Evaluation and Semantics-based Program Manipulation},
+ year = {2004},
+ pages = {15--26},
+ location = {Verona, Italy},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+}
+
+@article{jalapeno_1,
+ author = {B. Alpern and C. R. Attanasio and J. J. Barton and M. G. Burke and P. Cheng and J.-D. Choi and A. Cocchi and S. J. Fink and D. Grove and M. Hind and S. F. Hummel and D. Lieber and V. Litvinov and M. F. Mergen and T. Ngo and J. R. Russell and V. Sarkar and M. J. Serrano and J. C. Shepherd and S. E. Smith and V. C. Sreedhar and H. Srinivasan and J. Whaley},
+ title = {The {Jalape\~no} {Virtual} {Machine}},
+ journal = {IBM Systems Journal},
+ volume = {39},
+ number = {1},
+ year = {2000},
+ pages = {211--238},
+ publisher = {IBM Corp.},
+ address = {Riverton, NJ, USA},
+}
+
+% acm diz 1995? http://portal.acm.org/citation.cfm?id=221640
+% XXX colocar Tese (Doutorado) em ingles, de algum jeito :)
+@phdthesis{holzle,
+ author = {Urs H\"olzle},
+ title = {{Adaptive Optimization for SELF: Reconciling High Performance with Exploratory Programming}},
+ year = {1994},
+ publisher = {Stanford University},
+ address = {Stanford, CA, USA},
+}
+
+@inproceedings{yapc,
+ vscpubtype = {conference},
+ author = {Anderson Faustino da Silva and V\'itor Santos Costa},
+ title = {Design, Implementation, and Evaluation of an Dynamic Compilation Framework for the YAP System},
+ year = {2007},
+ pages = {},
+ editor = {Veronica Dahl and Ilkka Niemel\"a},
+ publisher = {Springer},
+ series = {Lecture Notes in Computer Science},
+ volume = {4670},
+ booktitle = {Proceedings of the 23rd International Conference on Logic Programming}
+}
+
+@inproceedings{risc,
+ author = {Samuel O. Aletan},
+ title = {{An overview of RISC architecture}},
+ booktitle = {{Proceedings of the Symposium on Applied computing: Technological Challenges of the 1990's}},
+ year = {1992},
+ location = {Kansas City, Missouri, United States},
+ pages = {11--20},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+}
+
+@inproceedings{jikes,
+ author = {Bowen Alpern and Maria Butrico and Anthony Cocchi and Julian Dolby and Stephen Fink and David Grove and Ton Ngo},
+ title = {{Experiences Porting the Jikes RVM to Linux/IA32}},
+ booktitle = {{Proceedings of the Virtual Machine Research and Technology Symposium}},
+ year = {2002},
+ pages = {51--64},
+ publisher = {USENIX Association},
+ address = {Berkeley, CA, USA},
+}
+
+@article{jikesrvm2,
+ author = {Alpern, B. and Augart, S. and Blackburn, S. M. and Butrico, M. and Cocchi, A. and Cheng, P. and Dolby, J. and Fink, S. and Grove, D. and Hind, M. and McKinley, K. S. and Mergen, M. and Moss, J. E. B. and Ngo, T. and Sarkar, V.},
+ title = {{The Jikes Research Virtual Machine project: building an open-source research community}},
+ journal = {IBM Systems Journal},
+ volume = {44},
+ issue = {2},
+ month = {January},
+ year = {2005},
+ pages = {399--417},
+ publisher = {IBM Corporation},
+ address = {Riverton, NJ, USA},
+}
+
+@inproceedings{suganuma_oopsla_2001,
+ author = {Toshio Suganuma and Toshiaki Yasue and Motohiro Kawahito and Hideaki Komatsu and Toshio Nakatani},
+ title = {{A Dynamic Optimization Framework for a Java Just-In-Time Compiler}},
+ booktitle = {{Proceedings of the Conference on Object-Oriented Programming, Systems, Languages, and Applications}},
+ year = {2001},
+ pages = {180--195},
+ location = {Tampa Bay, FL, USA},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+}
+
+@inproceedings{suganuma_pldi_2003,
+  author = {Toshio Suganuma and Toshiaki Yasue and Toshio Nakatani},
+  title = {{A Region-based Compilation Technique for a Java Just-In-Time Compiler}},
+  booktitle = {{Proceedings of the Conference on Programming Language Design and Implementation}},
+  year = {2003},
+  address = {New York, NY, USA},
+  pages = {312--323},
+  publisher = {ACM Press}
+}
+
+@article{judo,
+ author = {Michal Cierniak and Guei-Yuan Lueh and James M. Stichnoth},
+ title = {Practicing {JUDO}: {Java} under {Dynamic} {Optimizations}},
+ journal = {SIGPLAN Notices},
+ volume = {35},
+ number = {5},
+ year = {2000},
+ pages = {13--26},
+ doi = {http://doi.acm.org/10.1145/358438.349306},
+ publisher = {ACM},
+ address = {New York, NY, USA}
+}
+
+@misc{gnu_lightning,
+ author = {{FREE SOFTWARE FOUNDATION}},
+ title = {{Using and Porting GNU Lightning}},
+ howpublished = {\url{http://www.gnu.org/software/lightning/manual/lightning.html}},
+ year = {2007},
+ note = {Acessado em 9 de maio de 2010}
+}
+
+@article{instrselect,
+ author = {Fraser, Christopher W. and Hanson, David R. and Proebsting, Todd A.},
+ title = {{Engineering a Simple, Efficient Code-generator Generator}},
+ journal = {ACM Letters on Programming Languages and Systems},
+ volume = {1},
+ issue = {3},
+ month = {September},
+ year = {1992},
+ pages = {213--226},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+}
+
+@inproceedings{ir_tree_parsing,
+ author = {M. Anton Ertl and Kevin Casey and David Gregg},
+ title = {{Fast and flexible instruction selection with on-demand tree-parsing automata}},
+ booktitle = {{Proceedings of the 2006 ACM SIGPLAN conference on Programming Language Design and Implementation}},
+ year = {2006},
+ pages = {52--60},
+ location = {Ottawa, Ontario, Canada},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+}
+
+
+@inproceedings{noltis,
+ author = {David Ryan Koes and Seth Copen Goldstein},
+ title = {{Near-optimal Instruction Selection on Dags}},
+ booktitle = {{Proceedings of the International Symposium on Code generation and optimization}},
+ year = {2008},
+ pages = {45--54},
+ location = {Boston, MA, USA},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+}
+
+@article{linear_scan_regalloc,
+ author = {Massimiliano Poletto and Vivek Sarkar},
+ title = {{Linear Scan Register Allocation}},
+ journal = {{ACM Transactions on Programming Languages and Systems}},
+ volume = {21},
+ number = {5},
+ year = {1999},
+ pages = {895--913},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+}
+
+@inproceedings{harpy,
+ author = {Martin Grabm{\"u}eller and Dirk Kleeblatt},
+ title = {{Harpy: Run-time Code Generation in Haskell}},
+ booktitle = {{Proceedings of the ACM SIGPLAN Workshop on Haskell}},
+ year = {2007},
+ location = {Freiburg, Germany},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+}
+
+@inproceedings{qemu,
+ author = {Fabrice Bellard},
+ title = {QEMU, {A} {Fast} and {Portable} {Dynamic} {Translator}},
+ booktitle = {Proceedings of the annual conference on USENIX Annual Technical Conference},
+ year = {2005},
+ location = {Anaheim, CA},
+ publisher = {USENIX Association},
+ address = {Berkeley, CA, USA},
+}
+
+@inproceedings{llvm1,
+  author = {Chris Lattner and Vikram Adve},
+  title = {{LLVM: A Compilation Framework for Lifelong Program Analysis \& Transformation}},
+  booktitle = {Proceedings of the international symposium on Code generation and optimization},
+  year = {2004},
+  pages = {75},
+  location = {Palo Alto, California},
+  publisher = {IEEE Computer Society},
+  address = {Washington, DC, USA}
+}
+
+@misc{gcc1,
+ author = {{FREE SOFTWARE FOUNDATION}},
+ title = {{GNU Compiler Collection}},
+ howpublished = {\url{http://gcc.gnu.org/onlinedocs/gcc-4.5.1/gcc/}},
+ year =	{2008},
+ note = {Acessado em 5 de novembro de 2010}
+}
+
+@misc{gcc-ssa,
+ author = {{FREE SOFTWARE FOUNDATION}},
+ title = {{GNU Compiler Collection Internals -- SSA}},
+ howpublished = {\url{http://gcc.gnu.org/onlinedocs/gccint/SSA.html}},
+ year =	{2010},
+ note = {Acessado em 23 de setembro de 2010}
+}
+
+
+% Aplicações Tcl
+
+% Li só algumas partes
+% http://www.usenix.org/publications/library/proceedings/tcl95/full_papers/welch.txt
+@inproceedings{exmh,
+ author = {Brent Welch},
+ title = {Customization and flexibility in the exmh mail user interface},
+ booktitle = {Proceedings of the USENIX Workshop on Tcl/Tk},
+ year = {1995},
+ location = {Toronto, Canada},
+ publisher = {USENIX Association},
+ address = {Berkeley, CA, USA}
+}
+
+% XXX Arrumar [s.n]
+@inproceedings{openacs,
+ author = {Rocael Hern{\'a}ndez},
+ title = {{OpenACS: Robust Web Development Framework}},
+ booktitle = {Annual Tck/Tk Conference},
+ year = {2005},
+ address = {Portland, Oregon, USA},
+ publisher = {USENIX}
+}
+
+@conference{tcl_nap,
+ author = {Harvey Davies},
+ title = {The NAP (N-Dimensional Array Processor) Extension to Tcl},
+ booktitle = {9th Annual Tck/Tk Conference},
+ year = {2002}
+}
+
+@misc{gdb_testsuite,
+ author = {John Gilmore and Stan Shebs},
+ title = {Testsuite -- GDB Internals},
+ howpublished = {\url{http://sourceware.org/gdb/current/onlinedocs/gdbint/Testsuite.html}},
+ year =	{2010},
+ note = {Acessado em 8 de maio de 2010}
+}
+
+@misc{tclbench-site,
+ author = {{TCL CORE TEAM}},
+ title = {Tcllib},
+ howpublished = {\url{http://tcllib.sourceforge.net}},
+ year = {2008},
+ note = {Acessado em 9 de maio de 2010}
+}
+
+@misc{papisite,
+ author = {{PAPI}},
+ title = {{Performance Application Programming Interface}},
+ year = {2010},
+ howpublished = {\url{http://icl.cs.utk.edu/papi/}},
+ note = {Acessado em 5 de novembro de 2010}
+}
+
+% -------------
+
+%https://www.usenix.org/publications/library/proceedings/vhll/full_papers/korn.ksh.a
+
+@InProceedings{ksh,
+  author = 	 {David G. Korn},
+  title = 	 {ksh -- An extensible High Level Language},
+  booktitle = {Very High Level Languages Symposium},
+  year = 	 {1994},
+  location = 	 {Santa Fe, NM, USA},
+  address = {Berkley, CA, USA},
+  OPTmonth = 	 {},
+  OPTorganization = {},
+  publisher = {USENIX},
+  OPTnote = 	 {},
+  OPTannote = 	 {}
+}
+
+@misc{Tcl.n-manpage,
+  title = 	 {{Tcl Library -- man pages}},
+  howpublished = {\url{http://www.tcl.tk/man/tcl8.5/TclLib/contents.htm}},
+  note = {Acessado em 5 de novembro de 2010},
+  author = 	 {{TCL CORE TEAM}},
+  year = 	 {2010},
+}
+
+
+@InProceedings{plezbert,
+ author = {Michale P. Plezbert and Ron K. Cytron},
+ title = {{Does ``Just in Time'' = ``Better Late than Never''}},
+ booktitle = {{Proceedings of the Symposium on Principles of Programming Languages}},
+ year = {1997},
+ location = {Paris, France},
+ pages = {120--131},
+ publisher = {ACM},
+ address = {New York, NY, USA}
+}
+
+@Book{trustworthycompilers,
+ author = {Vladimir O. Safonov},
+ publisher = {Wiley},
+ title = {Trustworthy Compilers},
+ year = {2010},
+ address = {Hoboken, NJ, USA}
+}
+
+@Book{dragonbook,
+ title = {{Compilers: Principles, Techniques, and Tools}},
+ author = {Alfred V. Aho and Monica S. Lam and Ravi Sethi and Jeffrey D. Ullman},
+ year = {2006},
+ publisher = {Addison Wesley},
+ address = {Boston, MA, USA}
+}
+
+@Book{tclbook,
+ title = {{Practical Programming in Tcl and Tk}},
+ author = {Brent Welch and Ken Jones},
+ year = {2003},
+ publisher = {Prentice Hall},
+ address = {Upper Saddle River, NJ, USA}
+}
+
+@misc{graycode,
+ title = {{Pulse Code Communication}},
+ author = {Frank Gray},
+ note = {U.S. Patent 2,632,058},
+ year = {1953},
+ month = {March},
+ day = {17},
+}
+
+@InProceedings{optconstprog,
+ author = {David Callahan and Keith D. Cooper and Ken Kennedy and Linda Torczon},
+ title = {{Interprocedural Constant Propagation}},
+ booktitle = {Proceedings of the Symposium on Compiler Construction},
+ year = {1986},
+ location = {Palo Alto, California, United States},
+ pages = {152--161},
+ numpages = {10},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+}
+
+@Article{optelimverifcexec,
+ author = {{Motohiro Kawahito and Hideaki Komatsu and Toshio Nakatani}},
+ title = {{Effective NULL Pointer Check Elimination Utilizing Hardware Trap}},
+ journal = {SIGPLAN Notices},
+ volume = {35},
+ issue = {11},
+ month = {November},
+ year = {2000},
+ pages = {139--149},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+}
+
+@misc{sintaxeatt,
+ author = {{FREE SOFTWARE FOUNDATION}},
+ title = {{Gas manual -- Using as}},
+ year = {2009},
+ howpublished = {\url{http://sourceware.org/binutils/docs/as/index.html}},
+ note = {Acessado em 5 de novembro de 2010}
+}
+
+% dead code elimination
+@Book{allen_kennedy,
+ author = {Randy Allen and Ken Kennedy},
+ title = {{Optimizing Compilers for Modern Architectures}},
+ year = {2001},
+ publisher = {Morgan Kaufmann},
+ address = {San Francisco, CA, USA}
+}
+
+@inproceedings{boundcheck,
+ author = {Bod\'{\i}k, Rastislav and Gupta, Rajiv and Sarkar, Vivek},
+ title = {{ABCD: Eliminating Array Bounds Checks on Demand}},
+ booktitle = {{Proceedings of the Conference on Programming Language Design and Implementation}},
+ year = {2000},
+ location = {Vancouver, British Columbia, Canada},
+ pages = {321--333},
+ publisher = {ACM},
+ address = {New York, NY, USA},
+}
+
+@Book{javaspec,
+ author = {James Gosling and Bill Joy and Guy Steele},
+ title = {{Java Language Specification}},
+ publisher = {Addison Wesley},
+ year = {2005},
+ address = {Boston, MA, USA},
+}
+
+@Book{jvmspec,
+ author = {Tim Lindholm and Frank Yellin},
+ title = {{Java Virtual Machine Specification}},
+ year = {1999},
+ publisher = {Prentice Hall},
+ address = {Upper Saddle River, NJ, USA}
+}
+
+@Book{pythonspec,
+ author = {Guido van Rossum and Fred L. Drake},
+ title = {{Python 2.6 Reference Manual}},
+ year = {2009},
+ publisher = {CreateSpace},
+ address = {Seattle, WA, USA}
+}
+
+@Misc{cisco,
+ howpublished = {\url{http://www.cisco.com/}},
+ note = {Acessado em 5 de novembro de 2010},
+ year = {2010},
+ title = {{Cisco Systems, Inc}},
+ author = {Cisco}
+}
+
+@Book{cisco_ios,
+ title = {{Cisco IOS Cookbook}},
+ author = {Kevin Dooley and Ian Brown},
+ year = {2006},
+ publisher = {O'Reilly Media},
+ address = {Sebastopol, CA, USA}
+}
+
+@Misc{rpython,
+	howpublished = {\url{http://codespeak.net/pypy/dist/pypy/doc/coding-guide.html}},
+	note = {Acessado em 5 de novembro de 2010},
+	author = {PyPy},
+	year = {2010},
+	title = {{PyPy Coding Guide -- Restricted Python}},
+}
+
+@InProceedings{jitcompunits,
+ author = {Derek Bruening and Evelyn Duesterwald},
+ title = {{Exploring Optimal Compilation Unit Shapes for and Embedded Just-In-Time Compiler}},
+ year = {2000},
+ booktitle = {{Proceedings of the Workshop on Feedback-Directed and Dynamic Optimization}},
+ publisher = {ACM},
+ address =      {New York, NY, USA}
+}
+
+@InProceedings{dyla1,
+ author = {Armin Rigo and Carl Friedrich Bolz},
+ title = {{How to not write Virtual Machines for Dynamic Languages}},
+ booktitle = {{Proceeding of the Workshop on Dynamic Languages and Applications}},
+ year = {2007},
+ address = {Berlin, Germany}
+}
+
+@InProceedings{regionunit,
+ author = {Richard E. Hank and {Wen-mei} W. Hwu},
+ title = {{Region-Based Compilation: An Introduction and Motivation}},
+ year = {1995},
+ booktitle = {{Proceedings of the annual International Symposium on Microarchitecture}},
+ publisher = {IEEE Computer Society Press},
+ address = {Los Alamitos, CA, USA},
+}

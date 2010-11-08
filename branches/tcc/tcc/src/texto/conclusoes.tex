@@ -1,0 +1,153 @@
+\chapter{Conclusões}
+\label{conclusao}
+
+%\begin{itemize}
+%\item contexto
+%\item o que foi feito
+%\item resultados obtidos
+%\item trabalhos futuros
+%\end{itemize}
+
+Um compilador JIT não-otimizador de modo misto para um subconjunto da
+linguagem \texttt{Tcl} foi
+desenvolvido e validou-se a melhoria de desempenho por meio da
+compilação dinâmica. No melhor caso, uma melhoria de mais de 29 vezes
+foi demonstrada. Também verificou-se que o tempo
+de compilação foi baixo, levando cerca de $79 \times 10^{-6}$
+segundos para emitir 725 \textit{bytes}.
+
+Entretanto, mesmo para um pequeno conjunto de
+instruções suportadas, a construção do compilador JIT não
+foi uma tarefa simples. A geração de código de máquina, em especial
+para uma arquitetura CISC, de forma manual é dispendiosa, propensa a
+erros e de difícil depuração. Devido a alta
+granularidade imposta pela representação intermediária atual,
+mostrou-se necessidade de uma quantidade de 120 \textit{bytes}
+para a codificação simplificada de um pequeno procedimento em
+\texttt{Tcl} que requer apenas 5 quádruplas.
+Logo, procedimentos maiores requerem uma quantidade
+muito maior de \textit{bytes} e a
+verificação da corretude do código gerado é trabalhosa.
+
+Ainda resta descobrir uma forma de coletar tipos de forma eficiente
+quando considerada a linguagem \texttt{Tcl}. Mesmo com informações
+existentes em tempo de execução, a linguagem não tem um modelo bem
+definido de identificação de tipos. Isso é resultado do conceito
+fundamental que cerca a linguagem: tudo é \textit{string}. Sem
+realizar esta tarefa, a tarefa de
+geração de código de forma eficiente parece não ser possível.
+O trabalho presente simplifica esta situação, tenta-se trabalhar com
+números inteiros mas, nos casos em que não for possível, também
+utiliza-se o interpretador.
+
+%XXX Falar que as melhorias encontradas podem estar indicando pontos de
+%melhoria no interpretador Tcl
+
+A vantagem de desempenho ao empregar um compilador JIT é
+clara. Por esta razão, a técnica tem feito parte das implementações de
+máquinas virtuais que demandam alta performance. Entre as linguagens de
+programação, \texttt{Java} destaca-se
+ao ter recebido suficiente atenção ao ponto de empresas e
+pesquisadores desenvolverem diversas JVMs com compiladores
+dinâmicos que fazem uso de uma variedade de técnicas.
+
+% Escolhas adequadas para todas as partes de um compilador JIT tornam
+% possível o uso de um compilador otimizador em tempo de execução. Esse
+% texto teve maior foco nas representações intermediárias utilizadas, ou
+% que se pretende utilizar, nesse projeto. Quádruplas para formar blocos
+% básicos e permitir a construção do grafo de fluxo de controle (CFG)
+% foi mais discutida aqui, mas também foi mencionado a representação SSA
+% que inicia-se com a entrada de um CFG. A SSA tem sido aplicada em
+% diversos compiladores otimizadores, pois permite aplicar, ao menos,
+% as otimizações de movimentação de código, propagação de constante e
+% eliminação de redundância parcial de forma eficiente.
+
+% A conversão de \textit{bytecodes} de uma máquina de pilha para uma
+% representação na forma de máquina de registradores exige atenção aos
+% detalhes da semântica implementada na máquina virtual atual da
+% linguagem. Uma vantagem visível é a capacidade de sintetização que
+% uma representação baseada em registradores tem sobre uma que faz uso
+% de pilha. Entretanto, um número reduzido de quádruplas não indica
+% necessariamente menor consumo de memória do que uma quantidade
+% superior de \textit{bytecodes}.
+
+% Detalhes relacionados a definição de onde instalar o compilador JIT na
+% linguagem alvo e de quando executar a compilação JIT envolvem pelo
+% menos um entendimento simplificado do funcionamento da máquina
+% virtual. Com a experiência adquirida até o momento, essa etapa aparenta
+% ser a mais simples de ser feita.
+
+% A geração de código de máquina, em especial para uma arquitetura CISC,
+% de forma manual é dispendiosa e propensa a erros. Apesar da alta
+% granularidade imposta pela representação intermediária atual,
+% mostrou-se necessidade de 51 bytes para a codificação simplificada de um
+% procedimento em \texttt{Tcl} com um único comando
+% \verb!incr!. Entretanto, discute-se que, entre essa quantidade total,
+% um número significativo de bytes pode ser reaproveitado por muitas das
+% outras instruções para acesso a variáveis locais. Além disso, com
+% pequenas alterações é possível codificar outras instruções simples, ou
+% variações do \verb!incr! que não façam uso de incremento de valor
+% absoluto 1, da linguagem \texttt{Tcl}.
+
+
+% \section{Dificuldades Encontradas}
+
+% A primeira dificuldade encontrada foi em relação a aprendizagem
+% (parcial) do funcionamento da linguagem de programação \texttt{Tcl} --
+% especificamente a versão 8.5.8 --
+% que contém mais de 200 mil linhas de código \texttt{C}. Boa parte
+% desse número de linhas não afeta diretamente a construção desse
+% compilador, porém uma grande quantidade será ativada
+% ao longo da execução do código gerado pelo compilador.
+
+% A linguagem faz uso de contagem de referências para realizar coleta de
+% lixo e também compartilha muitos dos valores utilizados. Com isso,
+% reutilizar objetos \verb!Tcl_Obj! (atualmente no caso da função
+% \verb!JIT_Compile!) que foram construídos em partes distintas não é tão
+% simples pois é necessário se ter certeza de que o objeto não será
+% desalocado enquanto se está trabalhando com ele e, ao mesmo tempo, não
+% se quer deixar objetos com contagem de referência superior a
+% necessária. Compartilhar objetos economiza memória mas não simplifica
+% o uso de objetos alheios, sendo necessário verificar se um objeto
+% específico é compartilhado ou não antes de, dependendo do uso,
+% duplicar o mesmo. Não são tarefas tão complexas mas tendem a ser
+% pontos de erros obscuros em programas não tão curtos e não tão simples.
+
+% Com o avanço da implementação, descrita nesse relatório, a geração de
+% código nativo realizada de forma manual demonstrou-se bastante
+% propensa a erros. Detalhes na geração do byte ModR/M causaram muitas
+% falhas de segmentação até chegar ao código final correto; saídas
+% produzidas pelo compilador gcc, analisada pelas ferramentas \verb!otool! ou
+% \verb!objdump!, ajudaram na correção ao longo do processo.
+
+\section{Trabalhos futuros}
+
+O trabalho desenvolvido pode ser considerado como um compilador
+\textit{baseline} para um conjunto da \texttt{Tcl}. Desse modo, ainda
+falta explorar a utilização de um compilador otimizador.
+A conversão de \textit{bytecodes} da máquina de pilha para a
+representação na forma de máquina de registradores trouxe as
+ineficiências em relação a carregamento e armazenamento de
+dados. Logo, este é um primeiro ponto a ser tratado. Além disso, a
+alocação de registradores é inexistente e simplesmente atribui-se
+posições na pilha para cada registrador virtual. O compilador
+otimizador poderia trabalhar sobre estes problemas.
+
+Em relação a representação intermediária, ainda é necessário pelo
+menos outra de mais baixo nível. A representação atual está muito
+longe do código final, dificultando o processo de alocação de
+registradores e seleção de instruções de forma eficiente.
+Em um primeiro momento pretendeu-se já fazer uma representação de
+baixo nível, mas a conversão de \textit{bytecodes} \texttt{Tcl} para
+esta de nível médio demonstrou-se simples e conseguiu-se eliminar
+detalhes da máquina de pilha.
+Logo, essa nova representação seria mais bem-vinda  se acoplada a
+atual.
+
+Aceitando apenas procedimentos folha, um recurso fundamental da
+linguagem \texttt{Tcl} fica excluído. Por ser uma linguagem de
+comandos, não suportar a realização de chamadas é uma grande
+restrição. O trabalho a ser desenvolvido nesta direção precisa se
+preocupar com os detalhes de interação entre: \begin{inparaenum} \item
+  máquina virtual e código nativo; \item código nativo e código
+  nativo\end{inparaenum}.

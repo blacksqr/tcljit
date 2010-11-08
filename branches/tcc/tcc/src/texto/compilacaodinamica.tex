@@ -1,0 +1,528 @@
+\chapter{Compilação Dinâmica e Compiladores JIT}
+\label{compdyn}
+
+\section{Compilação Dinâmica}
+
+O termo ``compilação dinâmica'' refere-se a técnica de tradução de
+código sob demanda. Ela têm sido utilizada para aumentar o desempenho
+de aplicativos, gerando código em tempo de execução. Aplicações
+variadas têm feito uso desta técnica \cite{holzle}, mas pode-se apontar
+implementações de linguagens de programação como fator motivante para
+a existência e evolução da mesma. A busca por
+interpretadores mais rápidos fez surgir a idéia da compilação dinâmica
+\cite{holzle}, pois, com ela, é possível reduzir o custo de avaliação de
+instruções também elimina o \textit{overhead} de decodificação de instruções.
+A emissão de código nativo não é um requisito dessa compilação, mas é
+o foco do presente trabalho.
+
+%XXX arrumar esse parágrafo
+Características como tipos dinâmicos e estruturas de dados dinâmicas
+incentivam a construção de interpretadores
+\cite{trustworthycompilers} e, apesar de terem o tempo de execução
+acrescido de 10 vezes \cite{plezbert} a até 1000 vezes
+\cite{trustworthycompilers}, quando comparado a linguagens compiladas, as
+facilidades fornecidas atraem usuários. Apesar do quesito performance
+não ser o mais prioritário nessas linguagens, é fácil verificar que as
+implementações destas linguagens costumam ser feitas em \texttt{C}
+\cite{dyla1}. Logo,
+aparentemente, a facilidade de desenvolvimento quer estar unida com
+alto desempenho.
+%XXX Falar do porque JIT pode ser aplicado melhor nessas linguagens
+
+% XXX Citar que problemas são esses ?
+Linguagens interpretadas comumente apresentam-se como problemas a
+compiladores estático, isso é devido a falta de informações no momento
+da compilação \textit{offline} \cite{holzle}.
+Entretanto, um compilador dinâmico tem acesso a todas informações
+produzidas ao longo da execução.
+Logo, é possível tratar dos problemas
+introduzidos por linguagens de mais alto nível e produzir código
+nativo que não seria possível, ou muito difícil, com compiladores
+estáticos.
+% Logo, linguagens díficieis de serem compiladas estaticamente
+%devido a uso de \textit{late binding}\cite{XXX1}, ..XXX.
+
+Estes tradutores podem ser construídos das mais variadas formas.
+Em relação ao modo de operação dos compiladores dinâmicos, o trabalho
+de \citeonline{plezbert} distingue 3 classes:
+\begin{description}
+  \item[JIT (Just in Time)]: O ambiente alterna entre a compilação sob
+    demanda para código nativo e a execução do código nativo gerado;
+    somente um das duas situações ocorre num dado momento
+  \item[Compilação contínua]: Realiza compilação em tempo de execução
+    mas não exatamente sob demanda. Esse modo tenta compilar o máximo
+    de código em paralelo a execução em uma tentativa de disponibilizar
+    código nativo quando ocorrer a chamada de um procedimento. Caso
+    ocorra uma chamada para um procedimento que ainda tenha sido
+    compilado, pode-se utilizar o interpretador
+  \item[Smart JIT]: Permite a execução mista entre máquina virtual e
+    código nativo. Ao invocar um método, não necessariamente ocorre a
+    compilação. Parâmetros precisam ser estabelecidos para determinar
+    as condições que levam a emissão de código
+\end{description}
+Apesar desta diferenciação existir, diversos trabalhos
+\cite{suganuma_oopsla_2001}\cite{suganuma_ibm}\cite{judo} têm utilizado o termo
+JIT no lugar de \textit{Smart} JIT e o mesmo ocorre com o trabalho
+corrente.
+
+A consequência de utilizar um dos dois primeiros tipos acima, em
+comparação ao terceiro, é a possibilidade de \textit{delay} na
+inicialização do ambiente de execução. Isso ocorre porque logo
+no inicio a máquina virtual possivelmente invoca muitos métodos.
+Entretanto, qualquer um dos três
+impacta no desempenho da aplicação visto que eles consomem tempo
+de execução. Selecionar parâmetros adequados para compilação dinâmica
+alivia esse problema, pois pode-se compilar somente procedimentos que
+são muito executados. Um parâmetro que pode ser utilizado nesta
+decisão é a quantidade de invocações de um
+procedimento/método com decaimento ao longo do tempo \cite{holzle} ou
+não. Este número também pode ser combinado com a quantidade de
+repetições de laços executadas.
+% Outro parâmetro é em relação ao tamanho do código a ser compilado.
+% XXX remover visto repetido acima
+
+%Tradicionalmente, procedimentos inteiros eram ``JIT-compilados''
+Tradicionalmente, compiladores JIT têm trabalhado com compilação de métodos
+por inteiro. Entretanto, estes compiladores
+dispõem da flexibilidade de decidir o que constitui sua
+unidade de compilação. Trabalhos mais recentes descrevem o uso laços
+\cite{jitcompunits}, \textit{traces}
+\cite{jitcompunits} ou regiões \cite{regionunit} como alternativas a
+funções completas para compilação. Estas três outras formas surgiram
+com propostas de melhoria \cite{regionunit}\cite{jitcompunits} sobre o
+método tradicional. Elas permitem
+despender tempo de análise e geração de código somente em partes que
+realmente são mais
+frequentemente executadas. A compilação de regiões é uma generalização
+daquela com uso de \textit{traces}, onde esta última é formada
+por um único ponto de entrada e múltiplas saídas \cite{jitcompunits}
+enquanto que a primeira trabalha sobre sobre uma coleção arbitrária de
+blocos básicos \cite{dragonbook}.
+
+Compiladores dinâmicos podem ser otimizadores ou não. Entretanto, é
+mais comum encontrar a primeira forma visto que a intenção é gerar
+código para linguagens com recursos que consomem maior tempo de
+execução. Também torna-se interessante o uso destas técnicas somente
+se o custo da compilação for dominado pelo ganho em desempenho.
+ Sistemas \cite{holzle}\cite{judo}\cite{suganuma_ibm} mais
+robustos que empregam estes compiladores têm feito uso de mais de um
+compilador. Em um primeiro momento, a compilação ocorre com uso de um
+tradutor que gera código de forma rápida mas não tão eficiente. Isso
+reduz a ocorrência de pausas durante a execução. Ao
+detectar que este código vem sendo frequentemente utilizado,
+aplica-se um outro compilador que faz uso de otimizações mais
+dispendiosas. A recompilação dinâmica \cite{holzle} também pode ser
+utilizada com o intuito de remover otimizações e possibilitar a inspeção
+de código.
+
+
+%Otimizações, estrutura, custo, representações, ...
+
+% \begin{itemize}
+% \item ambientes interpretados
+% \item ambientes compilados
+% \item ambientes mistos
+% \end{itemize}
+
+% Idéias de quando fui deixar cartucho para recarregar (*):
+% * Mostrar um diagrama geral de backend e frontend
+% * Falar de uma forma geral deles, falar de fases de otimização
+% * Falar que parte é comum a todos (analise lexica, analise sintatica e
+% analise semantica).
+
+% --> Ou seria na verdade a tabela de símbolos e coisas assim ? Essa
+% seria comum a todos (quase)
+
+%%%%%%%%%%%%%%% Talvez usar alguma coisa daqui, mas provavelmente não.
+% De modo geral, uma linguagem de programação requer, além da
+% especificação da própria linguagem, um compilador e uma plataforma de
+% suporte. Por plataforma de suporte entende-se ambiente de execução,
+% cuja funcionalidade é possibilitar a execução de programas. Cada
+% linguagem determina quais serviços são necessários por
+% parte de ambiente de execução, mas atualmente é comum encontrar os
+% seguintes serviços:
+% \begin{itemize}
+% \item \textbf{Gerenciamento de memória}. Permitir, ao menos, alocar,
+%   utilizar e liberar memória da pilha e do \textit{heap} de forma
+%   direta ou indireta.
+% \item \textbf{Gerenciamento da pilha de execução}. ...
+% \item \textbf{Gerenciamento de \textit{threads}}. Permitir ...
+% %\item \textbf{Verificação de tipos em tempo de execução}. ...
+% \end{itemize}
+% ... Interação desses serviços com o sistema operacional ...
+
+
+% Pode-se distinguir entre três tipos de ambientes de execução: 
+
+
+% %% Já tinha em outro pdf
+% Em um ambiente interpretado, toda a execução do código fonte se dá em
+% tempo de execução sem a necessidade de se gerar código de máquina.
+% Opcionalmente, pode-se transformar o código inicial
+% em um código intermediário -- bytecode por exemplo -- que pode ser mais
+% eficientemente interpretado. Esse tipo de ambiente costuma fornecer
+% alta portabilidade entre diferentes sistemas operacionais e
+% arquiteturas, código fonte reduzido e agilidade de
+% desenvolvimento. Todos esses benefícios acabam implicando no declínio
+% da performance de tais linguagens, sendo assumido a penalidade de uma
+% ordem de grandeza quando comparado a ambiente compilados
+%  \cite{jit_eq_betterlate}.
+
+% Diferentemente, ambientes compilados utilizam-se de compiladores
+% estáticos, combinados com assemblers e \emph{linkers} (ligadores), que
+% realizam a tradução do código fonte para código de máquina específico
+% para uma arquitetura. Tipicamente (XXX ou sempre ?) esses compiladores
+% são ditos offline pois tem disponibilidade de todo o código fonte, não
+% sendo estritamente necessário a tomada de decisões que podem vir a
+% implicar em resultados não ótimos. Além disso, o compilador aqui
+% disponibiliza de uma certa folga em relação ao tempo disponível para
+% se realizar otimizações pois é feito somente a cada recompilação e em
+% nada acrescenta ao tempo de execução do programa.
+
+% Um terceiro tipo de ambiente utiliza os dois mencionados
+% anteriormente, com a diferença na substituição de compiladores
+% estáticos por compiladores dinâmicos. Uma linguagem de programação que
+% faz uso desse ambiente híbrido consegue manter a
+% portabilidade inicialmente prevista até que seja decidido compilar para código
+% máquina em tempo de execução parte do código fonte presente em código
+% intermediário ou não. Os compiladores nesse
+% tipo de ambiente devem ser relativamente mais inteligentes, não
+% podendo se dar ao luxo de aplicar todas otimizações, ou mesmo qualquer
+% otimização, implementadas a qualquer momento pois isso aumentaria em
+% muito o tempo de execução do programa. Esse ambiente híbrido será o
+% foco do trabalho aqui descrito.
+%% Fim
+
+
+% \section{Compiladores}
+% \label{sec:compiladores}
+
+% \begin{itemize}
+% \item estrutura
+% \item compiladores otimizadores
+% \end{itemize}
+
+
+% \section{Interpretadores}
+% \label{sec:interp}
+
+% \begin{itemize}
+% \item estrutura do ambiente
+% \end{itemize}
+
+% * Mostrar um diagrama com o ciclo básico de uma máquina virtual:
+%   - Busca próxima instrução, decodifica e a interpreta
+
+
+% \section{Ambientes Mistos}
+% \label{sec:hibrido}
+
+% \begin{itemize}
+% \item estrutura
+% \item compiladores dinâmicos (princípio de execução)
+% \item questões relacionadas com compilação dinâmica
+% \begin{itemize}
+% \item quando/o que/quais otimizações
+% \end{itemize}
+% \end{itemize}
+
+
+
+\section{Compiladores JIT}
+%XXX Trabalhos relacionados
+
+\subsection{Smalltalk--80}
+
+A implementação da \texttt{Smalltalk-80} \cite{bluebook} de
+\citeonline{deutsch84efficient} faz uso da compilação dinâmica para
+transformar \textit{v-code} em código nativo (chamado de
+\textit{n-code}). A motivação foram os
+recursos da linguagem \texttt{Smalltalk}, como alocação dinâmica e
+procedimentos universalmente polimórficos \cite{sebesta}, que são
+difíceis de serem traduzidos de forma eficiente. Não é feito uso do
+modo misto (\textit{Smart JIT}) aqui, sempre que houver uma chamada
+o código nativo é primeiramente gerado, caso ainda não exista, e
+depois este código é executado.
+
+Na época em que esta implementação ocorreu, haviam restrições severas
+de memória. Por este motivo, o trabalho tem a preocupação de verificar
+se o código nativo gerado será paginado ou não. Caso isso venha a
+ocorrer, o código é descartado e gerado novamente quando outra
+invocação ao procedimento ocorrer. No presente trabalho, esse cuidado
+não é tomado e não foi levado em consideração.
+
+Durante esta implementação da \texttt{Smalltalk}, houve a preocupação
+em permitir a utilização
+de compiladores dinâmicos
+variados, mas não todos ao mesmo tempo.
+\citeonline{deutsch84efficient} descrevem duas implementações
+testadas, a primeira faz uso de otimizações \textit{peephole}
+\cite{muchnick} esparsamente e obtém tamanho de código reduzido
+quando comparado a outra. A segunda implementação é mais agressiva nas
+otimizações aplicadas, aplicando a expansão \textit{in-line} até para
+operações aritméticas e relacionais. Nessa configuração mais agressiva
+foram obtidos os melhores resultados, chegando a um tempo quase 2
+vezes menor comparando-se com o interpretador puro. O trabalho aqui proposto
+alcança reduções maiores, mas apenas para um subconjunto
+pequeno da linguagem ao passo em que a implementação de
+\citeonline{deutsch84efficient} trabalha por completo na
+especificação da linguagem envolvida.
+
+%\subsection{SELF--93}
+%
+%O trabalho de \citeonline{
+
+\subsection{CACAO}
+
+A CACAO \cite{cacao} é um compilador JIT para a linguagem
+\texttt{Java} com foco no processador ALPHA \cite{alphaproc}.
+
+Para construir sua representação intermediária, \textit{bytecodes}
+\texttt{Java} são convertidos para uma forma de máquina de registradores. De
+forma semelhante com o trabalho realizado, buscou-se converter uma
+representação de máquina de pilha para outra que assemelha-se com a
+arquitetura de um processador RISC (\textit{Reduced Instruction Set
+  Computer}) \cite{risc}. Entretanto, o trabalho de \citeonline{cacao} tem a preocupação
+de eliminar as ineficiências da máquina de pilha  (\textit{load} \&
+\textit{store}) quando convertidas para registradores.
+A alocação de registradores é feita de forma simples e rápida.
+
+A arquitetura deste sistema ainda envolve a definição de um novo
+\textit{layout} de objetos e métodos em \texttt{Java}, tornando o
+acesso mais rápido e utilizando menos memória.
+
+Com os \textit{benchmarks} utilizados, a CACAO obteve um desempenho de
+até 85 vezes superior ao comparar-se com o interpretador JDK
+(\textit{Java Development Kit}). A CACAO também foi testada
+contra o compilador gcc \cite{gcc1} com uso da \textit{flag}
+\verb!-03!, verificando-se que o tempo do compilador JIT foi
+entre 1.01 e 1.66 vezes pior que aquele obtido com o gcc.
+
+%%%%\subsection{SELF--93}
+
+%%%%\subsection{Java HotSpot}
+%%%%Sun ? Oracle ?
+
+% \subsection{Jalapeño}
+\subsection{Jikes RVM}
+
+O projeto Jikes RVM (\textit{Research Virtual Machine}) \cite{jikes}
+(até 2001 conhecida como Jalapeño JVM) teve como objetivos iniciais
+suportar a arquitetura PowerPC \cite{powerpc} e fornecer uma JVM de
+alta performance. Enquanto conhecida como Jalapeño JVM, sua
+distribuição era trabalhosa devido as licenças estabelecidas
+\cite{jikesrvm2}. A renomeação para Jikes RVM deveu-se a correções
+neste processo, tornando-a em um projeto de código livre. Neste momento
+também notou-se a necessidade de portar seu código para a arquitetura
+IA-32 \cite{jikesrvm2}, pelas mesmas razões defendidas neste trabalho.
+
+De acordo com \citeonline{jikes}, a Jalapeño/Jikes é escrita com a
+própria linguagem
+\texttt{Java}. Para que não seja necessário o uso de outra máquina
+virtual para iniciar sua execução, uma imagem de incialização
+executável pré-compilada, contendo todos os serviços essenciais para
+uma JVM, é criada para ser carregada em memória e então permitir sua
+execução.
+
+Esta máquina virtual não trabalha com interpretação de
+\textit{bytecodes},
+Um compilador \textit{baseline} é utilizado para
+compilar todos os métodos de forma rápida. Métodos executados muito
+frequentemente são então recompilados com um compilador otimizador.
+Este compilador otimizador trabalha com 3 representações
+intermediárias: um de alto nível independente de arquitetura e que
+trabalha com transferência de registradores, outra de
+baixo nível também independente mas com instruções semelhantes com as
+de uma arquitetura RISC \cite{risc}, e uma a nível da máquina alvo.
+
+O compilador otimizador trabalha com seleção de instruções por meio de
+padrões em árvores \cite{instrselect} e a
+%Para a fase de seleção de instruções é feito uso de um grafo de
+%dependência \cite{muhcnick} de cada bloco básico ...
+% XXX ainda é sobre o compilador otimizador
+alocação de registradores é feita através de uma variação do método
+de varredura linear \cite{linear_scan_regalloc}. Otimizações de
+eliminação de subexpressões comuns \cite{muchnick}, eliminação de
+movimentação redundante, propagação de cópias \cite{muchnick},
+eliminação de código morto \cite{allen_kennedy}, \textit{in-line} de
+métodos, entre várias outras são aplicadas por este compilador.
+% alocação de registradores por coloração de grafos para códigos mais
+% curtos ou ...
+
+Resultados do trabalho de \citeonline{jikes} demonstraram que, com a
+implementação descrita da Jikes RVM para IA-32, a
+utilização de alocação de registradores e seleção de instruções
+produzem código até quase 2 vezes mais eficiente quando comparado a
+compilação sem estas técnicas. No presente trabalho a situação não
+aplica-se estas técnicas, mas espera-se que elas também colaborem com
+o desempenho quando aplicadas.
+
+
+\subsection{JUDO}
+
+A JUDO \cite{judo} é uma outra JVM, ela faz uso
+de compilação dinâmica com dois tipos de compiladores e coleta
+informações em tempo de execução.
+
+O primeiro desses compiladores é um
+mais simples, que gera código rapidamente, destinado a compilação
+de métodos invocados pela primeira vez. Durante a emissão de código,
+instruções que coletam dados a cerca da execução são inseridas.
+O segundo compilador é
+invocado quando as informações coletadas indicarem que certos métodos
+são executados muito frequentemente e, portanto, estes podem ser
+beneficiados com a aplicação de otimizações.
+Essa recompilação dinâmica
+é feita com o intuito de balancear o tempo gasto na compilação com o tempo
+efetivamente gasto na execução do programa.
+
+As otimizações aplicadas incluem: eliminação de subexpressões comuns
+\cite{muchnick} durante a construção da representação intermediária;
+uma fase de verificação de pontos candidatos a \textit{in-line};
+propagação de cópias; desdobramento de constantes \cite{muchnick};
+eliminação de código morto e eliminação de verificação de subscritos em
+\textit{array} \cite{boundcheck}. Também são feitas otimizações
+\textit{offline} para inicialização de classes, \textit{cast} e
+verificação de subscritos.
+
+Este sistema foi projetado para trabalhar com
+a compilação de métodos por inteiro, sendo esta a maior semelhança com
+o trabalho proposto aqui.
+
+%XXX E a performance dela ?
+De forma geral, a avaliação de performance indicou que o gerador de
+código ágil (parecido, mas ainda mais
+avançado, com o proposto aqui) é o que apresenta pior performance em
+relação as demais formas avaliadas: compilador otimizador sem
+informações de tempo de execução e outro que faz uso de recompilação
+dinâmica.
+
+\subsection{IBM JDK}
+
+% Nos dois trabalhos sobre JIT mencionados não há uma descrição
+% a cerca das representações intermediárias (IR) utilizadas. Porém, um
+% outro trabalho
+% apresentado sobre a JVM (\textit{Java Virtual Machine}) CACAO \cite{cacao},
+% descreve algo parecido com a presente proposta. De forma semelhante com a
+% ``TVM'' (\textit{Tcl Virtual Machine}), a JVM tem uma arquitetura de
+% pilha e a CACAO faz uma conversão para uma representação orientada a
+%registradores com uso de poucas instruções.
+
+O artigo de \citeonline{suganuma_ibm} exibe a evolução
+de uma JVM desenvolvida na IBM que faz uso de compilação dinâmica com
+foco na arquitetura IA-32, assim como este trabalho.
+
+% XXX Citacao para DAG.
+A IBM JDK (\textit{Java Development Kit}) faz uso de 3 representações
+intermediárias: EBC
+(\textit{Extended Bytecode}), quádruplas e DAG (\textit{Directed
+  Acyclic Graph}). A segunda destas equivale à utilizada no trabalho
+em discussão, sendo baseada em registradores. A terceira também é
+baseada em registradores mas faz uso da SSA (\textit{Static Single
+  Assignment}) \cite{cytron}.
+
+O compilador dinâmico desse sistema utiliza 3 níveis de compilações. A
+cada nível mais otimizações vão sendo aplicadas, mas somente a de
+nível 1 (que têm menor custo) é invocada na mesma \textit{thread} de
+execução da aplicação. Os outros níveis de compilação ocorrem em
+\textit{threads} separadas e somente são utilizadas se o sistema
+de compilação detectar métodos que podem ser beneficiados por
+elas. Para tomar essa decisão, um coletor periodicamente faz
+amostragens do uso da CPU pelos métodos. O sistema mantém os métodos
+que mais utilizam a CPU em uma lista ligada, ordenada por maior uso, e
+os repassa para o compilador adequado em intervalos fixos. Não há
+necessariamente uma transição do nível de compilação 1 para o 2 e
+depois para o 3, pode ocorrer de, após passar pelo nível 1, um método
+ser compilado diretamente no nível 3.
+
+Uma variedade de otimizações são aplicadas em cada nível. Entre elas
+estão a  propagação de cópias e de constantes \cite{optconstprog},
+eliminação de código morto,
+eliminação de verificação de exceção \cite{optelimverifcexec} e
+otimizações de laço \cite{muchnick}.
+
+Os resultados demonstram que o compilador de nível 1 conseguiu obter o
+segundo melhor desempenho em alguns casos, apesar de ser o que inclui
+a menor quantidade de otimizações. Entretanto, a combinação entre os 3
+níveis resultou na melhor performance em todos os testes realizados.
+
+\subsection{Psyco}
+
+O Psyco \cite{psyco} trabalha com compilação JIT juntamente com
+especialização sobre a linguagem de programação \texttt{Python}.
+Por especialização entende-se a tradução de um programa qualquer em
+uma versão mais limitada do mesmo, na expectativa de que a versão
+especializada seja mais eficiente do que a original. O Psyco trabalha,
+especificamente, com especialização por avaliação parcial
+\cite{partialeval}. Houve uma tentativa de aplicar um método
+semelhante com a \texttt{Tcl} mas, diferentemente da linguagem
+\texttt{Python} onde tipos são associados a valores, não conseguiu-se
+determinar de forma eficiente o uso de tipos ao decorrer da aplicação.
+
+Diversas versões de uma mesma função são possívelmente produzidas.
+As funções a serem especializadas são selecionadas por meio de um
+contador com decaímento exponencial, descrito em \cite{holzle}.
+
+Em um \textit{benchmark} envolvendo aritmética com números inteiros, o
+Psyco demonstrou melhoria de 109 vezes em relação ao interpretador
+\texttt{Python} padrão. O mesmo teste em \texttt{C} executou 281 vezes
+mais rápido que o interpretador. Ao medir o tempo da aritmética entre
+números complexos, um melhoria de 3.65 vezes foi reportada. Essa
+diminuição drástica entre os dois testes está relacionada com o fato
+do Psyco conseguir representar algumas funções de forma mais
+eficiente, especialmente aquelas envolvendo o uso de números inteiros.
+
+
+%\subsection{Dalvik}
+
+
+%\begin{itemize}
+%\item LuaJit
+%\item Pypy
+%\item Yap
+%\item Java
+%\item Self
+%\end{itemize}
+
+
+%\section{Revisão Bibliográfica}
+%\label{rev_biblio}
+
+% A linguagem \texttt{Tcl} \cite{tclbook} já obteve ganhos de
+% desempenho em diferentes
+% trabalhos. Um deles, que atualmente faz parte da implementação da
+% linguagem, descrito em \citeonline{tcl_bytecode}, é a geração e a
+% interpretação de \textit{bytecodes}. Anterior a esse trabalho, foi
+% demonstrado em \citeonline{sah_tc} que o \textit{parsing} do código
+% e a conversão excessiva entre tipos de dados possuía um alto custo
+% devido ao fato da \texttt{Tcl} tratar tudo como
+% \textit{string}. A partir deste trabalho,
+% a linguagem passou a utilizar representação dupla para os
+% valores presentes na execução do programa.% Uma representação é
+% %interna, possivelmente mais eficiente para se trabalhar. A outra é a
+% %típica representação em \textit{string} que a linguagem sempre usou. Caso uma
+% %delas não esteja disponível, a outra é utilizada para recriar essa
+% %representação se necessário.
+
+% Um trabalho mais recente, descrito por \citeonline{vitale_catenation}, lida
+% com a eliminação do \textit{overhead} de decodificação dos
+% \textit{bytecodes}, introduzido pelo trabalho de \citeonline{sah_tc},
+% fazendo uso de \textit{templates} que contém as instruções em
+% código nativo utilizadas para interpretar cada \textit{bytecode}.
+% Esse código é obtido por meio da compilação do próprio interpretador
+% \texttt{Tcl} e cada \textit{template} é copiado múltiplas vezes,
+% numa área de memória alocada em tempo de execução, de acordo com a
+% quantidade de
+% cada \textit{bytecode} gerado. Nesse mesmo trabalho, o interpretador foi
+% modificado de forma a executar somente o código formado pela
+% concatenação de \textit{templates}, eliminando o \textit{overhead} de
+% decodificação. Demonstrou-se que em certos casos o desempenho da
+% linguagem pode melhorar em até 60\% com a aplicação dessa técnica.
+% Esse trabalho é provavelmente o mais próximo, quando considerando
+% somente a \texttt{Tcl}, do que se pretende produzir aqui.
+% Ele não gera código, mas cópia código já gerado por um compilador
+% estático e replica conforme necessário, fazendo os devidos
+% ajustes, em tempo de execução. Por um lado o tempo de ``compilação'' é
+% bastante baixo, porém, não dá espaço para técnicas de otimização,
+% limitando o potencial de melhoria de desempenho.
+

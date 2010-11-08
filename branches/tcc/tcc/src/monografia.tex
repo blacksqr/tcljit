@@ -1,0 +1,92 @@
+\documentclass[brazil,12p,A4]{abnt}
+\usepackage{paralist}
+\usepackage{graphicx,url,subfigure}
+\usepackage[brazil]{babel}
+\usepackage[utf8]{inputenc}
+%\usepackage{lmodern}
+\usepackage[T1]{fontenc}
+\usepackage{ae}
+\usepackage[alf,bibjustif,abnt-etal-list=0]{abntcite}
+\usepackage{alltt}
+\usepackage{booktabs}
+
+\usepackage{amssymb}
+\usepackage{amsmath}
+
+\usepackage[nice]{nicefrac}
+
+\usepackage{color}
+\usepackage{caption}
+\usepackage{listings}
+\lstset{
+  basicstyle=\footnotesize\ttfamily,
+  %numbers=left,
+  %numberstyle=\tiny,
+  stepnumber=1,
+  numbersep=5pt,
+  tabsize=2,                  % Groesse von Tabs
+  extendedchars=true,         %
+  breaklines=true,            % Zeilen werden Umgebrochen
+  keywordstyle=\bfseries,
+  %frame=tblr,
+  showspaces=false,           % Leerzeichen anzeigen ?
+  showtabs=false,             % Tabs anzeigen ?
+  xleftmargin=17pt,
+  framexleftmargin=17pt,
+  framexrightmargin=5pt,
+  framexbottommargin=4pt,
+  showstringspaces=false,
+}
+\lstloadlanguages{
+  C, Tcl
+}
+
+\DeclareCaptionFont{black}{\color{black}}
+%\DeclareCaptionFormat{listing}{\colorbox[cmyk]{0.43, 0.35,
+%0.35,0.01}{\parbox{\textwidth}{\hspace{15pt}#1#2#3}}}
+\DeclareCaptionFormat{listing}{#1#2#3}
+\captionsetup[lstlisting]{format=listing, textfont=black,
+  }%font=footnotesize}%font={bf,footnotesize}}
+
+\newcommand{\up}[1]{\raisebox{1.5ex}[0pt]{#1}}
+\input{variaveis.tex}
+
+\begin{document}
+
+\baselineskip=.7cm
+
+\input{capa.tex}
+\input{folhaderosto.tex}
+\input{assinaturas.tex}
+%\input{agradecimentos.tex}
+\input{resumo.tex}
+\input{abstract.tex}
+
+\listoffigures
+\listoftables
+\tableofcontents
+
+
+\pagebreak
+
+\input{texto/introducao.tex}
+%\input{texto/ambiente_exec.tex}
+%\input{texto/linguagem_tcl.tex}
+\input{texto/compilacaodinamica.tex}
+\input{texto/tcljit.tex}
+\input{texto/avaliacao.tex}
+%\input{texto/relacionados.tex}
+\input{texto/conclusoes.tex}
+
+\bibliographystyle{anbt-alfheng}
+\bibliography{biblio}
+
+\input{texto/apendice_source.tex}
+
+\pagebreak
+
+\input{capadefundo.tex}
+\input{assinatura.tex}
+
+
+\end{document}

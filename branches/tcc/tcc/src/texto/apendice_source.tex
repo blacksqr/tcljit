@@ -1,0 +1,98 @@
+\chapter*{Apêndice A. Código para alocação e ajuste de páginas}
+\label{apendiceA}
+
+%XXX
+%O código apresentado a seguir ... jit/ em tclsource/generic/, precisa
+%modificar o Makefile também em tclsource/unix/ ..., também tem umas
+%modificações na própria Tcl que ainda precisam ser incluídas aqui.
+
+\renewcommand\lstlistingname{Código}
+
+\begin{lstlisting}[language=C, caption={Alocação de página(s) para o
+    compilador JIT}, frame=tb]
+void *
+newpage(void *size)
+{
+    void *page;
+#ifdef _WIN32
+    page = VirtualAlloc(NULL, *((DWORD *)size),
+                        MEM_COMMIT | MEM_RESERVE,
+                        PAGE_EXECUTE_READWRITE);
+    if (!page) {
+        perror("VirtualAlloc");
+        exit(1);
+    }
+#else
+    page = mmap(NULL, *((size_t *)size),
+                PROT_READ | PROT_WRITE | PROT_EXEC,
+                MAP_ANON | MAP_PRIVATE, 0, 0);
+    if (page == MAP_FAILED) {
+        perror("mmap");
+        exit(1);
+    }
+#endif
+    return page;
+}
+\end{lstlisting}
+
+\begin{lstlisting}[language=C, caption={Tamanho, em bytes, de uma
+    página}, frame=tb]
+#ifdef _WIN32
+DWORD
+pagesize(void)
+{
+    DWORD pagesize;
+    SYSTEM_INFO si;
+    GetSystemInfo(&si);
+    return si.dwPageSize;
+}
+#else
+int pagesize(void)
+{
+    return getpagesize();
+}
+#endif
+\end{lstlisting}
+
+
+\begin{lstlisting}[language=C, caption={Remoção da permissão de
+    escrita de uma ou mais páginas}, frame=tb]
+void
+pagenowrite(void *page, size_t len)
+{
+#ifdef _WIN32
+    DWORD oldProtect;
+    if (VirtualProtect(page, len, PAGE_EXECUTE_READ,
+                       &oldProtect) == 0) {
+        perror("VirtualProtect");
+        exit(1);
+    }
+#else
+    if (mprotect(page, len, PROT_READ | PROT_EXEC) < 0) {
+        perror("mprotect");
+        exit(1);
+    }
+#endif
+}
+\end{lstlisting}
+
+% \lstset{language=C, frame=tb}
+
+% \lstinputlisting[title=jit/tclJitCodeGen.h]{code/generic/jit/tclJitCodeGen.h}
+% \lstinputlisting[title=jit/tclJitCodeGen.c]{code/generic/jit/tclJitCodeGen.c}
+% \lstinputlisting[title=jit/tclJitCompile.h]{code/generic/jit/tclJitCompile.h}
+% \lstinputlisting[title=jit/tclJitCompile.c]{code/generic/jit/tclJitCompile.c}
+% \lstinputlisting[title=jit/tclJitConf.h]{code/generic/jit/tclJitConf.h}
+% \lstinputlisting[title=jit/tclJitExec.h]{code/generic/jit/tclJitExec.h}
+% \lstinputlisting[title=jit/tclJitInsts.h]{code/generic/jit/tclJitInsts.h}
+% \lstinputlisting[title=jit/tclJitOutput.h]{code/generic/jit/tclJitOutput.h}
+% \lstinputlisting[title=jit/tclJitOutput.c]{code/generic/jit/tclJitOutput.c}
+% \lstinputlisting[title=jit/tclJitTypeCollect.h]{code/generic/jit/tclJitTypeCollect.h}
+% \lstinputlisting[title=jit/tclJitTypeCollect.c]{code/generic/jit/tclJitTypeCollect.c}
+
+% \lstinputlisting[title=jit/arch/arch.h]{code/generic/jit/arch/arch.h}
+% \lstinputlisting[title=jit/arch/x86/mcode.h]{code/generic/jit/arch/x86/mcode.h}
+% \lstinputlisting[title=jit/arch/x86/mcode.c]{code/generic/jit/arch/x86/mcode.c}
+
+
+
