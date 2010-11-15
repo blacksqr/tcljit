@@ -1,9 +1,3 @@
-/*
- * Created:  15/07/2010 10:53:50
- *
- * Author:  Guilherme Polo, ggpolo@gmail.com
- *
- */
 #ifndef TCLJIT_CONF_H
 #define TCLJIT_CONF_H
 
@@ -26,7 +20,9 @@
 	JIT_PROCSETUP(ptr);						\
     } while (0)
 
-#define JIT_UPDATEPROCCOUNT(ptr) ptr->jitproc.callCount--
+#define JIT_UPDATEPROCCOUNT(ptr) \
+    if (ptr->jitproc.callCount > 0 && ptr->jitproc.eligible) \
+        ptr->jitproc.callCount--
 #define JIT_READYTOCOMPILE(ptr) (ptr->jitproc.callCount == 0)
 
 
