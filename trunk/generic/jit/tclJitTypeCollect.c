@@ -1,9 +1,3 @@
-/*
- * Created:  15/07/2010 15:10:07
- *
- * Author:  Guilherme Polo, ggpolo@gmail.com
- *
- */
 #include "tclJitTypeCollect.h"
 
 void
@@ -17,7 +11,8 @@ JIT_ResolveType(Proc *procPtr, int pos, int bctype)
     }
 
     switch (bctype) {
-        /* XXX Not considering TCL_NUMBER_WIDE and TCL_NUMBER_NAN yet. */
+        /* XXX Not considering TCL_NUMBER_WIDE and
+         * TCL_NUMBER_NAN yet. */
     case TCL_NUMBER_DOUBLE:
     case TCL_NUMBER_BIG:
 	procPtr->jitproc.bytecodeTypes[pos].type = bctype;
