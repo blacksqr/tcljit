@@ -1777,25 +1777,25 @@ TclObjInterpProcCore(
             procPtr->jitproc.collectingTypes = 1;
         }
 
-        if (procPtr->jitproc.eligible) {
+        if (procPtr->jitproc.eligible && procPtr->jitproc.ncode == NULL) {
             if (JIT_READYTOCOMPILE(procPtr)) {
-                /* XXX */
-                /*printf("## Compile (%s)\n", TclGetString(procNameObj));*/
-	        int xxx = JIT_Compile(procNameObj, interp, codePtr);
+	        procPtr->jitproc.eligible = JIT_Compile(procNameObj,
+                                                        interp, codePtr);
             }
-            /* XXX Won't this possibly decrement "forever" and then
-             * overflow and become 0 again -- causing another compilation ? */
-            JIT_UPDATEPROCCOUNT(procPtr);
         }
+        JIT_UPDATEPROCCOUNT(procPtr);
 #endif
 
 #if TCL_JIT
         if (procPtr->jitproc.ncode != NULL) {
-            //printf("JIT Entering.. %p\n", (void *)((Interp *)interp));
-            result = JIT_RUN(procPtr->jitproc.ncode, (Interp *)interp);
-            //printf("JIT RESULT = %d (%d %s)\n", result,
-            //        ((Interp *)interp)->objResultPtr->internalRep.longValue,
-            //        ((Interp *)interp)->objResultPtr->bytes);
+            result = JIT_RUN(procPtr->jitproc.ncode, interp, codePtr);
+            //printf("JIT RESULT = %d\n", result);
+            if (result == JIT_RESULT_INTERPRET) {
+                /* XXX Right now I'm just transforming this result
+                 * into an error, but we could change it to ask the
+                 * interpreter to interpret this code we just attempted to. */
+                result = TCL_ERROR;
+            }
         } else
 #endif
         {
