@@ -3,6 +3,7 @@ Compiling with JIT under "unix" directory:
 	make clean && CFLAGS="-DTCL_JIT -m32" ./configure && make
 
 
-Running from "unix" directory on Mac OS X:
+Running from "unix" directory:
 
-	DYLD_LIBRARY_PATH=. ./tclsh program.tcl
+	Mac OS X: DYLD_LIBRARY_PATH=. ./tclsh program.tcl
+	Linux:    LD_LIBRARY_PATH=. ./tclsh program.tcl
