@@ -1,9 +1,3 @@
-/*
- * Created:  09/07/2010 23:52:45
- *
- * Author:  Guilherme Polo, ggpolo@gmail.com
- *
- */
 #ifndef TCLJIT_COMPILE_H
 #define TCLJIT_COMPILE_H
 
@@ -47,6 +41,10 @@ struct Value {
         Tcl_Obj *obj;
         int integer;
         struct {
+            int allocated; /* Determines whether a real register has been
+                              allocated or not for this vreg. */
+            int offset; /* Stack offset in case no register has been
+                           allocated. */
             int regnum;
             int type; /* XXX This is likely to change. */
         } vreg;
@@ -56,9 +54,9 @@ struct Value {
 };
 
 /* The existent flags are NOT meant to be ORed. */
-#define JIT_VALUE_LOCALVAR 0
-#define JIT_VALUE_OBJARRAY 1
-
+#define JIT_VALUE_LOCALVAR 1
+#define JIT_VALUE_OBJARRAY 2
+#define JIT_VALUE_PARAM    4
 
 int JIT_Compile(Tcl_Obj *, Tcl_Interp *, ByteCode *);
 
