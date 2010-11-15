@@ -63,7 +63,12 @@ get_value(Value v)
 	snprintf(buffer, 32, "%d", v->content.integer);
 	break;
     case jitreg:
-	snprintf(buffer, 32, "R%d", v->content.vreg.regnum);
+        if (!(v->content.vreg.allocated)) {
+            snprintf(buffer, 32, "R%d[%d]", v->content.vreg.regnum,
+                    v->content.vreg.offset);
+        } else {
+            snprintf(buffer, 32, "R%d", v->content.vreg.regnum);
+        }
 	break;
     default:
 	perror("get_value");
@@ -82,6 +87,9 @@ get_oper(unsigned char op)
     case JIT_INST_INCR:
     case JIT_INST_ADD:
 	snprintf(buffer, 3, "+");
+	break;
+    case INST_SUB:
+	snprintf(buffer, 3, "-");
 	break;
     case INST_MULT:
 	snprintf(buffer, 3, "*");
@@ -105,22 +113,19 @@ get_oper(unsigned char op)
 void
 JIT_bb_output(char *procname, struct BasicBlock *blocks, int numblocks)
 {
-    /*FILE *f;*/
     struct Quadruple *ptr;
-    /*char name[strlen(procname) + 4 + 1];*/
     int i, j;
-
-    /*snprintf(name, sizeof name, "%s.dot", procname);
-      if (!(f = fopen(name, "w"))) {
-      perror("fopen");
-      }*/
 
     for (i = 0; i < numblocks; i++) {
         printf("Block %d (%p)\n", i, &blocks[i]);
         ptr = blocks[i].quads->next;
         while (ptr) {
             switch (ptr->instruction) {
-                /* XXX Missing free. */
+            /* XXX Missing free. */
+            case JIT_INST_SAVE:
+                printf("  RETURN %s\n", get_value(ptr->src_a));
+                break;
+
 	    case JIT_INST_MOVE:
 		printf("  %s := %s\n", get_value(ptr->dest),
 		       get_value_destcheck(ptr->src_a, ptr->dest));
@@ -130,10 +135,49 @@ JIT_bb_output(char *procname, struct BasicBlock *blocks, int numblocks)
 		printf("  GOTO B%s\n", get_value(ptr->dest));
 		break;
 
+            case JIT_INST_NOP:
+                printf("  NOP\n");
+                break;
+
+            case INST_GE:
+		printf("  %s := %s >= %s\n", get_value(ptr->dest),
+		       get_value(ptr->src_a), get_value(ptr->src_b));
+		break;
+            case INST_GT:
+		printf("  %s := %s > %s\n", get_value(ptr->dest),
+		       get_value(ptr->src_a), get_value(ptr->src_b));
+		break;
+	    case INST_EQ:
+		printf("  %s := %s == %s\n", get_value(ptr->dest),
+		       get_value(ptr->src_a), get_value(ptr->src_b));
+		break;
 	    case INST_LT:
 		printf("  %s := %s < %s\n", get_value(ptr->dest),
 		       get_value(ptr->src_a), get_value(ptr->src_b));
 		break;
+            case INST_LE:
+		printf("  %s := %s <= %s\n", get_value(ptr->dest),
+		       get_value(ptr->src_a), get_value(ptr->src_b));
+                break;
+
+            case INST_LNOT:
+                printf("  %s := NOT %s\n", get_value(ptr->dest),
+                        get_value(ptr->src_a));
+                break;
+
+            case INST_DIV:
+		printf("  %s := %s / %s\n", get_value(ptr->dest),
+		       get_value(ptr->src_a), get_value(ptr->src_b));
+                break;
+            case INST_MOD:
+		printf("  %s := %s %% %s\n", get_value(ptr->dest),
+		       get_value(ptr->src_a), get_value(ptr->src_b));
+                break;
+
+            case INST_LOAD_SCALAR1:
+                printf("  %s := @PARAM %d\n", get_value(ptr->dest),
+                        ptr->src_a->offset);
+                break;
 
 	    case JIT_INST_JTRUE:
 		printf("  IF %s GOTO B%s\n", get_value(ptr->src_a),
@@ -151,7 +195,11 @@ JIT_bb_output(char *procname, struct BasicBlock *blocks, int numblocks)
 		break;
 
             case JIT_INST_INCR:
+                printf("  INC %s\n", get_value(ptr->dest));
+                break;
+
 	    case JIT_INST_ADD:
+            case INST_SUB:
 	    case INST_MULT:
 	    case INST_EXPON:
 	    case INST_BITXOR:
