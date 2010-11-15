@@ -14,18 +14,19 @@ Para avaliar o desempenho do compilador JIT desenvolvido, foi feita uma
 análise detalhada com seis \textit{benchmarks} simples. Todos os
 testes foram realizados em um computador com processador Intel Core 2
 Duo, modelo E4700; memória principal de 2 GiB de 666 MHz, DDR2 DIMM;
-\textit{kernel} Linux 2.6.32-25-generic. Foram coletados dados acerca
+\textit{kernel} Linux 2.6.32-25-generic. Foram coletados dados macro acerca
 de: tempo total de execução (\textit{wallclock}),
 tempo da compilação JIT, tempo exclusivo de execução de procedimentos
-com e sem o JIT desenvolvido.
+com e sem o JIT desenvolvido. Também coletou-se dados detalhados
+envolvendo a arquitetura do processador utilizado.
 % XXX Talvez coletar mais usando o PAPI, cache l1 hit/miss
 Em todos os casos fez-se uso da ferramenta PAPI \cite{papisite}
  4.1.1 e,
 com exceção do \textit{wallclock}, a implementação da \texttt{Tcl} foi
 instrumentada para coletar os dados específicos. Foram utilizadas duas
 versões da \texttt{Tcl} 8.5.7, a padrão e outra modificada que inclui
-o compilador JIT.
-% Talvez medir tamanho do código gerado pelo JIT.
+o compilador JIT, ambas compiladas com gcc \verb!-O2!.
+
 
 \section{Benchmarks}
 
@@ -138,7 +139,7 @@ realizar a divisão, mas os compiladores otimizadores a evitam
 \cite{opt-invariantintdiv} por consumir muitos ciclos.
 %XXX Será que ficou claro por que teve os ganhos ?
 
-Os \texttt{benchmarks} \textbf{fact} (Figura \ref{fig:fact-tempo}),
+Os \textit{benchmarks} \textbf{fact} (Figura \ref{fig:fact-tempo}),
 \textbf{gcd} (Figura \ref{fig:gcd-tempo}) e \textbf{gray} (Figura
 \ref{fig:gray-tempo}) não apresentam resultados tão expressivos. No
 caso do \textbf{gray}, tem-se que ele é o teste que requer a menor
@@ -194,7 +195,7 @@ executar o \verb!gray!.
 
 Apesar de apresentar resultados positivos, os dados exibidos até
 agora estão ``contaminados'' com \textit{overhead} herdado da
-máquina virtual \texttt{Tcl}. Para deteminar quanto tempo exatamente
+máquina virtual \texttt{Tcl}. Para determinar quanto tempo exatamente
 é consumido pelo compilador dinâmico, mais dois testes foram
 realizados.
 
@@ -257,16 +258,211 @@ entre os tempos das colunas ``Total'' e ``Exclusivo'' para o caso sem
 JIT é maior, indicando que o sistema de compilação possa estar
 despendendo tempo extra em alguma atividade realizada.
 
-%%% Não consegui fazer dar tempo :/
-%\section{Análise Detalhada}
+%%% Não consegui fazer dar tempo p/ entregar dia 05/11 :/
+\section{Análise Detalhada}
 
-%\begin{itemize}
-%\item impaccto do ambiente no hardware
-%\item coletar métricas com a ferramenta PAPI
-%  (\url{http://icl.cs.utk.edu/papi/})
-%\end{itemize}
+%Para melhor averiguar os resultados apresentados até aqui, na próxima
+%seção é apresentada uma análise mais detalhada.
+De forma a verificar a qualidade do código gerado e também o motivo
+do mesmo ter maior desempenho que aquele gerado por um compilador
+otimizador para o interpretador, fez-se uso dos recursos disponíveis
+para monitoramento de desempenho em \textit{hardware}. A ferramenta
+PAPI possibilitou o acesso a estas informações de mais baixo
+nível. Dentre os eventos monitorados pelo \textit{hardware} utilizado,
+aqueles descritos na Tabela \ref{eventospapi} foram analisados.
+%  de XXX eventos específicos
+% coletados por meio da ferramenta PAPI XXX. A Tabela \ref{eventospapi}
+% apresenta todos os eventos utilizados juntamente com seus respectivos
+% significados.
 
-%%%%%%%%%% XXXX
-%* Apesar dos resultados obtidos terem sido tomados a partir de
-%exemplos sintéticos, pode-se ter uma visão do que pode-se melhorar na
-%implementação do interpretador da \texttt{Tcl}.
+\begin{table}[ht!]
+  \caption{Eventos coletados com uso da PAPI \label{eventospapi}}
+  \centering
+  \begin{tabular}{l l}
+    \toprule
+    Evento & Significado \\
+    \midrule
+    L1\_DCM & Falhas para cache de dados L1 \\
+    L1\_ICM & Falhas para cache de instruções L1 \\
+    L2\_DCM & Falhas para cache de dados L2 \\
+    L2\_ICM & Falhas para cache de instruções L2 \\
+    HW\_INT & Interrupções de \textit{hardware} \\
+    BR\_MSP & Desvios condicionais erroneamente previstos \\
+    BR\_PRC & Desvios condicionais corretamente previstos \\
+    TOT\_INS & Total de instruções completadas \\
+    TOT\_CYC & Total de ciclos utilizados \\
+    RES\_STL & Ciclos suspensos (\textit{stalled}) por qualquer recurso\\
+    L1\_DCA & Acessos ao cache de dados L1 \\
+    L1\_ICA & Acessos ao cache de instruções L1 \\
+    L2\_DCA & Acessos ao cache de dados L2 \\
+    L2\_ICA & Acessos ao cache de instruções L2 \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Os resultados dividem-se entre as Tabelas \ref{detalhes1} e
+\ref{detalhes2}. Somente os \textit{benchmarks} \textbf{fact},
+\textbf{gray} e \textbf{sum$_1$} participaram nesta coleta. Tanto o
+\textbf{gcd} quanto o \textbf{fact} obtiveram um aumento de cerca de
+duas vezes quando considerado seu tempo exclusivo (Tabela
+\ref{tabela-execacc}) e, portanto, escolheu-se aleatoriamente o
+\textbf{fact} para representar essa classe de resultados. Os outros
+dois, \textbf{gray} e \textbf{sum$_1$}, apresentaram-se como o pior e
+melhor em aumento de desempenho e, por isso, foram escolhidos.
+Os dados apresentados resultam da média de quatro execuções
+considerando exclusivamente a execução do procedimento que implementa
+o \textit{benchmark}. Além disso, $n$ foi fixado em $12$ para
+\textbf{fact}, $1000$ para \textbf{gray} e $10000$ para
+\textbf{prime} e foi feito uso de uma única chamada ao procedimento
+do \textit{benchmark} em cada execução.
+% XXX Falta dizer porque escolhi esses 3 benchmarks.
+
+\begin{table}[ht!]
+  \caption{Resultados dos eventos monitorados com PAPI (parte 1) \label{detalhes1}}
+  \centering
+  \footnotesize
+  \begin{tabular}{l r r r r r r r r r}
+    \toprule
+    & & L1\_DCM & L1\_ICM & L2\_DCM & L2\_ICM & HW\_INT & BR\_MSP &
+    BR\_PRC \\
+    \midrule
+
+    \multirow{3}{*}{\begin{sideways}JIT\end{sideways}} &
+    fact & 25,50&25,25&53,25&16,00&0,00&22,00&35,50 \\
+    & gray & 24,00&25,00&62,00&18,50&0,00&13,00&23,00  \\
+    & sum$_1$ & 27,00&24,00&43,25&14,00&0,25&15,75&10.028,25 \\
+
+    \midrule
+
+    \multirow{3}{*}{\begin{sideways}NO JIT\end{sideways}} &
+    fact &99,75&137,25&405,25&133,00&0,00&171,75&1.707,50   \\
+    & gray & 61,50&79,75&233,75&74,50&0,00&34,50&89,50 \\
+    & sum$_1$ & 125,75&189,00&489,50&156,25&1,50&46.801,75&1.498.345,50  \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+%\begin{sidewaystable}[!htbp]
+\begin{table}[ht!]
+  \caption{Resultados dos eventos monitorados com PAPI (parte 2) \label{detalhes2}}
+  \centering
+  \footnotesize
+  \begin{tabular}{l@{\hspace{8px}} r@{\hspace{8px}} r@{\hspace{8px}} r@{\hspace{8px}} r@{\hspace{8px}} r@{\hspace{8px}} r@{\hspace{8px}} r@{\hspace{8px}} r@{\hspace{8px}}}
+    \toprule
+    & & TOT\_INS & TOT\_CYC & RES\_STL & L1\_DCA & L1\_ICA &
+    L2\_DCA & L2\_ICA \\
+    \midrule
+
+    \multirow{3}{*}{\begin{sideways}JIT\end{sideways}} &
+    fact & 834,00&10.666,75&3.256,75&773,00&1.579,00&86,50&51,00 \\
+    & gray &379,00&7.763,25&1.816,50&307,00&925,50&86,75&43,00  \\
+    & sum$_1$ & 310.492,25&235.629,00&154.379,50&331.987,50&230.957,00&99,00&58,25 \\
+
+    \midrule
+
+    \multirow{3}{*}{\begin{sideways}NO JIT\end{sideways}} &
+    fact & 12.553,00&48.928,00&8.507,50&8.522,00&13.073,50&534,75&295,00   \\
+    & gray & 975,00&26.577,00&4.743,25&721,25&2.312,25&344,75&192,25 \\
+    & sum$_1$ & 10.059.777,00&6.134.075,75&479.867,75&6.229.973,25&5.507.760,25&953,00&608,75  \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+Na Tabela \ref{detalhes1}, a coluna HW\_INT demonstra que
+\textit{benchmarks} que necessitam de menos instruções (coluna
+TOT\_INS da Tabela \ref{detalhes2}) não
+registram interrupções de \textit{hardware}. Mais execuções destes
+\textit{benchmarks} demonstraram resultados consistentes com aqueles da coluna
+HW\_INT, com o \textbf{sum$_1$} requerendo cerca de 1 interrupção a
+cada 4 execuções enquanto na configuração JIT e 1,5 interrupção a cada
+execução quando interpretado.
+
+Para avaliar o caso de acesso ao cache L1, os eventos L1\_DCM,
+L1\_ICM, L1\_DCA, L1\_ICA foram agrupados ($(L1\_DCA + L1\_ICA) -
+(L1\_DCM + L1\_ICM)$) de forma a produzir a Figura
+\ref{fig:cachel1}. O mesmo foi feito com os respectivos eventos para o
+cache L2 e o resultado é apresentado na Figura \ref{fig:cachel2}.
+
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[scale=0.70]{figs/cachel1}
+  \caption{Taxa de acerto ao cache L1 \label{fig:cachel1}}
+\end{figure}
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[scale=0.70]{figs/cachel2}
+  \caption{Taxa de acerto ao cache L2 \label{fig:cachel2}}
+\end{figure}
+
+Somente o \textit{benchmark} \textbf{gray} demonstra uma pequena
+vantagem na taxa de acerto ao cache L1, sendo que no geral essa taxa
+foi penalizada com o uso do compilador dinâmico. Para o cache L2 a
+situação é inversa, apenas o \textbf{gray} teve esta taxa de acerto
+reduzida enquanto o \textbf{fact} e \textbf{sum$_1$} aumentaram a
+mesma em cerca de 14\% e 5\%, respectivamente. Entretanto, por meio
+das duas últimas colunas da Tabela \ref{detalhes2}, verifica-se que o
+acesso ao cache L2 foi baixo no geral e, assim, essa taxa de acerto
+maior pouco influência no custo de execução.
+%De forma geral, o código gerado pelo compilador dinâmico diminuiu a
+%taxa de acerto ao cache L1 e aumentou no cache L2. Considerando que o
+%código JIT requer uma quantidade significantimente menor de ciclos
+%(coluna TOT\_CYC, Tabela \ref{detalhes2}), ... % e que a soma das diferenças
+%de falhas entre as colunas \verb!JIT! e \verb!NO JIT! equivale a 
+
+Em relação a desvios incondicionais (Figura \ref{fig:branch}), apenas o
+código gerado para o
+\textit{benchmark} \textbf{sum$_1$} apresentou melhorias em comparação ao
+interpretador. Nos demais casos, houve uma taxa maior de predições
+errôneas ao utilizar o código emitido pelo compilador dinâmico. Este
+resultado negativo pode estar ligado ao fato dos outros testes terem
+um número de $BR\_PRC + BR\_MSP$ baixo quando comparado ao do
+\textbf{sum$_1$}, talvez afetando preditores de desvio existentes no
+processador utilizado. De qualquer modo, as execuções sem uso do JIT
+podem estar indicando um possível ponto de melhoria no interpretador
+da linguagem \texttt{Tcl}: forma de \textit{dispatch} de instruções da
+máquina virtual. Na implementação atual da \texttt{Tcl}, é feito uso
+do método do ``\verb!switch! gigante'' \cite{vmdispatch} que envolve
+desvios e custa cerca
+de três vezes mais que a técnica \textit{direct threading}
+\cite{vmdispatch}.
+
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[scale=0.70]{figs/branching}
+  \caption{Predição em desvios condicionais \label{fig:branch}}
+\end{figure}
+
+Os dados obtidos para o evento RES\_STL (Figura \ref{fig:stalled})
+continuam demonstrando que o código
+emitido pelo compilador dinâmico é, em geral, pior que aquele emitido pelo gcc.
+Proporcionalmente, perde-se mais ciclos por conflito de recursos com o
+código do compilador JIT. No pior caso, 66\% dos ciclos do
+\textbf{sum$_1$} foram ``desperdiçados'' com JIT ao passo em que
+registrou-se apenas 8\% para o mesmo evento na situação sem o JIT.
+
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[scale=0.70]{figs/cyclestall}
+  \caption{Taxa de ciclos suspensos (\%) \label{fig:stalled}}
+\end{figure}
+
+No geral, verificou-se que o código do compilador dinâmico foi
+inferior. Isso era esperado por não se tratar de um compilador otimizador.
+Assim, a vantagem do compilador JIT são as simplificações realizadas
+durante a emissão de código. A Figura \ref{fig:instrelative} apresenta
+a quantidade de instruções executadas para o código do compilador JIT
+em relação àquela do interpretador.
+
+\begin{figure}[ht!]
+  \centering
+  \includegraphics[scale=0.70]{figs/instrelative}
+  \caption{Quantidade de instruções executadas em relação ao
+    interpretador (\%) \label{fig:instrelative}}
+\end{figure}
+
+Com a Figura \ref{fig:instrelative} fica confirmado que,
+levando em consideração as análises
+anteriores, a redução do
+tempo de execução, no caso deste compilador JIT não-otimizador, está
+diretamente ligada a
+diminuição de instruções necessárias para executar um mesmo
+código.

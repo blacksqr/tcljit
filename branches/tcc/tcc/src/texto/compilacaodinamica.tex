@@ -11,7 +11,8 @@ implementações de linguagens de programação como fator motivante para
 a existência e evolução da mesma. A busca por
 interpretadores mais rápidos fez surgir a idéia da compilação dinâmica
 \cite{holzle}, pois, com ela, é possível reduzir o custo de avaliação de
-instruções também elimina o \textit{overhead} de decodificação de instruções.
+instruções e também elimina-se o \textit{overhead} de decodificação de
+instruções.
 A emissão de código nativo não é um requisito dessa compilação, mas é
 o foco do presente trabalho.
 
@@ -53,7 +54,7 @@ de \citeonline{plezbert} distingue 3 classes:
     mas não exatamente sob demanda. Esse modo tenta compilar o máximo
     de código em paralelo a execução em uma tentativa de disponibilizar
     código nativo quando ocorrer a chamada de um procedimento. Caso
-    ocorra uma chamada para um procedimento que ainda tenha sido
+    ocorra uma chamada para um procedimento que ainda não tenha sido
     compilado, pode-se utilizar o interpretador
   \item[Smart JIT]: Permite a execução mista entre máquina virtual e
     código nativo. Ao invocar um método, não necessariamente ocorre a
@@ -96,7 +97,7 @@ realmente são mais
 frequentemente executadas. A compilação de regiões é uma generalização
 daquela com uso de \textit{traces}, onde esta última é formada
 por um único ponto de entrada e múltiplas saídas \cite{jitcompunits}
-enquanto que a primeira trabalha sobre sobre uma coleção arbitrária de
+enquanto que a primeira trabalha sobre uma coleção arbitrária de
 blocos básicos \cite{dragonbook}.
 
 Compiladores dinâmicos podem ser otimizadores ou não. Entretanto, é
