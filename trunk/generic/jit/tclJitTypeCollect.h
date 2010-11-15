@@ -1,9 +1,3 @@
-/*
- * Created:  15/07/2010 15:10:07
- *
- * Author:  Guilherme Polo, ggpolo@gmail.com
- *
- */
 #ifndef TCLJIT_TYPECOLLECT_H
 #define TCLJIT_TYPECOLLECT_H
 
