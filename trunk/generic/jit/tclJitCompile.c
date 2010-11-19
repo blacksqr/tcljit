@@ -144,7 +144,6 @@ tclobj_to_long(Value v)
         return;
     }
     v->content.vreg.type = TCL_NUMBER_LONG;
-    //v->content.lval = v->content.obj->internalRep.longValue; /* XXX */
 }
 
 /* XXX */
@@ -232,7 +231,7 @@ JIT_Compile(Tcl_Obj *procName, Tcl_Interp *interp, ByteCode *code)
             leaders[i + *(pc + 1)] = 1;
             leaders[i + 2] = 1;
             pc++; i++;
-        } else if (op == INST_JUMP_TRUE4) { /* XXX Added 05/11/10 for testing. */
+        } else if (op == INST_JUMP_TRUE4) {
             int result;
             result = *(pc + 1) << 24;
             result+= *(pc + 2) << 16;
@@ -340,14 +339,10 @@ JIT_Compile(Tcl_Obj *procName, Tcl_Interp *interp, ByteCode *code)
                 blocks[i].exitblocks[0] = i + 1;
             }
         } else {
-            /* XXX Something very weird here, if I remove the DEBUG calls
-             * everything tears down. For now there are these two fprintf
-             * calls in place of DEBUG. */
             if (i + 1 == numblocks) {
                 /* This is the "exit" block. */
                 DEBUG("exit block: %d %d\n", i,
 		      GET_INT(blocks[i].lastquad->dest));
-                //fprintf(stderr, "%d\n", i);
 
                 blocks[i].exitcount = 1;
                 blocks[i].exitblocks = malloc(1 * sizeof(int));
@@ -355,7 +350,6 @@ JIT_Compile(Tcl_Obj *procName, Tcl_Interp *interp, ByteCode *code)
             } else {
                 DEBUG("exits %d: %d %d\n", i, i + 1,
 		      GET_INT(blocks[i].lastquad->dest));
-                //fprintf(stderr, "%d", -1);
 
                 blocks[i].exitcount = 2;
                 blocks[i].exitblocks = malloc(2 * sizeof(int));
@@ -489,13 +483,9 @@ build_quad(ByteCode *code, unsigned char *pc, int *adv, int pos, int bc_to_bb[],
     switch (quad->instruction) {
 
     case INST_DONE: /* 0 */
-    /* XXX INST_DONE precisa estar presente em algum lugar do
-     * codigo gerado para sinalizar que algum Tcl_Obj* precisa ser posto
-     * como resultado (Tcl_SetObjResult). */
         DEBUG("(done), ");
         quad->instruction = JIT_INST_SAVE;
         quad->src_a = stack_top(Stack)->dest;
-        //quad->src_a = stack_pop(Stack)->dest; /* XXX 1/11/10 */
         *adv = 1;
         break;
 
@@ -677,7 +667,7 @@ build_quad(ByteCode *code, unsigned char *pc, int *adv, int pos, int bc_to_bb[],
 	 * we also "advance" over the current bytecode. */
 	*adv = 9;
 	/* XXX Understand when we can't just skip to the start of
-	 * the command.*/
+	 * the command. (I don't think there is a case where we can't) */
 	free(quad);
 	quad = NULL;
 	break;
