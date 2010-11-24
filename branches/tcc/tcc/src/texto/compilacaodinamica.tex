@@ -32,7 +32,7 @@ alto desempenho.
 
 % XXX Citar que problemas são esses ?
 Linguagens interpretadas comumente apresentam-se como problemas a
-compiladores estático, isso é devido a falta de informações no momento
+compiladores estáticos, isso é devido a falta de informações no momento
 da compilação \textit{offline} \cite{holzle}.
 Entretanto, um compilador dinâmico tem acesso a todas informações
 produzidas ao longo da execução.
@@ -103,10 +103,14 @@ blocos básicos \cite{dragonbook}.
 Compiladores dinâmicos podem ser otimizadores ou não. Entretanto, é
 mais comum encontrar a primeira forma visto que a intenção é gerar
 código para linguagens com recursos que consomem maior tempo de
-execução. Também torna-se interessante o uso destas técnicas somente
+% XXX Ficou estranho "destas técnicas", alterado
+%execução. Também torna-se interessante o uso destas técnicas somente
+execução. Também torna-se interessante o uso de técnicas de otimização somente
 se o custo da compilação for dominado pelo ganho em desempenho.
- Sistemas \cite{holzle}\cite{judo}\cite{suganuma_ibm} mais
-robustos que empregam estes compiladores têm feito uso de mais de um
+% XXX Corrigindo lugar do cite
+% Sistemas \cite{holzle}\cite{judo}\cite{suganuma_ibm} mais
+ Sistemas mais robustos \cite{holzle}\cite{judo}\cite{suganuma_ibm}
+que empregam estes compiladores têm feito uso de mais de um
 compilador. Em um primeiro momento, a compilação ocorre com uso de um
 tradutor que gera código de forma rápida mas não tão eficiente. Isso
 reduz a ocorrência de pausas durante a execução. Ao
