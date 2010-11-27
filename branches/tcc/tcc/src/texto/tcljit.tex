@@ -1,25 +1,8 @@
 \chapter{Tcl JIT}
 \label{tcljit}
 
-%Uma introdução a seção aqui..
-
-% A situação da implementação do compilador JIT até esse momento é descrita nas
-% subseções seguintes. Esta seção inicia detalhando como nosso
-% compilador foi introduzido na máquina virtual da linguagem \texttt{Tcl} e
-% também como são determinados os procedimentos a serem compilados. Em
-% seguida é descrito como pode ocorrer a execução do código de máquina
-% representado como uma sequência de bytes. A representação
-% intermediária e estruturas utilizadas são apresentadas na sequência e
-% são feitas considerações a respeito do projeto inicial. Finalmente
-% temos uma seção um pouco mais extensa que descreve a geração de código
-% de máquina para a arquitetura IA-32 e uma breve consideração sobre
-% portabilidade para outras arquiteturas.
-
 
 \section{A linguagem Tcl}
-
-% Quando
-% Por que
 
 A linguagem de programação \texttt{Tcl} foi criada em 1989 por John
 K. Ousterhout. Ela é interpretada e atualmente sua máquina virtual
@@ -31,21 +14,22 @@ utilizada por programas que desejam incorporar e estender a
 linguagem.
 
 Três características básicas diferenciam a \texttt{Tcl} de muitas
-outras linguagens: \begin{inparaenum}
-\item orientada a comandos, \item sintaxe curta, \item tudo é
-  \textit{string} UTF--8\end{inparaenum}. Um programa qualquer nesta
+outras linguagens: \begin{inparaenum}[(1)]
+\item orientada a comandos; \item sintaxe curta; \item tudo é
+  \textit{string} UTF--8 (\textit{8-bit Unicode Transformation
+   Format})\end{inparaenum}. Um programa qualquer nesta
 linguagem pode ser visto como uma sequência de chamadas de funções, onde
 cada chamada é descrita pela seguinte EBNF (\textit{Extended
-  Backus-Naur Form}): % \cite{ebnfdoc}:
+  Backus-Naur Form}): \nomenclature{EBNF}{Extended Backus-Naur Form}
+% \cite{ebnfdoc}:
 \verb!comando {argumento}!. Cada \verb!comando! invocado pode: já
 pertencer a linguagem (\textit{built-in}); ou
 ser um comando criado por meio de extensão da linguagem; ou ter
 sido criado com a própria \texttt{Tcl}. Os elementos que seguem um comando
 são passados como argumentos para o mesmo, deixando o tratamento
 semântico destes argumentos por conta do comando. Todo comando retorna uma
-\textit{string} UTF-8 (\textit{8-bit Unicode Transformation Format})
-%\cite{utf8doc},
- , vazia ou não.
+\textit{string}, vazia ou não.
+\nomenclature{UTF-8}{8-bit Unicode Transformation Format}
 
 Como consequência da primeira característica, \textit{keywords} não
 existem na \texttt{Tcl}. Mesmo instruções como
@@ -55,7 +39,7 @@ removidas pelo usuário.
 
 Por tratar tudo como \textit{string}, os tipos de dados inicialmente
 se resumiam a um único tipo. Trabalhos realizados mais tarde
-\cite{sah_tc}\cite{tcl_bytecode} alteraram esta situação, modificando
+\cite{sah_tc, tcl_bytecode} alteraram esta situação, modificando
 a linguagem de forma que possa
 haver uma representação interna mais eficiente conforme os valores vão
 sendo utilizados. Entretanto, representar tudo como \textit{string} ainda
@@ -68,17 +52,6 @@ representação interna mais eficiente ou não, os comandos ficam responsáveis
 por converter os valores, conforme a necessidade, para outros
 tipos para, então, realizar com sucesso ou não sua respectiva operação.
 
-% De acordo com \citeonline{ousterhout_89}, quatro fatores tiveram
-% grande impacto no projeto desta linguagem:
-
-% \begin{enumerate}
-%   \item \textbf{A linguagem é de comandos.XXX}
-%   \item \textbf{A linguagem deve ser programável}
-%   \item \textbf{Deve permitir um interpretador simples e eficiente}
-%     ...
-%   \item \textbf{Deve permitir uma interface simples para aplicações em
-%       C} ...
-% \end{enumerate}
 
 \subsection{Sintaxe e semântica da linguagem}
 
@@ -242,6 +215,7 @@ de uma chamada, um objeto que representa um interpretador. Este objeto
 (referência) é a unidade básica de manipulação
 da \texttt{Tcl} \cite{ousterhout_89}. A partir dele é possível
 acessar a máquina virtual da linguagem (denominada de TVM neste trabalho) e
+\nomenclature{TVM}{Tcl Virtual Machine}
 proceder para a execução de procedimentos.
 
 A partir da versão 8, a TVM é composta por um compilador que produz
@@ -312,7 +286,7 @@ máquina virtual para proceder à sua execução.
 
 A \texttt{Tcl} trabalha num modo misto, com cada comando do usuário sendo
 interpretado por vez mas também permitindo a execução direta de código
-\texttt{C}. São utilizados 131 \textit{bytecodes} (na versão 8.5.7)
+\texttt{C}. São utilizados 132 \textit{bytecodes} (na versão 8.5.8)
 para converter
 código escrito em \texttt{Tcl} para a interpretação pela máquina de
 pilha. Cada comando \textit{built-in} da linguagem fornece uma função
@@ -321,7 +295,7 @@ aplicar otimizações em casos bastante específicos. O comando
  \verb!expr!, por
 exemplo, é capaz de simplificar o código gerado para expressões
 constantes:
- \verb!expr {1 + 2 + 3}! é entendido como \verb!expr {6}!.
+ \verb!expr {1 + 2 + 3}! será interpretado como \verb!expr {6}!.
  Para indicar o término de um comando, estas funções
 utilizadas para esta compilação emitem a instrução
 \verb!INST_DONE!. Ao encontrar este \textit{bytecode}, a máquina
@@ -365,15 +339,17 @@ instância da mesma. Um campo com a estrutura de um
 
 \begin{figure}[h]
   \centering
-  \begin{lstlisting}[language=C]
-    struct JIT_Proc {
-      int eligible;
-      unsigned int callCount;
-      unsigned char *ncode;
-      int collectingTypes;
-      struct JIT_BCType *bytecodeTypes;
-    };
-  \end{lstlisting}
+  \begin{tabular}{c}
+    \begin{lstlisting}[language=C]
+struct JIT_Proc {
+  int eligible;
+  unsigned int callCount;
+  unsigned char *ncode;
+  int collectingTypes;
+  struct JIT_BCType *bytecodeTypes;
+};
+    \end{lstlisting}
+  \end{tabular}
   \caption{Campos da estrutura JIT\_Proc\label{jitproc}}
 \end{figure}
 
@@ -428,11 +404,11 @@ procedimento \texttt{Tcl} pode ter sua execução realizada por meio de
 código de máquina direto ao invés de interpretação é a não nulidade de
 \verb!ncode!. Tendo estabelecido um endereço para esse campo é %deve ser
 possível requerer que tal endereço seja entendido como um endereço para
-uma função.% Se temos um endereço para uma função, devemos conseguir
+uma função. % Se temos um endereço para uma função, devemos conseguir
 %invocar tal função passando os parâmetros esperados. A validade dessas
 %duas últimas tarefas se deve ao fato de que uma função qualquer é
 Isto é válido devido ao fato de uma função qualquer ser
-simplesmente uma sequência de bytes que foi gerada por algum
+simplesmente uma sequência de \textit{bytes} que foi gerada por algum
 compilador para alguma arquitetura. Porém, realizar essa tarefa %essas tarefas
 pode
 requerer uma certa flexibilidade da linguagem que se deseja
@@ -442,7 +418,7 @@ resolver esse problema.
 
 Especificamente, o objetivo é tratar o endereço em
 \verb!ncode! como um ponteiro para uma função que recebe dois
-parâmetros e tem como retorno um valor inteiro%;
+parâmetros e tem como retorno um valor inteiro, %;
 %em seguida invocamos passando os dois parâmetros:
 ou seja:
 \verb!((int (*)(void *, void *))ncode)(param1, param2)!. A escolha
@@ -522,12 +498,13 @@ intermediária, além da existente em \textit{bytecodes}, foi criada.
 
 Inicialmente o objetivo era utilizar uma forma de representação
 intermediária em árvore. E, em uma etapa mais adiante,
-fazer uso de um algoritmo, entre os diversos existentes \cite{noltis}\cite{ir_tree_parsing}\cite{instrselec-dynamic}, para seleção
+fazer uso de um algoritmo, entre os diversos existentes \cite{noltis,
+  ir_tree_parsing, instrselec-dynamic}, para seleção
 de instruções baseada em árvores. % Junto com esse fato,
 %observa-se que o uso de otimizações durante a geração de código não
 %havia sido explicitado no texto anterior.
 Porém, a partir da leitura de
-textos diversos\cite{dragonbook}\cite{muchnick} essa decisão inicial foi repensada de forma a
+textos diversos\cite{dragonbook, muchnick} essa decisão inicial foi repensada de forma a
 simplificar o projeto.
 %Sendo assim, a etapa de especificação do compilador JIT
 %definiu o uso de uma representação intermediária linear de nível
@@ -543,7 +520,7 @@ mas vale ressaltar que um dos principais motivos para uso da SSA, de
 acordo com \citeonline{cytron}, é a possibilidade de executar
 otimizações clássicas de maneira eficiente.
 A construção do grafo de fluxo de controle (CFG
--- \textit{Control Flow Graph})\cite{muchnick} de um trecho de código específico faz
+-- \textit{Control Flow Graph}) \cite{muchnick} de um trecho de código específico faz
 parte dos requisitos para a transformação em SSA, porém ele também é
 atualmente utilizado diretamente na geração de código pelo compilador
 desse trabalho. Com isso
@@ -564,25 +541,26 @@ Na versão atual do compilador a estrutura apresentada na Figura
 
 \begin{figure}[h]
   \centering
-  \begin{lstlisting}[language=C]
-    struct Quadruple {
-      Value *dest;
-      unsigned char instruction;
-      Value *src_a, *src_b;
-      struct Quadruple *next;
-    };
-  \end{lstlisting}
+  \begin{tabular}{c}
+    \begin{lstlisting}[language=C]
+struct Quadruple {
+  Value *dest;
+  unsigned char instruction;
+  Value *src_a, *src_b;
+  struct Quadruple *next;
+};
+     \end{lstlisting}
+   \end{tabular}
   \caption{Estrutura para uma quádrupla\label{quad-struct}}
 \end{figure}
 
-% XXX Justificar por que tem essas instruções JIT_*
 O campo \verb!instruction! tem tipo \verb!unsigned char! pois atualmente
 representa um dos \textit{bytecodes} da \texttt{Tcl} ou uma das
 instruções \verb!JIT_INST_SAVE!, \verb!JIT_INST_MOVE!, %\verb!JIT_INST_CALL!,\\
 \verb!JIT_INST_GOTO!, \verb!JIT_INST_JTRUE!, \verb!JIT_INST_JFALSE!,
 \verb!JIT_INST_INCR! e \verb!JIT_INST_NOP!,
 que podem ser representadas com um
-byte (todas elas tem um número associado no intervalo [0, 255]). Essas
+\textit{byte} (todas elas tem um número associado no intervalo [0, 255]). Essas
 novas instruções foram criadas para eliminar detalhes da máquina de
 pilha ou para deixar mais claro seu significado. No caso da
 \verb!JIT_INST_SAVE!, ela apenas substitui o uso do nome da instrução, da
@@ -621,14 +599,16 @@ quádruplas e formas or blocos básicos.
 
 \begin{figure}[h]
   \centering
-  \begin{lstlisting}[language=C]
-    struct BasicBlock {
-      int id;
-      int exitcount;
-      struct Quadruple *quads, *lastquad;
-      int *exitblocks;
-    };
-  \end{lstlisting}
+  \begin{tabular}{c}
+    \begin{lstlisting}[language=C]
+struct BasicBlock {
+  int id;
+  int exitcount;
+  struct Quadruple *quads, *lastquad;
+  int *exitblocks;
+};
+    \end{lstlisting}
+  \end{tabular}
   \caption{Estrutura para um bloco básico\label{struct-bb}}
 \end{figure}
 
@@ -660,20 +640,24 @@ uso de blocos básicos estendidos.% A visualização dos blocos básicos
 Para exemplificar a construção de um CFG é considerado o procedimento
 descrito na Figura \ref{fig:gray}.
 
+% ???
 \begin{figure}[h]
   \centering
-  \begin{lstlisting}[language=Tcl]
-    proc palindromo {n} {
-      set num $n
-      set inv 0
-      while {$num} {
-        set digito [expr {$num % 10}]
-        set inv [expr {$inv * 10 + $digito}]
-        set num [expr {$num / 10}]
-      }
-      expr {$n == $inv}
-    }
-  \end{lstlisting}
+  \begin{tabular}{c}
+    \begin{lstlisting}%[language=Tcl]
+
+proc palindromo {n} {
+  set num $n
+  set inv 0
+  while {$num} {
+    set digito [expr {$num % 10}]
+    set inv [expr {$inv * 10 + $digito}]
+    set num [expr {$num / 10}]
+  }
+  expr {$n == $inv}
+}
+    \end{lstlisting}
+  \end{tabular}
   \caption{Procedimento que determina se um número $n$ é considerado palíndromo\label{fig:gray}}
 \end{figure}
 
@@ -724,7 +708,7 @@ valor que se parece com número, como \verb!'0'! ou \verb!'10'!, mas
 que estão sendo representados como \textit{strings}. Na realidade esses valores
 são ponteiros para uma estrutura \verb!Tcl_Obj!, podendo assumir
 qualquer tipo interno presente na linguagem. No exemplo anterior estes
-dados realmente serão convertidos para inteiros.% A
+dados realmente serão convertidos para inteiros. % A
 %\textit{string} \verb!'puts'! armazenada no registrador 4 servirá como chave em uma tabela \textit{hash} que possui como valor a
 %respectiva função (ou não, gerando um erro).
 Todos esses ponteiros
@@ -747,8 +731,8 @@ baseando-se na observação de como os
 \textit{bytecodes} são interpretados. Na Figura \ref{bbs}, todos
 os \verb!Tcl_Obj! presentes são oriundos do \textit{array} de objetos
 literais (Seção \ref{ambientexec1}). Carregar estes elementos têm um
-custo tanto em quantidade de \textit{bytes} produzidos quanto na
-performance do código nativo. No bloco básico 1, pode-se ver que há 3
+custo tanto em quantidade de \textit{bytes} produzidos quanto no
+desempenho do código nativo. No bloco básico 1, pode-se ver que há 3
 movimentações de objetos literais (representado por '10'). Nos blocos 0 e 3
 há dois acessos envolvendo o parâmetro formal. É mais simples
 realizar movimentação entre registradores do que acessar o '10'
@@ -816,27 +800,22 @@ conteúdo dos blocos, assumindo que não existirão mais quádruplas do que
 A seguir é realizada uma breve análise de como alguns
 \textit{bytecodes} são convertidos para quádruplas. O exemplo da
 Figura \ref{fig:limiar} é tomado como base para a discussão.
- %Para um caso
-%específico será possível verificar um erro em potencial durante a execução
-%de código.
 
-%O exemplo da Figura \ref{fig:global1} é bastante simples,
-%porém incorreto na linguagem \texttt{Tcl}, pois é necessário preceder
-%explicitamente a variável de seu escopo. Na \texttt{Tcl} o escopo global é
-%simbolizado por ``\verb!::!'', além disto também é possível utilizar o comando
-%\verb!global! para indicar uma lista de variáveis como globais.
-
+% XXX ?? Erro com tabular e language=Tcl
 \begin{figure}[h]
   \centering
-  \begin{lstlisting}[language=Tcl]
-    proc limiar-bipolar {x} {
-      if {$x >= 0} {
-        return 1
-      } else {
-        return -1
-      }
-    }
-  \end{lstlisting}
+  \begin{tabular}{c}
+    \begin{lstlisting}%[language=Tcl]
+
+proc limiar-bipolar {x} {
+  if {$x >= 0} {
+    return 1
+  } else {
+    return -1
+  }
+}
+    \end{lstlisting}
+  \end{tabular}
   \caption{Procedimento exemplo para análise \textit{bytecodes}
     $\rightarrow$ quádruplas\label{fig:limiar}}
 \label{xx$xx}
@@ -854,7 +833,7 @@ código produzido pela \texttt{Tcl}.
 
 \begin{table}[h]
   \centering
-  \caption{Saída produzida pará procedimento da Figura \ref{fig:limiar} \label{tabela1}}
+  \caption{Saída produzida para procedimento da Figura \ref{fig:limiar} \label{tabela1}}
   \begin{tabular}{| p{4cm} | p{4cm} |}
     \hline
     \bf{Bytecode} & \bf{Registradores} \\
@@ -995,7 +974,8 @@ o funcionamento do sistema para
 executar o código gerado, o próximo passo é descrever como tal
 código de máquina é gerado considerando o uso de uma arquitetura CISC
 (\textit{Complex Instruction Set Computer}) e, em específico, a
-IA-32\cite{intel_basicarch}.
+IA-32 \cite{intel_basicarch}.
+\nomenclature{CISC}{Complex Instruction Set Computer}
 
 %Logo após a criação do CFG, a função \verb!JIT_CodeGen! é invocada e o
 %seu resultado é um ponteiro para \verb!unsigned char! que em seguida é
@@ -1047,12 +1027,14 @@ de questões de portabilidade entre os sistemais operacionais Windows e UNIX.
 
 \begin{figure}[h]
   \centering
-  \begin{lstlisting}[language=C]
-    struct MCode {
-      unsigned char *mcode, *codeEnd;
-      int limit, used;
-    };
-  \end{lstlisting}
+  \begin{tabular}{c}
+    \begin{lstlisting}[language=C]
+struct MCode {
+  unsigned char *mcode, *codeEnd;
+  int limit, used;
+};
+    \end{lstlisting}
+  \end{tabular}
   \caption{Estrutura para controlar uso de memória do código gerado\label{mcode-struct}}
 \end{figure}
 
@@ -1066,31 +1048,12 @@ ponto atual na região de memória, respectivamente. O endereço contido em
 \verb!ncode! da estrutura \verb!JIT_Proc! de um procedimento
 específico caso a geração de código tenha sucesso.
 
-% \subsubsection{Código de máquina IA-32} % Anderson marcou como talvez
-%                                 % não necessário
 
-% A arquitetura IA-32  tem sido amplamente utilizada nos computadores de
-% uso pessoal, mantendo portabilidade a nível de código objeto desde o
-% processador 8086 e fazendo uso de um conjunto de instruções complexo (CISC).
-% Essa última característica reflete a grande quantidade de instruções
-% existentes nessa arquitetura (e que tem aumentando) e também a
-% variedade de combinações permitidas. Convenções a cerca de chamadas de
-% funções também tem sido estabelecidas, formando parte de uma interface
-% binária de aplicação (ABI). Nesse trabalho seguiu-se a ABI para
-% chamada de funções descrita em \citeonline{systemv-abi}, que é a mesma
-% seguida pelo Linux e quase a mesma pelo Mac OS X (ver \citeonline{macosx-abi}).
-
-% %\paragraph{Modos de endereçamento}
-% %\quad \\
-% % XXX
-
-%\paragraph{Início e término da geração}
-%\quad \\
 \subsubsection{Início e término da geração}
+\label{begin-end-codegen}
 
-Antes de gerar código específico para um CFG,% a função
-%\verb!JIT_CodeGen! gera um prólogo genérico que pode ser visto na
-é gerado um prólogo genérico que pode ser visto na
+Antes de gerar código específico para um CFG, é gerado um prólogo
+genérico que pode ser visto na 
 Figura \ref{prologo-epilogo}. Após a geração de código para o CFG é
 gerado um epílogo que também é
 apresentado na Figura \ref{prologo-epilogo}. O código gerado pode
@@ -1101,7 +1064,8 @@ definido um ponto base para acessar
 %que é manuseado pelo código do prólogo. Cada \textit{stack frame} pode
 %variar de tamanho, e por isso definimos um ponto base para acessar
 parâmetros ou variáveis locais de forma que seja respeitada as
-condições da ABI \cite{systemv-abi}. Essa base, ou ponto de referência, fica definida como
+condições da ABI \cite{systemv-abi}. Essa base, ou ponto de
+referência, fica definida como 
 o endereço contido no registrador \verb!ebp! após a execução do
 prólogo. É possível encontrar definições de prólogo que incluam código
 para salvar os registradores \verb!ebx!, \verb!edi!, \verb!esi!
@@ -1120,14 +1084,14 @@ na topo da pilha corrente.
 #define PROLOGUE(code, stsize) {  \
   PUSH_REG(code, EBP); \
   MOV_REG_REG(code, ESP, EBP) \
-  if (4 * stsize > 0) { \
+  if (stsize > 0) { \
     if (4 * stsize > 127) { SUB_IMM32_REG(code, 4 * stsize, ESP); } \
     else { SUB_IMM8_REG(code, 4 * stsize, ESP); } \
   } \
 }
 
 #define EPILOGUE(code, stsize) { \
-  if (4 * stsize > 0) { \
+  if (stsize > 0) { \
     if (4 * stsize > 127) { ADD_IMM32_REG(code, 4 * stsize, ESP); } \
     else { ADD_IMM8_REG(code, 4 * stsize, ESP); } \
   } \
@@ -1224,24 +1188,12 @@ não é codificável no modo 64-bits. Ou seja, essa última coluna
 indica quais das instruções atualmente codificadas pelo
 compilador teriam que ser no mínimo ajustadas para gerar código para
 uma arquitetura x64.
-% que pudéssemos
-%trabalhar com a arquitetura x64.
 
-%+rd indica um registrador por meio de um código entre 0 e 7. A letra
-%``d'' vem de ``dword'' (contração de ``doubleword'')
-%e implica no uso de registradores de 32 bits.
-
-%/r sinaliza que o byte ModR/M da instrução contém um operando
-%na forma de registrador e um operando r/m
-%As colunas da tabela \ref{mov-push-1} relacionadas aos operandos são
-%discutidas agora. Encontra-se entre parênteses ``r'' ou ``w'',
 A informação contida entre parênteses ``r'' ou ``w'', indica
 que o conteúdo do operando será lido
 (\textit{\textbf{r}ead}) ou atualizado
-(\textit{\textbf{w}ritten}) pelo processador.% O único operando dessa
-%instrução \verb!PUSH! é um registrador, indicado por ``reg''.
- Para a
-instrução \verb!MOV! é possível utilizar 32 combinações de
+(\textit{\textbf{w}ritten}) pelo processador.
+ Para a instrução \verb!MOV! é possível utilizar 32 combinações de
 endereçamento, devido ao uso do byte ModR/M. Entretanto, o interesse é
 apenas na especificação de registradores. De acordo com a
 Tabela 2.2 do manual em \citeonline[seção 2.1.5]{intel_aam}
@@ -1253,48 +1205,34 @@ linha 9 do código da Figura \ref{prologo-epilogo} está resolvida.
 
 \subsubsection{Percorrendo Blocos e Gerando Código}
 
-O gerador de código percorre os blocos básicos do CFG, por meio de uma
-busca em profundidade e gerando código para as instruções contidas em
+O gerador de código percorre os blocos básicos do CFG por meio de uma
+busca em profundidade e emite código para as instruções contidas em
 cada bloco. Durante o percurso do CFG, cada quádrupla
-%Uma busca em profundidade é disparada partindo do nó (bloco básico) inicial
-%do CFG e a cada bloco visitado ocorre geração de código para aquele
-%bloco. Uma quádrupla por vez
 do bloco básico corrente é acessada e um
 \textit{switch} de instruções define qual cláusula corresponde a
-instrução contida na quádrupla.% Determinada a instrução que deverá ter
-%código gerado, chegamos ao assunto principal dessa subseção.
+instrução contida na quádrupla.
 
 Devido a granularidade alta, imposta pela representação intermediária
 atual, mesmo instruções simples requerem uma quantidade
 relativamente alta de \textit{bytes} para codificá-las. Para realizar
 uma discussão detalhada, faz-se uso de uma única instrução de
 multiplicação.
-% simples como a \verb!JIT_INST_INCR! requer uma
-%quantidade relativamente alta de bytes para codificá-la e, portanto,
-%é possível utilizá-la para uma discussão detalhada.
-%podemos aproveitá-la para uma discussão detalhada.
 
 O exemplo da Figura \ref{myinc} gera 2 blocos básicos com um total de 5
 quádruplas, o processo de tradução de \textit{bytecodes} é exibido na
 Tabela \ref{tabela-processo}.
-%  O comando \verb!incr! da \texttt{Tcl} permite
-% que uma variável, que pode ter seu valor representado como um inteiro,
-% seja incrementada ou decrementada em qualquer quantidade inteira.
-% Porém, o compilador
-% JIT, ao detectar o \textit{bytecode} \verb!INST_INCR_SCALAR1_IMM! (gerado pela
-% \texttt{Tcl} para o comando \verb!incr!), codifica-o
-% como \verb!JIT_INST_INCR! somente se o valor absoluto do incremento
-% for 1. Para os demais casos uma instrução \verb!JIT_INST_ADD! é utilizada.
-% Este exemplo utiliza o comportamento padrão do comando \verb!incr!, que
-% incrementa em uma unidade a variável indicada.
 
+% XXX ?? Erro estranho se deixar language=Tcl
 \begin{figure}[ht!]
   \centering
-  \begin{lstlisting}[language=Tcl]
-    proc twice {x} {
-      expr {$x * $x}
-    }
-  \end{lstlisting}
+  \begin{tabular}{c}
+    \begin{lstlisting}%[language=Tcl]
+
+proc twice {x} {
+  expr {$x * $x}
+}
+    \end{lstlisting}
+  \end{tabular}
   \caption{Código exemplo para análise da geração de código \label{myinc}}
 \end{figure}
 
@@ -1344,7 +1282,7 @@ começam com \verb!JIT_! foram reaproveitados da \texttt{Tcl}.
 Outra informação contida
 diz respeito a quantidade de \textit{bytes} a serem reservados na
 pilha, definindo o parâmetro \verb!stsize! para o código do prólogo e
-epílogo da Figura \ref{prologo-epilogo}. Como este compilador não é
+epílogo da Figura \ref{prologo-epilogo}. Por tratar-se de um compilador não
 otimizador, também não é aplicado uma fase de alocação de
 registradores. Por isso, cada registrador virtual é mapeado para um
 endereço na pilha e seus endereços são derivados a partir do seu
@@ -1363,68 +1301,51 @@ primeiro parâmetro para um registrador. O código na Figura
 \ref{copy-param} realiza essa primeira função de acordo com a ABI escolhida.
 
 
-% A instrução \verb!JIT_INST_INCR! sendo corretamente
-% codificada, o valor do operando A (campo \verb!src_a! da estrutura
-% \verb!Quadruple! da Figura \ref{quad-struct}) contém uma
-% indicação de que o operando é uma variável local. % Sendo assim,
-% %precisamos chegar a essa variável local.
-% A Seção \ref{codeexec} % foi
-% descreveu a assinatura da função criada pelo compilador JIT,
-% sem detalhas os tipos dos argumentos.
-% % mas ainda
-% %não foi dito quais os tipos dos parâmetros que seriam
-% %passados. Seguindo a compatibilidade com a função
-% Para manter a compatibilidade com as estruturas internas do ambiente de
-% execução, o primeiro parâmetro é uma estrutura
-% interna \verb!Interp! que será utilizada para acessar a
-% variável local. A partir desta, os primeiros bytes
-% gerados são referentes a movimentação do primeiro parâmetro para
-% um registrador.
 \begin{figure}[ht!]
   \centering
-  \begin{lstlisting}[language=C]
+  \begin{tabular}{c}
+    \begin{lstlisting}[language=C]
 #define COPY_PARAM_REG(code, paramn, reg) \
-    MOV_DISP8DREG_REG(code, 8 + 4 * paramn, EBP, reg)
+  MOV_DISP8DREG_REG(code, 8 + 4 * paramn, EBP, reg)
 
 #define MOV_DISP8DREG_REG(code, disp, src, dest) \
-    *code++ = 0x8B;                              \
-    *code++ = MODRM(0x1, dest, src);             \
-    *code++ = disp
-  \end{lstlisting}
+  *code++ = 0x8B;                              \
+  *code++ = MODRM(0x1, dest, src);             \
+  *code++ = disp
+    \end{lstlisting}
+  \end{tabular}
   \caption{Cópia de parâmetro para registrador seguindo ABI escolhida\label{copy-param}}
 \end{figure}
 
 Assumindo um uso da forma:
-\verb!COPY_PARAM_REG(code, 0, EAX)!, é possível encontrar em tempo de execução o
-endereço de uma estrutura \verb!Interp! no registrador
-\verb!eax!. Vale ressaltar a existência de outra variação
+\verb!COPY_PARAM_REG(code, 0, EAX)!, será possível encontrar em tempo de 
+execução o endereço de uma estrutura \verb!Interp! no registrador 
+\verb!eax!. Vale ressaltar o uso de outra variação
 da instrução
-\verb!MOV!, que pode ser traduzida para \texttt{Assembly} como:
-\verb!movl 8(%ebp), %eax!. Nesse ponto é possível atravessar a estrutura até
+\verb!MOV! aqui (em complemento àquela da Tabela \ref{mov-push-1}),
+ que é traduzida para \texttt{Assembly} como:
+\verb!movl disp(%src), %dest!. Nesse ponto é possível atravessar a
+estrutura \verb!Interp! até
 alcançar o \textit{array} que contém todas as variáveis locais, utilizando
 trecho de código apresentado na Figura \ref{goto-varstruct}.
 
 \begin{figure}[ht!]
   \centering
-  \begin{lstlisting}[language=C]
-    long int offset;
-    offset = offsetof(Interp, varFramePtr);
-    MOV_DISP8DREG_REG(code, offset, EAX, EAX);
-    offset = offsetof(CallFrame, compiledLocals);
-    MOV_DISP8DREG_REG(code, offset, EAX, EAX);
-  \end{lstlisting}
+  \begin{tabular}{c}
+    \begin{lstlisting}[language=C]
+long int offset;
+offset = offsetof(Interp, varFramePtr);
+MOV_DISP8DREG_REG(code, offset, EAX, EAX);
+offset = offsetof(CallFrame, compiledLocals);
+MOV_DISP8DREG_REG(code, offset, EAX, EAX);
+    \end{lstlisting}
+  \end{tabular}
   \caption{Percorrendo Interp até variáveis locais\label{goto-varstruct}}
 \end{figure}
 
-% XXX COlocar isso em algum lugar
-% Como é feito a suposição de
-%que os valores serão inteiros, também é feito uma tentativa de
-%conversão de \verb!Tcl_Obj! para inteiro aqui.
-
 
 A estrutura \verb!Interp! possui o campo \verb!varFramePtr! que
-aponta para um \verb!CallFrame!. % que possui acesso as variáveis atualmente em
-%uso.
+aponta para um \verb!CallFrame!. 
 A estrutura \verb!CallFrame!, por sua vez, possui um
 \verb!array! de tipo \verb!Var!, chamado de \verb!compiledLocals!,
 que armazena as variáveis locais. Portanto, a Figura
@@ -1443,19 +1364,21 @@ essa razão, o deslocamento será 0 no \verb!array! \verb!compiledLocals!.
 
 \begin{figure}[h]
   \centering
-  \begin{lstlisting}[language=C]
+  \begin{tabular}{c}
+    \begin{lstlisting}[language=C]
 #define ADD_IMM8_REG(code, imm, reg) \
-    *code++ = 0x83;                  \
-    *code++ = MODRM(0x3, 0, reg);    \
-    *code++ = imm
+  *code++ = 0x83;                  \
+  *code++ = MODRM(0x3, 0, reg);    \
+  *code++ = imm
 
 
-    if (src_a->offset) {
-      ADD_IMM8_REG(code, sizeof(Var) * src_a->offset, EAX);
-    }
-    offset = offsetof(Var, value.objPtr);
-    MOV_DISP8DREG_REG(code, offset, EAX, EAX);
-  \end{lstlisting}
+if (src_a->offset) {
+  ADD_IMM8_REG(code, sizeof(Var) * src_a->offset, EAX);
+}
+offset = offsetof(Var, value.objPtr);
+MOV_DISP8DREG_REG(code, offset, EAX, EAX);
+    \end{lstlisting}
+  \end{tabular}
   \caption{Acessando variável local\label{goto-localvar}}
 \end{figure}
 
@@ -1485,27 +1408,29 @@ utilizado neste momento.
 
 \begin{figure}[h]
   \centering
-  \begin{lstlisting}[language=C]
-    AND_IMM8_REG(code, -16, ESP); /* Alinhamento */
-    PUSH_REG(code, EBX);          /* calle-save  */
+  \begin{tabular}{c}
+    \begin{lstlisting}[language=C]
+AND_IMM8_REG(code, -16, ESP); /* Alinhamento */
+PUSH_REG(code, EBX);          /* calle-save  */
 
-    /* End. mem. para armazenar valor inteiro. */
-    LEA_DISP8DREG_REG(code, staddr, EBP, EDX);
+/* End. mem. para armazenar valor inteiro. */
+LEA_DISP8DREG_REG(code, staddr, EBP, EDX);
 
-    PUSH_REG(code, EDX);          /* End. armaz. valor */
-    PUSH_REG(code, EAX);          /* (Tcl_Obj *) */
-    PUSH_DISP8DREG(code, 8, EBP); /* (Interp *) */
+PUSH_REG(code, EDX);          /* End. armaz. valor */
+PUSH_REG(code, EAX);          /* (Tcl_Obj *) */
+PUSH_DISP8DREG(code, 8, EBP); /* (Interp *) */
 
-    MOV_IMM32_REG(code, (ptrdiff_t)Tcl_GetLongFromObj, EBX);
-    CALL_ABSOLUTE_REG(code, EBX);
+MOV_IMM32_REG(code, (ptrdiff_t)Tcl_GetLongFromObj, EBX);
+CALL_ABSOLUTE_REG(code, EBX);
 
-    ADD_IMM8_REG(code, 12, ESP);
-    POP_REG(code, EBX);
+ADD_IMM8_REG(code, 12, ESP);
+POP_REG(code, EBX);
 
-    /* Verificar por cod. retorno. */
-    CMP_IMM8_REG(code, 0, EAX);
-    JUMP_NOTEQ(code, ``LINTERP'');
-  \end{lstlisting}
+/* Verificar por cod. retorno. */
+CMP_IMM8_REG(code, 0, EAX);
+JUMP_NOTEQ(code, ``LINTERP'');
+    \end{lstlisting}
+  \end{tabular}
   \caption{Conclusão da instrução LOAD\_SCALAR \label{fimloadscalar}}
 \end{figure}
 
@@ -1516,8 +1441,10 @@ refere-se a um endereço na pilha calculado por meio campo
 X \cite{macosx-abi}, que exige este alinhamento para chamadas de
 funções mesmo na arquitetura IA-32. Um outro ponto a considerar neste
 código, é a verificação de código de erro. Esse rótulo \verb!LINTERP!
-aparece logo abaixo do epílogo criado inicialmente, agindo como um
-outro epílogo mas que define o valor do registrador \verb!eax! como
+(última linha da Figura \ref{fimloadscalar})
+aparece logo abaixo do epílogo criado inicialmente (Subseção
+\ref{begin-end-codegen}), agindo como um
+outro epílogo mas que define o conteúdo do registrador \verb!eax! como
 sendo \verb!JIT_RESULT_INTERPRET!. Quando essa posição do código é
 atingida, significa que a suposição de que os valores seriam inteiros
 falhou e o código deve ser interpretado pela TVM.
@@ -1571,59 +1498,61 @@ realiza essas tarefas finais.
 
 \begin{figure}[ht!]
   \centering
-  \begin{lstlisting}[language=C]
+  \begin{tabular}{c}
+    \begin{lstlisting}[language=C]
 #define PUSH_DISP8REG(code, disp, reg) \
-    *code++ = 0xFF;                    \
-    *code++ = MODRM(0x1, 6, reg);      \
-    *code++ = disp
+  *code++ = 0xFF;                    \
+  *code++ = MODRM(0x1, 6, reg);      \
+  *code++ = disp
 #define MOV_IMM32_REG(code, imm32, reg) \
-    *code++ = 0xB8 + dest;              \
-    IMM32(code, imm32)
+  *code++ = 0xB8 + dest;              \
+  IMM32(code, imm32)
 #define CALL_ABSOLUTE_REG(code, reg) \
-    *code++ = 0xFF;                  \
-    *code++ = MODRM(0x3, 2, reg)
+  *code++ = 0xFF;                  \
+  *code++ = MODRM(0x3, 2, reg)
 #define POP_REG(code, reg) *code++ = 0x58 + reg
 #define XOR_REG_REG(code, src, dest) \
-    *code++ = 0x33;                  \
-    *code++ = MODRM(0x3, src, dest)
+  *code++ = 0x33;                  \
+  *code++ = MODRM(0x3, src, dest)
 
 #define IMM32(code, v) \
-    *code++ = v; *code++ = v >> 8; \
-    *code++ = v >> 16; *code++ = v >> 24
-  \end{lstlisting}
+  *code++ = v; *code++ = v >> 8; \
+  *code++ = v >> 16; *code++ = v >> 24
+    \end{lstlisting}
+  \end{tabular}
   \caption{Macros adicionais requeridos pela Figura \ref{myinc-last}\label{myinc-last-macros}}
 \end{figure}
 
 \begin{figure}[ht!]
   \centering
-  \begin{lstlisting}[language=C]
-    MOV_DISP8DREG_REG(code,
-        INDEX_TO_STACKADDR(VREG_OFFSET(src)), EBP, EDX);
+  \begin{tabular}{c}
+    \begin{lstlisting}[language=C]
+MOV_DISP8DREG_REG(code,
+    INDEX_TO_STACKADDR(VREG_OFFSET(src)), EBP, EDX);
 
-    /* Chamar Tcl_SetObjResult. */
-    PUSH_REG(code, EDX); /* Resultado de x * x. */
-    MOV_IMM32_REG(code, (ptrdiff_t)Tcl_NewLongObj, EAX);
-    CALL_ABSOLUTE_REG(code, EAX);
-    /* EAX recebeu o Tcl_Obj* resultante. */
+/* Chamar Tcl_SetObjResult. */
+PUSH_REG(code, EDX); /* Resultado de x * x. */
+MOV_IMM32_REG(code, (ptrdiff_t)Tcl_NewLongObj, EAX);
+CALL_ABSOLUTE_REG(code, EAX);
+/* EAX recebeu o Tcl_Obj* resultante. */
 
-    PUSH_REG(code, EAX);
-    PUSH_DISP8DREG(code, 8, EXP); /* (Interp *) */
-    MOV_IMM32_REG(code, (ptrdiff_T)Tcl_SetObjResult, ECX);
-    CALL_ABSOLUTE_REG(code, ECX);
+PUSH_REG(code, EAX);
+PUSH_DISP8DREG(code, 8, EXP); /* (Interp *) */
+MOV_IMM32_REG(code, (ptrdiff_T)Tcl_SetObjResult, ECX);
+CALL_ABSOLUTE_REG(code, ECX);
 
-    /* ``Remove'' 8(%ebp) e EAX da pilha. */
-    ADD_IMM8_REG(code, 4, ESP);
+/* ``Remove'' 8(%ebp) e EAX da pilha. */
+ADD_IMM8_REG(code, 4, ESP);
 
-    /* Retornar TCL_OK (ver ABI). */
-    XOR_REG_REG(code, EAX, EAX);
-    GOTO(code, ``LEAVE'');
-  \end{lstlisting}
+/* Retornar TCL_OK (ver ABI). */
+XOR_REG_REG(code, EAX, EAX);
+GOTO(code, ``LEAVE'');
+    \end{lstlisting}
+  \end{tabular}
   \caption{Tarefas finais para o código da Figura \ref{myinc}\label{myinc-last}}
 \end{figure}
 
-Após concluir a geração de código, %para a quádrupla atual, verifica-se
-%que não há mais quádruplas ou mesmo outros blocos a serem visitados
-a função
+Após concluir a geração de código, a função
 \verb!JIT_CodeGen! está pronta para encerrar; ajustando a permissão
 das páginas utilizadas e retornando
 o endereço inicial para a sequência de bytes gerada. %que pode ser executada
@@ -1639,18 +1568,8 @@ de nível médio, respectivamente.
   \includegraphics[scale=0.68]{figs/codelongo}
 \end{table}
 
-
-%Com esse código gerado funcionando podemos descrever como eliminar a
-%suposição de que o objeto a ser incrementado contém um valor inteiro
-%coerente na união \verb!internalRep! (ver figura \ref{inc-tclobj}).
-% XXX Se continuar aqui vou precisar detalhar labels
-% pendentes.. talvez essa seção fique demasiadamente longa.
-
 Apesar do procedimento codificado ser bastante simples, é possível
-reutilizar código para outras instruções. % Uma
-%instrução de adição ou subtração entre uma variável e uma constante
-%qualquer requer somente a troca da \verb!INC_DREG! por uma outra
-%similar, a \verb!ADD_IMM8_REG!.
+reutilizar código para outras instruções.
  A parte do código que acessa
 variáveis locais é reaproveitada pelo código que acessa objetos
 literais, com pequenas modificações. A movimentação entre
