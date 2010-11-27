@@ -206,35 +206,51 @@ situação nova e tomada a média do tempo.
 \begin{table}[ht!]
   \caption{Tempo de execução dos \textit{benchmarks} no maior caso\label{tabela-execacc}}
   \centering
-  \begin{tabular}{l c c c c c c r}
+  \begin{tabular}{l r r r r r}
     \toprule
 & \multicolumn{2}{c}{JIT (s)} & \multicolumn{2}{c}{NO JIT (s)} \\
 \cmidrule(r){2-3} \cmidrule(r){4-5}
     \textit{Benchmark}  & Total & Exclusivo & Total & Exclusivo & Melhoria (vezes) \\
     \midrule
-    fact & 0,14 & 0,04  & 0,30 & 0,19  & 4,75    \\
-    gcd & 1,32 & 0,37  & 2,08 & 1,14  & 3,08   \\
-    gray & 0,52 & 0,13  & 0,57 & 0,17   & 1,30   \\
-    prime & 0,04 & 0,03 & 0,56 & 0,54   & 18,00     \\
-    sum$_1$ & 0,46 & 0,44 & 10,60 & 10,22   & 23,22    \\
-    sum$_2$ & 0,73 & 0,71 & 11,61 & 10,87   & 15,30     \\
+    fact & 0,14 & 0,04  & 0,34 & 0,23  & 5,75    \\
+    gcd & 1,32 & 0,37  & 2,49 & 1,55  & 4,18   \\
+    gray & 0,52 & 0,13  & 0,67 & 0,27   & 2,07   \\
+    prime & 0,05 & 0,04 & 0,82 & 0,80   & 20,00     \\
+    sum$_1$ & 0,46 & 0,44 & 13,48 & 13,10   & 29,72    \\
+    sum$_2$ & 0,73 & 0,71 & 15,81 & 15,05   & 21,19     \\
     \bottomrule
   \end{tabular}
 \end{table}
 
-% XXX Esse parágrafo ficou muito muito muito estranho.
+%Motivo para os resultados acima:
+%gray, prime, sum1 e sum2 só tem um laço de 0 .. n - 1
+%gcd e fact tem for i 0 .. n - 1
+%                 for j 0 .. n - 1
+%mas gray é o que tem o maior laço para executar, 500.000
+% --> Se o custo relativo entre tempo exclusivo e total for maior
+% para o caso sem JIT, então na realidade o sistema de compilação
+% dinâmica demonstra um certo impacto no ambiente de execução. Porém,
+% ele consegue recuperar esse "tempo perdido" por meio da execução do
+% código emitido pelo JIT.
+
 A última coluna da Tabela \ref{tabela-execacc} refere-se a melhoria na
-nova situação: tempo exclusivo com JIT e sem JIT. Os
-\textit{benchmarks} \textbf{fact}, \textbf{gcd} e \textbf{gray} que
-tinham tido o menor ganho (Figura \ref{fig:media-tempo}) melhoraram um
-pouco se comparados somente seu tempo exclusivo de execução. Isso
-indica que o tempo gasto pelo restante do sistema JIT instalado na
-\texttt{Tcl} tem impacto menor para menores procedimentos. Entretanto,
-também vê-se que o resultado nos demais testes não
-foi tão bom quanto antes. No três casos verifica-se que a diferença
-entre os tempos das colunas ``Total'' e ``Exclusivo'' para o caso sem
-JIT é maior, indicando que o sistema de compilação possa estar
-despendendo tempo extra em alguma atividade realizada.
+nova situação: tempo exclusivo com JIT e sem JIT.
+Em relação aos tempos observados, nota-se que os \textit{benchmarks} que fazem
+uso de dois níveis de laços (\textbf{gcd} e \textbf{fact}), que
+executam sem serem compilados, e
+também o \textbf{gray} que teve $n$ definido em 500.000 para o maior
+caso, são os que apresentam as maiores reduções quando
+considerado seus respectivos tempos exclusivos. Isso ocorre
+independente de utilizar o JIT ou não, pois em ambas situações esse
+custo é removido. Entretanto, ao realizar 
+$\sum_{i = 1}^{6} \left( \frac{exclusivo}{total} \frac{1}{6} \right)$
+com os dados da Tabela
+\ref{tabela-execacc} para o caso com JIT e o
+caso sem JIT, verifica-se que os valores obtidos são, respectivamente,
+$0,59$ e $0,77$. Isso indica que, além do tempo exclusivo com JIT ser
+relativamente mais rápido que sem JIT, ao mesmo tempo que o restante
+do sistema de compilação dinâmica impacta no tempo total também
+consegue-se recuperar este tempo por meio da execução não interpretada.
 
 
 \section{Análise Detalhada}
@@ -373,11 +389,6 @@ mesma em cerca de 14\% e 5\%, respectivamente. Entretanto, por meio
 das duas últimas colunas da Tabela \ref{detalhes2}, verifica-se que o
 acesso ao cache L2 foi baixo no geral e, assim, essa taxa de acerto
 maior pouco influência no custo de execução.
-%De forma geral, o código gerado pelo compilador dinâmico diminuiu a
-%taxa de acerto ao cache L1 e aumentou no cache L2. Considerando que o
-%código JIT requer uma quantidade significantimente menor de ciclos
-%(coluna TOT\_CYC, Tabela \ref{detalhes2}), ... % e que a soma das diferenças
-%de falhas entre as colunas \verb!JIT! e \verb!NO JIT! equivale a 
 
 Em relação a desvios incondicionais (Figura \ref{fig:branch}), apenas o
 código gerado para o
@@ -396,7 +407,7 @@ desvios e custa cerca
 de três vezes mais que a técnica \textit{direct threading}
 \cite{vmdispatch}.
 
-\begin{figure}[ht!]
+\begin{figure}[h!]
   \centering
   \includegraphics[scale=0.70]{figs/branching}
   \caption{Predição em desvios condicionais \label{fig:branch}}
@@ -431,7 +442,7 @@ em relação àquela do interpretador.
 \end{figure}
 
 Com a Figura \ref{fig:instrelative} fica confirmado que,
-levando em consideração as análises
+considerando as análises
 anteriores, a redução do
 tempo de execução, no caso deste compilador JIT não-otimizador, está
 diretamente ligada a

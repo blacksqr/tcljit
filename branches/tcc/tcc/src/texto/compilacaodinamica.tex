@@ -120,34 +120,33 @@ de código.
 A implementação da \texttt{Smalltalk-80} \cite{bluebook} de
 \citeonline{deutsch84efficient} faz uso da compilação dinâmica para
 transformar \textit{v-code} em código nativo (chamado de
-\textit{n-code}). A motivação foram os
-recursos da linguagem \texttt{Smalltalk}, como alocação dinâmica e
+\textit{n-code}). A motivação para empregar esta técnica teve relação
+com os recursos da linguagem \texttt{Smalltalk}, como alocação dinâmica e
 procedimentos universalmente polimórficos \cite{sebesta}, que são
-difíceis de serem traduzidos de forma eficiente. Não é feito uso do
-modo misto (\textit{Smart JIT}) aqui, sempre que houver uma chamada
-o código nativo é primeiramente gerado, caso ainda não exista, e
-depois este código é executado.
+difíceis de serem traduzidos de forma eficiente. Não foi feito uso do
+modo misto (\textit{Smart JIT}), na ocorrência de uma chamada sempre
+realiza-se primeiro geração de código nativo, caso ainda não exista,
+para depois iniciar a execução do método.
 
 Na época em que esta implementação ocorreu, haviam restrições severas
-de memória. Por este motivo, o trabalho tem a preocupação de verificar
-se o código nativo gerado será paginado ou não. Caso isso venha a
-ocorrer, o código é descartado e gerado novamente quando outra
-invocação ao procedimento ocorrer. No presente trabalho, esse cuidado
+de memória. Por este motivo, o trabalho teve a preocupação de verificar
+se o código nativo gerado seria paginado ou não. Caso isso viesse a
+ocorrer, o código seria descartado e gerado novamente quando outra
+invocação ao procedimento ocorresse. No presente trabalho, esse cuidado
 não é tomado e não foi levado em consideração.
 
-Durante esta implementação da \texttt{Smalltalk}, houve a preocupação
-em permitir a utilização
-de compiladores dinâmicos
+Durante esta implementação da \texttt{Smalltalk}, também houve a
+preocupação em permitir a utilização de compiladores dinâmicos
 variados, mas não todos ao mesmo tempo.
 \citeonline{deutsch84efficient} descrevem duas implementações
-testadas, a primeira faz uso de otimizações \textit{peephole}
+que foram testadas, a primeira faz uso de otimizações \textit{peephole}
 \cite{muchnick} esparsamente e obtém tamanho de código reduzido
 quando comparado a outra. A segunda implementação é mais agressiva nas
 otimizações aplicadas, aplicando a expansão \textit{in-line} até para
 operações aritméticas e relacionais. Nessa configuração mais agressiva
 foram obtidos os melhores resultados, chegando a um tempo quase 2
-vezes menor comparando-se com o interpretador puro. O trabalho aqui proposto
-alcança reduções maiores, mas apenas para um subconjunto
+vezes menor comparando-se com o interpretador puro. O trabalho aqui
+proposto alcança reduções maiores, mas apenas para um subconjunto
 pequeno da linguagem ao passo em que a implementação de
 \citeonline{deutsch84efficient} trabalha por completo na
 especificação da linguagem envolvida.
@@ -167,8 +166,9 @@ arquitetura de um processador RISC (\textit{Reduced Instruction Set
 \nomenclature{RISC}{Reduced Instruction Set Computer}.
 Entretanto, o trabalho de \citeonline{cacao} tem a preocupação
 de eliminar as ineficiências da máquina de pilha  (\textit{load} \&
-\textit{store}) quando convertidas para registradores.
-A alocação de registradores é feita de forma simples e rápida.
+\textit{store}) quando convertidas para registradores. O trabalho não
+da detalhes sobre a alocação de registradores, mas menciona que é
+feito de forma simples e rápida.
 
 A arquitetura deste sistema ainda envolve a definição de um novo
 \textit{layout} de objetos e métodos em \texttt{Java}, tornando o
@@ -188,15 +188,15 @@ entre 1.01 e 1.66 vezes pior que aquele obtido com o gcc.
 O projeto Jikes RVM (\textit{Research Virtual Machine}) \cite{jikes}
 (até 2001 conhecida como Jalapeño JVM) teve como objetivos iniciais
 suportar a arquitetura PowerPC \cite{powerpc} e fornecer uma JVM de
-alta performance. Enquanto conhecida como Jalapeño JVM, sua
+alto desempenho. Enquanto conhecida como Jalapeño JVM, sua
 distribuição era trabalhosa devido as licenças estabelecidas
 \cite{jikesrvm2}. A renomeação para Jikes RVM deveu-se a correções
 neste processo, tornando-a em um projeto de código livre. Neste momento
 também notou-se a necessidade de portar seu código para a arquitetura
 IA-32 \cite{jikesrvm2}, pelas mesmas razões defendidas neste trabalho.
 
-De acordo com \citeonline{jikes}, a Jalapeño/Jikes é escrita com a
-própria linguagem
+O trabalho de \citeonline{jikes}, descreve que a Jalapeño/Jikes é
+escrita com a própria linguagem
 \texttt{Java}. Para que não seja necessário o uso de outra máquina
 virtual para iniciar sua execução, uma imagem de incialização
 executável pré-compilada, contendo todos os serviços essenciais para
@@ -204,36 +204,30 @@ uma JVM, é criada para ser carregada em memória e então permitir sua
 execução.
 
 Esta máquina virtual não trabalha com interpretação de
-\textit{bytecodes},
-Um compilador \textit{baseline} é utilizado para
+\textit{bytecodes}, um compilador \textit{baseline} é utilizado para
 compilar todos os métodos de forma rápida. Métodos executados muito
 frequentemente são então recompilados com um compilador otimizador.
 Este compilador otimizador trabalha com 3 representações
-intermediárias: uma de alto nível independente de arquitetura e que
-trabalha com transferência de registradores, outra de
+intermediárias: \begin{inparaenum}[(1)]
+\item uma de alto nível independente de arquitetura e que
+trabalha com transferência de registradores; \item outra de
 baixo nível também independente mas com instruções semelhantes com as
-de uma arquitetura RISC \cite{risc}, e uma a nível da máquina alvo.
+de uma arquitetura RISC \cite{risc}; \item e uma a nível da máquina
+alvo\end{inparaenum}.
 
 O compilador otimizador trabalha com seleção de instruções por meio de
 padrões em árvores \cite{instrselect} e a
-%Para a fase de seleção de instruções é feito uso de um grafo de
-%dependência \cite{muhcnick} de cada bloco básico ...
-% XXX ainda é sobre o compilador otimizador
 alocação de registradores é feita através de uma variação do método
 de varredura linear \cite{linear_scan_regalloc}. Otimizações de
 eliminação de subexpressões comuns \cite{muchnick}, eliminação de
 movimentação redundante, propagação de cópias \cite{muchnick},
 eliminação de código morto \cite{allen_kennedy}, \textit{in-line} de
 métodos, entre várias outras são aplicadas por este compilador.
-% alocação de registradores por coloração de grafos para códigos mais
-% curtos ou ...
 
 Resultados do trabalho de \citeonline{jikes} demonstraram que, com a
 implementação descrita da Jikes RVM para IA-32, a
 utilização de alocação de registradores e seleção de instruções
 produzem código até quase 2 vezes mais eficiente quando comparado a
-%compilação sem estas técnicas. No presente trabalho a situação não
-%aplica-se estas técnicas, mas espera-se que elas também colaborem com
 compilação sem estas técnicas. O presente trabalho não
 faz uso destas técnicas, mas espera-se que elas também colaborem com
 o desempenho quando aplicadas.
@@ -271,12 +265,12 @@ a compilação de métodos por inteiro, sendo esta a maior semelhança com
 o trabalho proposto aqui.
 
 De forma geral, a avaliação de performance indicou que o gerador de
-código ágil (parecido, mas ainda mais
-avançado por inlcuir algumas otimizações, com o proposto aqui) é o que
-apresenta pior performance em
-relação as demais formas avaliadas: compilador otimizador sem
-informações de tempo de execução e outro que faz uso de recompilação
-dinâmica.
+código ágil (parecido, mas ainda mais avançado por inlcuir algumas
+otimizações, com o proposto aqui) é o que apresenta pior performance
+em relação as outras duas formas avaliadas:
+\begin{inparaenum}[(1)] \item compilador otimizador sem
+informações de tempo de execução; \item e outro que faz uso de recompilação
+dinâmica\end{inparaenum}.
 
 \subsection{IBM JDK}
 
@@ -285,10 +279,10 @@ de uma JVM desenvolvida na IBM que faz uso de compilação dinâmica com
 foco na arquitetura IA-32, assim como este trabalho.
 
 % XXX Citacao para DAG.
-A IBM JDK (\textit{Java Development Kit}) faz uso de 3 representações
-intermediárias: EBC
-(\textit{Extended Bytecode}) \nomenclature{EBC}{Extended Bytecode},
-quádruplas e DAG (\textit{Directed Acyclic Graph}).
+A IBM JDK (\textit{Java Development Kit}) utiliza 3 representações
+intermediárias: \begin{inparaenum}[(1)] \item EBC
+(\textit{Extended Bytecode})\nomenclature{EBC}{Extended Bytecode}; \item
+quádruplas; \item DAG (\textit{Directed Acyclic Graph})\end{inparaenum}.
 \nomenclature{DAG}{Directed Acyclic Graph}
 A segunda destas equivale à utilizada no trabalho
 em discussão, sendo baseada em registradores. A terceira também é
@@ -311,7 +305,7 @@ depois para o 3, pode ocorrer de, após passar pelo nível 1, um método
 ser compilado diretamente no nível 3.
 
 Uma variedade de otimizações são aplicadas em cada nível. Entre elas
-estão a  propagação de cópias e de constantes \cite{optconstprog},
+estão a propagação de cópias e de constantes \cite{optconstprog},
 eliminação de código morto,
 eliminação de verificação de exceção \cite{optelimverifcexec} e
 otimizações de laço \cite{muchnick}.
@@ -341,7 +335,7 @@ contador com decaímento exponencial, descrito em \cite{holzle}.
 Em um \textit{benchmark} envolvendo aritmética com números inteiros, o
 Psyco demonstrou melhoria de 109 vezes em relação ao interpretador
 \texttt{Python} padrão. O mesmo teste em \texttt{C} executou 281 vezes
-mais rápido que o interpretador. Ao medir o tempo da aritmética entre
+mais rápido que o interpretador. Ao medir o tempo de aritmética entre
 números complexos, um melhoria de 3,65 vezes foi reportada. Essa
 diminuição drástica entre os dois testes está relacionada com o fato
 do Psyco conseguir representar algumas funções de forma mais
