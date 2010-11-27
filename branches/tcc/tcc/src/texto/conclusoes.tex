@@ -1,20 +1,15 @@
 \chapter{Conclusões}
 \label{conclusao}
 
-%\begin{itemize}
-%\item contexto
-%\item o que foi feito
-%\item resultados obtidos
-%\item trabalhos futuros
-%\end{itemize}
-
 Um compilador não-otimizador JIT de modo misto para um subconjunto da
 linguagem \texttt{Tcl} foi
 desenvolvido e validou-se a melhoria de desempenho por meio da
 compilação dinâmica. Foi demonstrado um aumento de desempenho de mais
 de 29 vezes no melhor caso. Também verificou-se que o tempo
 de compilação foi baixo, levando cerca de $79 \times 10^{-6}$
-segundos para emitir 725 \textit{bytes}.
+segundos para emitir 725 \textit{bytes}. Identificou-se que a redução
+na quantidade de instruções de máquina executadas, em comparação ao
+interpretador, foi a causa do ganho de tempo.
 
 Entretanto, mesmo para um pequeno conjunto de
 instruções suportadas, a construção do compilador JIT não
