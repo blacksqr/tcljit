@@ -1,15 +1,5 @@
 \chapter{Introdução}
 
-% \begin{itemize}
-% \item contexto
-% \item problemática
-% \item proposta
-% \item motivação
-% \item justificava
-% \item resultados esperados
-% \item estrutura do texto
-% \end{itemize}
-
 As implementações de linguagens de programação dividem-se em três
 classes ao
 considerar o produto final de seus compiladores e demais
@@ -17,16 +7,11 @@ ferramentas envolvidas no processo de tradução. A primeira classe
 envolve linguagens que realizam exclusivamente compilação até
 chegar-se a código executável, a segunda engloba aquelas que
 unicamente interpretam o código fonte. A terceira classe, a mais
-flexível, é um modo misto (ou híbrido). Linguagens que, de alguma forma,
-realizam tradução além da construção de árvore sintática fazem parte
-deste último modo. A compilação híbrida está diretamente ligada a este
+flexível, contem aquelas que operam em um modo misto (ou híbrido).
+Linguagens que, de alguma forma,
+realizam tradução em tempo de execução fazem parte deste último modo.
+A compilação híbrida está diretamente ligada a este
 trabalho.
-%% que aceita as demais linguagens que fazem uso
-%%de alguma forma de tradução além da construção de árvore sintática.
-%%Esta última está intimamente ligada a
-%%este trabalho.
-% Mencionar conversores, compiladores binários e compiladores baseados
-% em representações em grafos ?
 
 Essa divisão em classes está relacionada com o avanço da computação,
 pois este propiciou
@@ -39,13 +24,7 @@ que sejam necessariamente compiladas (primeira classe).
 Considerando-se tempo de execução e
 consumo de memória, é esperado que um programa ganhe
 nesses quesitos quando implementado numa linguagem da primeira
-classe. Por essa razão,
-%, consequentemente,
-%facilitaram a criação de programas mais complexos. A execução de um
-%programa ocorre, de forma geral, mais rapidamente e também tende-se a gastar
-%menos memória quando compara-se linguagens da primeira classe com as
-%demais. Logo,
- os primeiros compiladores,
+classe. Por essa razão, os primeiros compiladores,
 devido aos recursos existentes na época, limitavam-se a esta
 forma e as linguagens ainda não se preocupavam com facilidade de uso.
 Mas, com o surgimento de programas maiores, viu-se a necessidade de
@@ -54,7 +33,7 @@ simplificada. %falar alguma coisa em relação a facilidade dessa interação?
 No caso do
 sistema operacional UNIX, isto ocorreu por meio da criação de
 um \textit{shell} que funciona puramente como um interpretador.
-%\cite{ksh}
+%\cite{ksh} -- não.
 
 A interpretação por parte das linguagens sacrifica desempenho em
 favor de um alto nível de abstração, possibilitando maior
@@ -62,15 +41,17 @@ expressividade, facilidade de
 desenvolvimento, portabilidade, flexibilidade e dinamicidade, entre
 outras características.
 
-De maneira semelhante com o \textit{shell} do UNIX,
-a linguagem de programação \texttt{Tcl} (\textit{Tool
-  Command Language}) teve como principal objetivo a
+De maneira semelhante ao \textit{shell} do UNIX,
+a linguagem de programação \texttt{Tcl} (\textit{Tool Command Language})
+\nomenclature{Tcl}{Tool Command Language}
+teve como principal objetivo a
 facilidade de incorporação (\textit{embedding}) a aplicações que
-necessitassem de uma linguagem de comandos simples de utilizar
-\cite{ousterhout_89}. Na época não havia um
+necessitassem de uma linguagem de comandos para
+interação com usuários \cite{ousterhout_89} .
+Na época não havia um
 incentivo computacional para utilizar este tipo de linguagem de forma
 ampla e, assim, o custo despendido pela interpretação não tinha
-impacto sob o sistema maior, pois os programas criados com estas linguagens
+impacto sobre o sistema maior, pois os programas criados com estas linguagens
 tendiam a ser bastante curtos. O autor da \texttt{Tcl} chegou a dizer
 que ``... quase todos ``programas'' em \texttt{Tcl} serão curtos,
 muitos de apenas uma linha. A maioria dos programas serão escritos,
@@ -80,12 +61,13 @@ descartados. ...'' \cite{ousterhout_89}.
 Com a evolução da capacidade computacional, as linguagens
 puramente interpretadas começaram a ser utilizadas em maior
 escala e o custo envolvido tornou-se mais óbvio.
-Começaram a surgir aplicativos desenvolvido com a
+Começaram a surgir aplicativos desenvolvidos com a
 \texttt{Tcl} contendo milhares de linhas,
 como, por exemplo, exmh \cite{exmh}, OpenACS \cite{openacs} ou mesmo o
 \textit{benchmark} de testes do GDB (\textit{GNU Debugger})
+\nomenclature{GDB}{GNU Debugger}
 \cite{gdb_testsuite}.
-Com isso, problemas relacionados a performance tornaram-se reais.
+Com isso, problemas relacionados ao desempenho tornaram-se reais.
 A ``solução'' inicial
 encontrada para a \texttt{Tcl} foi a
 reescrita de trechos críticos na
@@ -99,8 +81,8 @@ buscado melhorar a performance de linguagens interpretadas.
 Uma maneira de melhorar o desempenho da linguagem, sem retirar suas
 vantagens, envolve o uso do modo
 misto de compilação. As linguagens \texttt{Java} \cite{javaspec} e
-\texttt{Python} \cite{pythonspec} são exemplos
-conhecidos que fazem uso desta técnica, mas somente a primeira dessas
+\texttt{Python} \cite{pythonspec} por meio do Psyco \cite{psyco} são exemplos
+que fazem uso desta técnica, mas somente a primeira dessas
 atualmente consegue não depender de reescrita em outras linguagens
 para alcançar uma boa performance para os mais variados tipos
 de aplicações.
@@ -108,11 +90,14 @@ de aplicações.
 %linguagens de programação como \texttt{Java} ou \texttt{Python}, e
 %desde 1996 em \texttt{Tcl} \cite{tcl_bytecode}.
 
-A definição da terceira classe, envolvendo compilação
-mista, têm sido vaga. Isso é reflexo do que é possível neste
+A definição da terceira classe de implementações de linguagem,
+envolvendo compilação
+mista, têm sido vaga. Isso é reflexo do que é possível nesse
 modo. Poder-se-ia considerar a linguagem \texttt{Java} e uma
-implementação da JVM (\textit{Java Virtual Machine}) \cite{jvmspec} que trabalha com
-\textit{bytecodes} e também permite compilação JIT (\textit{Just-In-Time})
+implementação da JVM (\textit{Java Virtual Machine}) \cite{jvmspec}
+\nomenclature{JVM}{Java Virtual Machine}
+que trabalha com \textit{bytecodes} e também permite compilação JIT
+(\textit{Just-In-Time}) \nomenclature{JIT}{Just-In-Time}
 para código de máquina. Após realizar a
 tradução de código fonte para \textit{bytecodes}, a máquina virtual
 pode iniciar sua execução e interpretar essa forma de código.
@@ -120,16 +105,11 @@ pode iniciar sua execução e interpretar essa forma de código.
 de acordo com critérios estabelecidos, os \textit{bytecodes} venham a
 ser propriamente convertidos em código de máquina e ajustados no
 ambiente de execução de forma
-a possibilitar sua execução direta sem uso de um interpretador. Estas
-são duas formas de trabalhar com compilação mista, mas elas não
-caracterizam todas as possibilidades.% Pode-se também, por exemplo, combinar
-%compilação AOT (\textit{Ahead-Of-Time}) parcial juntamente com
-%interpretação de \textit{bytecodes}, mas esta forma não é o foco deste
-%trabalho.
-% Falar alguma coisa que essa segunda forma tende a melhorar ainda
-% mais a performance?
-%%Entretanto, os dois exemplos que acabaram de ser descritos não
-%%caracterizam todas as possibilidades do modo misto.
+a possibilitar sua execução direta sem uso de um interpretador.
+Mas esta situação cobre uma única possibilidade, deixando outras de fora.
+% XXX
+% Estas são duas formas de trabalhar com compilação mista, mas elas não
+% caracterizam todas as possibilidades.
 
 De forma geral, JIT refere-se a tradução de código sob demanda. Isso
 possibilita que o trabalho de \citeonline{tcl_bytecode} -- responsável
@@ -156,18 +136,21 @@ o uso de tal sistema de compilação. Esta técnica tornou-se mais popular a
 partir de diversas implementações de JVM, como a
 CACAO \cite{cacao}, JUDO \cite{judo},
 Jalapeño (Jikes RVM (\textit{Research Virtual
-  Machine})) \cite{jalapeno_1} e também a IBM \textit{Development Kit}
+  Machine})) \nomenclature{RVM}{Research Virtual Machine}
+\cite{jalapeno_1} e também a IBM \textit{Development Kit}
 \cite{suganuma_ibm}, que reportaram resultados
 significantes na redução de tempo de execução quando comparado a um
 interpretador de \textit{bytecodes}. Outras linguagens também têm
-recebido esforços nessa direção, um dos primeiros trabalhos foi o de
+recebido esforços nessa direção. Um dos primeiros trabalhos foi o de
 \citeonline{deutsch84efficient} para a \texttt{Smalltalk}; a
 linguagem \texttt{Self} contou com a implementação SELF-93, descrita
 no trabalho de \citeonline{holzle} e contribuiu para JVMs criadas mais
 tarde; para o
 \texttt{Python} há o Psyco
 \cite{psyco} e mais recentemente também a \textit{Unladen Swallow}
-que faz uso da LLVM \cite{llvm1}. Todos estes trabalhos têm em comum,
+que faz uso da LLVM \cite{llvm1}
+\nomenclature{LLVM}{Low Level Virtual Machine}.
+Todos estes trabalhos têm em comum,
 além do uso de compilação dinâmica, o uso de
 compiladores otimizadores.
 
@@ -226,7 +209,7 @@ decodificação. Demonstrou-se que em certos casos o desempenho da
 linguagem pode melhorar em até 60\% com a aplicação dessa técnica.
 Esse trabalho é provavelmente o mais próximo, quando considerando
 somente a \texttt{Tcl}, do que se pretende produzir aqui.
-Mas ele não gera código, apenas cópia código já gerado por um compilador
+Mas ele não gera código, apenas copia código já gerado por um compilador
 estático e replica conforme necessário, fazendo os devidos
 ajustes, em tempo de execução. Por um lado o tempo de ``compilação'' é
 bastante baixo, porém, não dá espaço para técnicas de otimização,
@@ -237,26 +220,25 @@ JIT não-otimizador para um subconjunto da linguagem \texttt{Tcl}. O
 propósito é obter um tempo de decodificação e interpretação
 reduzido em relação ao da máquina virtual da mesma. Espera-se que o nível de
 simplicidade, manutenibilidade e flexibilidade atingidos possam
-permitir extensões e desenvolvimento futuro sobre este trabalho inicial.
-A arquitetura IA-32 \cite{intel_basicarch} foi escolhida como alvo, pois está presente em boa
+permitir extensões e desenvolvimentos futuros sobre este trabalho inicial.
+A arquitetura IA-32 \cite{intel_basicarch} foi escolhida como alvo,
+pois está presente em boa
 parte dos computadores de uso pessoal. Embora a linguagem \texttt{Tcl}
 atualmente execute em outras arquiteturas, como IA-64
 \cite{intel_basicarch} e ARM \cite{arm_arch}, pretendeu-se alcançar um
 nível de simplicidade que permita a portabilidade do sistema sem
-tornar a tarefa demasiadamente complexa. Para a representação intermediária este trabalho fez uso de
-quádruplas \cite{muchnick} que são utilizadas para formar
+tornar a tarefa demasiadamente complexa. Para a representação
+intermediária, este trabalho fez uso de
+quádruplas \cite{muchnick}, que são utilizadas para formar
 blocos básicos e
-formar grafos de fluxo de controle (CFG -- \textit{Control Flow
-  Graph}). Esta representação é de nível médio e
+construir grafos de fluxo de controle (CFG -- \textit{Control Flow
+  Graph}) \nomenclature{CFG}{Control Flow Graph}.
+Esta representação é de nível médio e
 o CFG é diretamente utilizado na geração de código de máquina.
-% Falar sobre a "alocação de registradores".
 
 O Capítulo \ref{compdyn} apresenta conceitos da compilação dinâmica e
 realiza uma revisão bibliográfica descrevendo trabalhos que, de alguma
 forma, influenciaram o desenvolvimento deste compilador JIT.
-% buscaram melhorar o desempenho da \texttt{Tcl}. Também são
-%descritos alguns projetos de compiladores JIT que apresentem alguma
-%semelhança com o presente trabalho.
 
 O Capítulo \ref{tcljit} inicia com uma descrição da linguagem
 \texttt{Tcl} e, em seguida, descreve a estrutura e o funcionamento do
@@ -269,109 +251,3 @@ execução em relação ao interpretador da \texttt{Tcl}.
 
 E, por fim, o Capítulo \ref{conclusao} apresenta as conclusões e os
 trabalhos futuros.
-% A seção \ref{rev_biblio} realiza uma revisão bibliográfica relevando
-% trabalhos que, de alguma forma, buscaram melhorar a performance da
-% \texttt{Tcl}. Também descrevemos brevemente alguns projetos de
-% compiladores JIT que apresentam alguma semelhança com o nosso. Em
-% seguida, na seção \ref{proposta} é descrito uma proposta um pouco mais
-% detalhada a respeito desse compilador. Na seção \ref{desenvolvimento}
-% alguns detalhes do que já foi desenvolvido são apresentados, incluindo a
-% estrutura atual para quádruplas e blocos básicos, código de máquina
-% para IA-32, e também um pouco sobre a instalação e execução do
-% compilador JIT e do código nativo. As demais seções
-% se destinam a mencionar dificuldades encontradas até aqui, além de
-% descrever o que será feito a partir do ponto em que se encontra o
-% trabalho.
-
-
-% \section{Proposta}
-% \label{proposta}
-
-% A seguir é discutido a proposta atual do projeto e sua evolução ao
-% longo da implementação.
-
-% Para chegar ao código de máquina final, esse projeto se propôs em
-% um primeiro momento estudar e definir qual subconjunto da linguagem poderia
-% se beneficiar mais com tal técnica. O subsistema de Entrada/Saída, por
-% exemplo, dificilmente ganharia em desempenho com compilação dinâmica
-% uma vez que o tempo gasto para transferência e aguardo por dispositivos
-% costuma ser muito maior que o tempo das outras operações envolvidas.
-% Por outro lado, operações aritméticas podem ser bastante favorecidas.
-% O trabalho feito no Psyco, mostra melhoria
-% de 109 vezes no tempo de execução para aritmética de inteiros e 10,9
-% vezes em aritmética de ponto flutuante \cite{psyco}. Após essa
-% primeira análise, vê-se que entre todos os
-% \textit{opcodes} definidos cerca de 100 deles são de
-% uso geral, enquanto que o restante é dedicado a alguns poucos comandos
-% pré-definidos. Além disso, por volta de 20 deles realizam a mesma
-% tarefa mas trabalham com operandos de tamanhos diferentes (1 ou 4
-% bytes). Também encontramos que dois \textit{opcodes} são obsoletos,
-% reduzindo um pouco mais o subconjunto de trabalho.
-
-% Em paralelo ao requisito acima, foi iniciado o projeto e
-% implementação de uma representação intermediária (IR) de nível
-% médio. Na versão anterior dessa proposta foi mencionado a existência
-% de uma IR de baixo nível, mas, baseado na experiência obtida durante a
-% implementação do gerador de código de máquina, concluiu-se que a
-% representação atual é melhor classificada como de nível médio
-% devido a distância da máquina alvo. Também num primeiro momento
-% sugerimos utilizar um conjunto reduzido de instruções (RISC), assim
-% como é feito na \textit{GNU lightning} \cite{gnu_lightning}, para
-% construir uma árvore de instruções mais próximas da máquina
-% alvo. Parte dessa decisão inicial ainda se mantém, o uso de algo
-% parecido com RISC, mas partimos para uso de quádruplas e sugerimos o
-% uso da representação SSA, que seria seguida dessa outra. Atualmente o
-% uso de SSA se enquadra em um trabalho futuro.
-% A escolha inicial por árvores foi devido
-% a existência de diversos métodos para seleção de
-% instruções que trabalham sobre essa forma de representação
-% \cite{ir_tree_parsing}, mas trabalhar com quádruplas se mostrou
-% simples.
-
-% O sistema de compilação dinâmica precisa ser
-% capaz de determinar quando iniciar e parar a geração de código.
-% Neste projeto atualmente é feito uso dos
-% limites de um procedimento como pontos de início e parada. Também é
-% interessante que o sistema colete informações, como de tipos
-% utilizados, para possivelmente permitir gerar código mais específico
-% para alguns trechos ou também analisar a forma com que certos procedimentos
-% são mais frequentemente utilizados. Alguns tipos numéricos da
-% \texttt{Tcl} vem sendo coletados durante a interpretação pela máquina
-% virtual mas ainda não são utilizados na compilação JIT.
-
-% Após essas etapas pretendia-se aplicar pelo menos algumas das
-% otimizações clássicas tais como remoção de código morto, propagação de
-% constantes e movimentação de código. A etapa de otimização foi
-% realocada para algum momento após a implementação do gerador de código
-% estar mais completo.
-
-% Chegamos, assim, na fase de seleção de instruções
-% seguida de alocação de registradores. Há diversos algoritmos, como
-% \textit{Maximal Munch}, seleção com uso de programação dinâmica ou
-% NOLTIS \cite{noltis}  para seleção de instruções além de vários
-% outros, por coloração de grafos ou mesmo por meio de uma varredura
-% linear \cite{linear_scan_regalloc} (com ou sem \cite{wimmer_franz}
-% desconstrução da representação SSA), para alocação de registradores.
-% Atualmente, a seleção de instruções é feita de forma
-% rudimentar (ou até mesmo inexistente). Cada quádrupla gerada define uma
-% instrução e esta, por sua vez, é utilizada durante a geração de código
-% para escolher um caminho no \textit{switch} de instruções e produzir
-% uma sequência de instruções de máquina pré-estabelecidas. Essa forma
-% de ``seleção'' é bastante econômica em termos computacionais, mas não
-% se preocupa com o custo combinado de instruções. % A alocação de
-% %registradores ... XXX ....
-% A possibilidade de métodos mais sofisticados ainda é
-% possível mas se tornou um ponto para um projeto futuro.
-
-% Finalmente temos a geração de código. O foco desse trabalho é a
-% arquitetura IA-32, que possui uma ampla quantidade de instruções, extensões e
-% diversas formas de endereçamento.
-% Porém, muitos dos recursos existentes não têm sido aproveitados de
-% forma a tornar factível a criação do gerador.
-% Idéias e trechos de trabalhos anteriores, como Harpy \cite{harpy}
-% ou o \textit{Tiny Code Generator} (incluído nas versões mais recentes do
-% QEMU \cite{qemu}), podem ser reutilizadas aqui mas até o momento a
-% implementação tem ocorrido seguindo manuais da Intel
-% \cite{intel_aam}\cite{intel_naz}. Ainda, de forma semelhante com a
-% etapa anterior, a infraestrutura permitirá a implantação de geração de
-% código para outras arquiteturas.
