@@ -6,15 +6,16 @@
 \end{center}
 }
 
-Linguagens de programação interpretadas têm trocado performance por
-maior expressividade, flexibilidade e dinamicidade. A reescrita de
-trechos de código críticos em linguagens compiladas tem sido empregada
-como meio de reduzir o impacto da máquina virtual no tempo de execução
-de programas.
-
-Diante disso, um compilador JIT não-otimizador para um subconjunto
-da linguagem \texttt{Tcl} é proposto como forma de tentar diminuir a
-necessidade de tal reescrita de código. Optou-se pelo modo misto de
+%Linguagens de programação interpretadas têm trocado performance por
+%maior expressividade, flexibilidade e dinamicidade. A reescrita de
+%trechos de código críticos em linguagens compiladas tem sido empregada
+%como meio de reduzir o impacto da máquina virtual no tempo de execução
+%de programas.
+A compilação dinâmica tem sido utilizada em implementações de
+linguagens de programação interpretadas que buscam maior
+desempenho. De modo a trazer esta técnica para a linguagem
+\texttt{Tcl}, um compilador JIT não-otimizador para um subconjunto
+da mesma é proposto. Optou-se pelo modo misto de
 execução, fazendo com que a execução de código de máquina, gerado por
 este compilador dinâmico, e a interpretação pura se alternem. A
 unidade de compilação foi tomada como procedimentos por inteiro, tendo
@@ -24,12 +25,13 @@ sucesso. Uma representação intermediária construída por quádruplas foi
 escolhida, sendo estas utilizadas até a fase de geração de código para
 a arquitetura IA--32. Simplicidade, manutenibilidade e flexibilidade
 foram as características seguidas na construção desta ferramenta.
-
 Para avaliar o desempenho do compilador, foram desenvolvidos 6
 \textit{benchmarks} específicos. Em média, os dados coletados
 indicaram uma melhoria entre 1,25 e 23,55 vezes em relação ao tempo de
-execução por parte do interpretador.% Esse ganho está diretamente
-%relacionado as simplificações empregadas na geração de código.
+execução por parte do interpretador. O tempo de compilação ficou
+abaixo de 80 micro segundos. Além disso, o código gerado reduziu em até
+96,9\% a quantidade de instruções de máquina executadas em comparação
+ao interpretador.
 
 \quad\\
 \quad\\
