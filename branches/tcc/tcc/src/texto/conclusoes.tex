@@ -8,11 +8,11 @@
 %\item trabalhos futuros
 %\end{itemize}
 
-Um compilador JIT não-otimizador de modo misto para um subconjunto da
+Um compilador não-otimizador JIT de modo misto para um subconjunto da
 linguagem \texttt{Tcl} foi
 desenvolvido e validou-se a melhoria de desempenho por meio da
-compilação dinâmica. No melhor caso, uma melhoria de mais de 29 vezes
-foi demonstrada. Também verificou-se que o tempo
+compilação dinâmica. Foi demonstrado um aumento de desempenho de mais
+de 29 vezes no melhor caso. Também verificou-se que o tempo
 de compilação foi baixo, levando cerca de $79 \times 10^{-6}$
 segundos para emitir 725 \textit{bytes}.
 
@@ -148,6 +148,6 @@ Aceitando apenas procedimentos folha, um recurso fundamental da
 linguagem \texttt{Tcl} fica excluído. Por ser uma linguagem de
 comandos, não suportar a realização de chamadas é uma grande
 restrição. O trabalho a ser desenvolvido nesta direção precisa se
-preocupar com os detalhes de interação entre: \begin{inparaenum} \item
+preocupar com os detalhes de interação entre: \begin{inparaenum}[(1)] \item
   máquina virtual e código nativo; \item código nativo e código
   nativo\end{inparaenum}.
