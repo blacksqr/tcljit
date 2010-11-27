@@ -1,4 +1,4 @@
-\documentclass[brazil,12p,A4,openany,normaltoc]{abnt}
+\documentclass[brazil,12p,A4,openany,normaltoc,pnumromarab]{abnt}
 \usepackage{paralist}
 \usepackage{graphicx,url,subfigure}
 \usepackage[brazil]{babel}
@@ -57,18 +57,24 @@
 
 \baselineskip=.7cm
 
+\thispagestyle{empty}
 \input{capa.tex}
+\thispagestyle{empty}
 \input{folhaderosto.tex}
+\thispagestyle{empty}
 \input{assinaturas.tex}
+\thispagestyle{empty}
 \input{resumo.tex}
+\thispagestyle{empty}
 \input{abstract.tex}
 
 \pagenumbering{roman}
 
-\tableofcontents
-\listoffigures
-\listoftables
+\sumario
+\listadefiguras
+\listadetabelas
 \printnomenclature[3cm]
+\setcounter{page}{6} % XXX !!
 
 \pagebreak
 
