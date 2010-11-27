@@ -4,13 +4,7 @@
 \section{Metodologia}
 \label{sec:metodologia}
 
-%\begin{itemize}
-%\item o que e como avaliar
-%\item quais programas serão utilizados na avaliação
-%\end{itemize}
-
-% Reordenar frases: A segunda passa a ser a última.
-Para avaliar o desempenho do compilador JIT desenvolvido, foi feita uma
+Para avaliar o desempenho do compilador JIT desenvolvido, foi feito uma
 análise detalhada com seis \textit{benchmarks} simples. Todos os
 testes foram realizados em um computador com processador Intel Core 2
 Duo, modelo E4700; memória principal de 2 GiB de 666 MHz, DDR2 DIMM;
@@ -19,12 +13,10 @@ de: tempo total de execução (\textit{wallclock}),
 tempo da compilação JIT, tempo exclusivo de execução de procedimentos
 com e sem o JIT desenvolvido. Também coletou-se dados detalhados
 envolvendo a arquitetura do processador utilizado.
-% XXX Talvez coletar mais usando o PAPI, cache l1 hit/miss
-Em todos os casos fez-se uso da ferramenta PAPI \cite{papisite}
- 4.1.1 e,
+Em todos os casos fez-se uso da ferramenta PAPI \cite{papisite} 4.1.1 e,
 com exceção do \textit{wallclock}, a implementação da \texttt{Tcl} foi
 instrumentada para coletar os dados específicos. Foram utilizadas duas
-versões da \texttt{Tcl} 8.5.7, a padrão e outra modificada que inclui
+versões da \texttt{Tcl} 8.5.8, a padrão e outra modificada que inclui
 o compilador JIT, ambas compiladas com gcc \verb!-O2!.
 
 
@@ -38,11 +30,12 @@ uma avaliação inicial. Há uma suíte de testes para a \texttt{Tcl}, a Tclbenc
 testes lá existentes podem ser executados com sucesso neste sistema e,
 portanto, seu uso não foi considerado.
 
-Em todos os \textit{benchmarks} faz-se uso de um parâmetro $n$ com
+Em todos os \textit{benchmarks} fez-se uso de um parâmetro $n$ com
 significado específico para cada teste. Os \textit{benchmarks}
 utilizados foram:
-% (códigos ver apêndice
-%\ref{apendice-bench}).
+% XXX Não existe esse apêndice a seguir, mas talvez seja interessante
+% adicioná-lo?
+% (códigos ver apêndice \ref{apendice-bench}).
 
 \begin{description}
 \item[fact] Fatorial iterativo. Calcula $n$ vezes o fatorial dos
@@ -52,7 +45,7 @@ utilizados foram:
  $I \times J = \{(i, j) \mid i \in \mathbb{N} \wedge j \in \mathbb{N},
  i \le n \wedge j \le n\}$
 \item[gray] Calcula o código gray \cite{graycode} de um número;
-  quase um \textit{microbenchmark}. O parâmetro $n$ indica um
+  quase um \textit{microbenchmark}. O parâmetro $n$ indica o
   intervalo $[0, n)$ para ter seus respectivos códigos gray gerados.
 \item[prime] Verifica se um número é primo ou não. Parâmetro $n$
   define o intervalo ($[0, n]$) de números a serem verificados.
@@ -79,7 +72,7 @@ completas. As Figuras
 \ref{fig:fact-tempo}, \ref{fig:gcd-tempo}, \ref{fig:gray-tempo},
 \ref{fig:prime-tempo}, \ref{fig:sum1-tempo} e \ref{fig:sum2-tempo}
 apresentam os dados obtidos para os seis \textit{benchmarks}
-distintos. Em todos os casos foram realizadas 100 execuções com tamanho de
+distintos. Em todos os casos foram realizadas 100 execuções com tamanho
 $n$ uniformemente espaçado entre os valores mínimo e máximo utilizados.
 
 \begin{figure}[ht!]
@@ -123,21 +116,18 @@ Dentre os testes, \textbf{sum$_1$} (Figura
 redução (mais de 20 vezes em média). Isto é reflexo do código ali
 contido, sendo constituído principalmente de deslocamentos entre
 endereços da pilha e soma de inteiros. O gerador de código atual
-consegue eliminar boa parde de toda a movimentação de objetos de tipo
+consegue eliminar boa parte de toda a movimentação de objetos de tipo
 \verb!Tcl_Obj!, realizando todas as conversões de \verb!Tcl_Obj! para
 inteiro (se possível) num bloco básico especial dedicado para esta
-tarefa.
-% XXX esse bloco básico especial é aquele gerado na reordenação
-% de instruções
+tarefa (Seção \ref{intermediate}).
 Com isso, é possível trabalhar com instruções de máquina que operam
 diretamente sobre esses valores inteiros e elimina-se muito do
 \textit{overhead} existente na máquina virtual \texttt{Tcl}. O teste
 \textbf{sum$_2$} (Figura \ref{fig:sum2-tempo}) também
 apresentou um ganho significativo, apesar de fazer uso de divisão por
 constante com uso da \verb!IDIV!. Esta é a forma mais simples e geral de
-realizar a divisão, mas os compiladores otimizadores a evitam
-\cite{opt-invariantintdiv} por consumir muitos ciclos.
-%XXX Será que ficou claro por que teve os ganhos ?
+realizar a divisão, mas os compiladores otimizadores a evitam, quando
+possível, \cite{opt-invariantintdiv} por consumir muitos ciclos.
 
 Os \textit{benchmarks} \textbf{fact} (Figura \ref{fig:fact-tempo}),
 \textbf{gcd} (Figura \ref{fig:gcd-tempo}) e \textbf{gray} (Figura
@@ -165,17 +155,6 @@ modificações no ambiente do sistema operacional podem causar pequenas
 flutuações e anomalias nos resultados. Com estes dados, ainda não é
 possível concluir que, de fato, o tempo de compilação influenciou
 nesse fenômeno observado.
-
-%XXX Quantidade de execuções, nao influencia as curvas ? Talvez
-%compilar algo depois de 1 execução nao tenha muita vantagem.
-
-%prime: 768 bytes
-%sum2: 633 bytes
-%gcd: 401 bytes
-%sum1: 363 bytes
-
-%fact: 367 bytes
-%gray: 179 bytes
 
 Para facilitar a visualização da diferença de desempenho,
 destaca-se a Figura \ref{fig:media-tempo}. O \textit{microbenchmark}
@@ -208,7 +187,7 @@ A linha de tendência 1, para os \textit{bytes}, é
 descrita por $y = 10,143x^2 + 31,771x + 168.8$ e apresenta um índice
 de correlação com os dados de 0,9379. Enquanto isso, a linha de
 tendência 2 é dada por $y = 1,3571x^2 - 3,9x + 52,4$ com índice de
-correlação de 0,9876. Onde $1 \le x \le 6$. A tendência é que o tempo
+correlação de 0,9876, onde $1 \le x \le 6$. A tendência é que o tempo
 de compilação continue baixo.
 
 \begin{figure}[ht]
@@ -218,7 +197,7 @@ de compilação continue baixo.
 \end{figure}
 
 A Tabela \ref{tabela-execacc} apresenta os resultados do último teste
-desta seção. Para chegar-se a estes dados, utilizou-se dados dos
+desta seção. Para chegar-se a estes resultados, utilizou-se dados dos
 resultados anteriores para $n$ no maior caso e depois $n$ foi fixado
 de acordo com o valor máximo utilizado nos testes específicos de
 \textit{wallclock} e, então, foram feitas 10 execuções em cada
@@ -243,8 +222,7 @@ situação nova e tomada a média do tempo.
   \end{tabular}
 \end{table}
 
-% XXX Coletar novamente tempo para prime, sum1 e sum2 nos testes acima.
-%XXX Comentar Tabela \ref{tabela-execacc}
+% XXX Esse parágrafo ficou muito muito muito estranho.
 A última coluna da Tabela \ref{tabela-execacc} refere-se a melhoria na
 nova situação: tempo exclusivo com JIT e sem JIT. Os
 \textit{benchmarks} \textbf{fact}, \textbf{gcd} e \textbf{gray} que
@@ -258,11 +236,9 @@ entre os tempos das colunas ``Total'' e ``Exclusivo'' para o caso sem
 JIT é maior, indicando que o sistema de compilação possa estar
 despendendo tempo extra em alguma atividade realizada.
 
-%%% Não consegui fazer dar tempo p/ entregar dia 05/11 :/
+
 \section{Análise Detalhada}
 
-%Para melhor averiguar os resultados apresentados até aqui, na próxima
-%seção é apresentada uma análise mais detalhada.
 De forma a verificar a qualidade do código gerado e também o motivo
 do mesmo ter maior desempenho que aquele gerado por um compilador
 otimizador para o interpretador, fez-se uso dos recursos disponíveis
@@ -270,10 +246,6 @@ para monitoramento de desempenho em \textit{hardware}. A ferramenta
 PAPI possibilitou o acesso a estas informações de mais baixo
 nível. Dentre os eventos monitorados pelo \textit{hardware} utilizado,
 aqueles descritos na Tabela \ref{eventospapi} foram analisados.
-%  de XXX eventos específicos
-% coletados por meio da ferramenta PAPI XXX. A Tabela \ref{eventospapi}
-% apresenta todos os eventos utilizados juntamente com seus respectivos
-% significados.
 
 \begin{table}[ht!]
   \caption{Eventos coletados com uso da PAPI \label{eventospapi}}
@@ -313,9 +285,8 @@ Os dados apresentados resultam da média de quatro execuções
 considerando exclusivamente a execução do procedimento que implementa
 o \textit{benchmark}. Além disso, $n$ foi fixado em $12$ para
 \textbf{fact}, $1000$ para \textbf{gray} e $10000$ para
-\textbf{prime} e foi feito uso de uma única chamada ao procedimento
+\textbf{sum$_1$} e foi feito uso de uma única chamada ao procedimento
 do \textit{benchmark} em cada execução.
-% XXX Falta dizer porque escolhi esses 3 benchmarks.
 
 \begin{table}[ht!]
   \caption{Resultados dos eventos monitorados com PAPI (parte 1) \label{detalhes1}}
